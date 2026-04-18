@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ActivityIndicator, ScrollView } from 'react-native'
+import {
+  View, Text, StyleSheet, TouchableOpacity,
+  ScrollView, RefreshControl, Alert
+} from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { walletAPI } from '../utils/api'
 
 export default function WalletScreen({ navigation }: any) {
   const [wallet, setWallet] = useState<any>(null)
-  const [amount, setAmount] = useState('')
-  const [description, setDescription] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [activeTab, setActiveTab] = useState<'credit' | 'debit'>('credit')
+  const [refreshing, setRefreshing] = useState(false)
+  const [filter, setFilter] = useState<'ALL' | 'CREDIT' | 'DEBIT'>('ALL')
 
   const loadWallet = async () => {
     try {
@@ -21,71 +22,118 @@ export default function WalletScreen({ navigation }: any) {
 
   useEffect(() => { loadWallet() }, [])
 
-  const handleTransaction = async () => {
-    if (!amount || !description) { Alert.alert('Error', 'Amount and description are required'); return }
-    try {
-      setLoading(true)
-      if (activeTab === 'credit') {
-        await walletAPI.credit(Number(amount), description)
-        Alert.alert('Success', `₦${Number(amount).toLocaleString()} added to your wallet!`)
-      } else {
-        await walletAPI.debit(Number(amount), description)
-        Alert.alert('Success', `₦${Number(amount).toLocaleString()} withdrawn!`)
-      }
-      setAmount(''); setDescription('')
-      await loadWallet()
-    } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.message || 'Something went wrong')
-    } finally {
-      setLoading(false)
-    }
+  const onRefresh = async () => {
+    setRefreshing(true)
+    await loadWallet()
+    setRefreshing(false)
   }
 
+  const filteredTransactions = wallet?.transactions?.filter((tx: any) => {
+    if (filter === 'ALL') return true
+    return tx.type === filter
+  })
+
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+    >
       <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.back}>← Back</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>My Wallet</Text>
+
         <View style={styles.balanceCard}>
-          <Text style={styles.balanceLabel}>Current Balance</Text>
+          <Text style={styles.balanceLabel}>Available Balance</Text>
           <Text style={styles.balanceAmount}>₦{wallet?.balance?.toLocaleString() || '0'}</Text>
+          <View style={styles.balanceRow}>
+            <View style={styles.balanceStat}>
+              <Text style={styles.balanceStatLabel}>Total Saved</Text>
+              <Text style={styles.balanceStatValue}>₦{wallet?.totalSaved?.toLocaleString() || '0'}</Text>
+            </View>
+            <View style={styles.balanceDivider} />
+            <View style={styles.balanceStat}>
+              <Text style={styles.balanceStatLabel}>Total Sent</Text>
+              <Text style={styles.balanceStatValue}>₦{wallet?.totalPayout?.toLocaleString() || '0'}</Text>
+            </View>
+          </View>
         </View>
       </LinearGradient>
 
-      <View style={styles.tabRow}>
-        <TouchableOpacity style={[styles.tab, activeTab === 'credit' && styles.activeTab]} onPress={() => setActiveTab('credit')}>
-          <Text style={[styles.tabText, activeTab === 'credit' && styles.activeTabText]}>➕ Add Money</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.tab, activeTab === 'debit' && styles.activeTab]} onPress={() => setActiveTab('debit')}>
-          <Text style={[styles.tabText, activeTab === 'debit' && styles.activeTabText]}>➖ Withdraw</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.form}>
-        <TextInput style={styles.input} placeholder="Amount (₦)" placeholderTextColor="#888" value={amount} onChangeText={setAmount} keyboardType="numeric" />
-        <TextInput style={styles.input} placeholder="Description" placeholderTextColor="#888" value={description} onChangeText={setDescription} />
-        <TouchableOpacity style={[styles.button, { backgroundColor: activeTab === 'credit' ? '#22c55e' : '#ef4444' }]} onPress={handleTransaction} disabled={loading}>
-          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{activeTab === 'credit' ? 'Add Money' : 'Withdraw'}</Text>}
-        </TouchableOpacity>
-      </View>
-
-      <Text style={styles.sectionTitle}>Transaction History</Text>
-      {wallet?.transactions?.map((tx: any) => (
-        <View key={tx.id} style={styles.txCard}>
-          <View style={[styles.txIconCircle, { backgroundColor: tx.type === 'CREDIT' ? '#e8f5e9' : '#ffebee' }]}>
-            <Text>{tx.type === 'CREDIT' ? '⬆️' : '⬇️'}</Text>
-          </View>
-          <View style={styles.txMiddle}>
-            <Text style={styles.txDesc} numberOfLines={1}>{tx.description}</Text>
-            <Text style={styles.txDate}>{new Date(tx.createdAt).toLocaleDateString()}</Text>
-          </View>
-          <Text style={[styles.txAmount, { color: tx.type === 'CREDIT' ? '#22c55e' : '#ef4444' }]}>
-            {tx.type === 'CREDIT' ? '+' : '-'}₦{tx.amount.toLocaleString()}
-          </Text>
+      {/* How to fund wallet info */}
+      <View style={styles.infoCard}>
+        <Text style={styles.infoIcon}>💡</Text>
+        <View style={styles.infoText}>
+          <Text style={styles.infoTitle}>How to fund your wallet</Text>
+          <Text style={styles.infoDesc}>Transfer money to your OWODE virtual account number. It will reflect here instantly once Providus integration is live.</Text>
         </View>
-      ))}
+      </View>
+
+      {/* Quick Actions */}
+      <View style={styles.actionsRow}>
+        <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('Transfer')}>
+          <Text style={styles.actionBtnIcon}>💸</Text>
+          <Text style={styles.actionBtnText}>Send Money</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.actionBtn} onPress={() => Alert.alert('Coming Soon', 'Bank withdrawal will be available after Providus integration!')}>
+          <Text style={styles.actionBtnIcon}>🏦</Text>
+          <Text style={styles.actionBtnText}>Withdraw</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('Ajo')}>
+          <Text style={styles.actionBtnIcon}>🤝</Text>
+          <Text style={styles.actionBtnText}>Ajo Groups</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Transaction History */}
+      <View style={styles.historyHeader}>
+        <Text style={styles.historyTitle}>Transaction History</Text>
+        <View style={styles.filterRow}>
+          {(['ALL', 'CREDIT', 'DEBIT'] as const).map(f => (
+            <TouchableOpacity
+              key={f}
+              style={[styles.filterBtn, filter === f && styles.filterBtnActive]}
+              onPress={() => setFilter(f)}
+            >
+              <Text style={[styles.filterBtnText, filter === f && styles.filterBtnTextActive]}>{f}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+
+      {filteredTransactions?.length === 0 ? (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyIcon}>📭</Text>
+          <Text style={styles.emptyText}>No transactions yet</Text>
+          <Text style={styles.emptySubText}>Your transaction history will appear here</Text>
+        </View>
+      ) : (
+        filteredTransactions?.map((tx: any) => (
+          <TouchableOpacity
+            key={tx.id}
+            style={styles.txCard}
+            onPress={() => navigation.navigate('Receipt', { transaction: tx })}
+          >
+            <View style={[styles.txIconCircle, { backgroundColor: tx.type === 'CREDIT' ? '#e8f5e9' : '#ffebee' }]}>
+              <Text style={styles.txIcon}>{tx.type === 'CREDIT' ? '⬆️' : '⬇️'}</Text>
+            </View>
+            <View style={styles.txMiddle}>
+              <Text style={styles.txDesc} numberOfLines={1}>{tx.description}</Text>
+              <Text style={styles.txDate}>{new Date(tx.createdAt).toLocaleString()}</Text>
+              <Text style={[styles.txStatus, { color: tx.status === 'SUCCESS' ? '#22c55e' : '#f5a623' }]}>
+                {tx.status}
+              </Text>
+            </View>
+            <View style={styles.txRight}>
+              <Text style={[styles.txAmount, { color: tx.type === 'CREDIT' ? '#22c55e' : '#ef4444' }]}>
+                {tx.type === 'CREDIT' ? '+' : '-'}₦{tx.amount.toLocaleString()}
+              </Text>
+              <Text style={styles.txBalance}>Bal: ₦{tx.balance.toLocaleString()}</Text>
+            </View>
+          </TouchableOpacity>
+        ))
+      )}
     </ScrollView>
   )
 }
@@ -95,23 +143,42 @@ const styles = StyleSheet.create({
   header: { padding: 24, paddingTop: 60, paddingBottom: 30 },
   back: { color: '#f5a623', fontSize: 16, marginBottom: 16 },
   headerTitle: { color: '#fff', fontSize: 20, fontWeight: 'bold', marginBottom: 20 },
-  balanceCard: { backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 20, padding: 20, alignItems: 'center' },
+  balanceCard: { backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 20, padding: 24 },
   balanceLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 14 },
-  balanceAmount: { color: '#fff', fontSize: 40, fontWeight: 'bold', marginTop: 8 },
-  tabRow: { flexDirection: 'row', margin: 16, backgroundColor: '#fff', borderRadius: 12, padding: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
-  tab: { flex: 1, padding: 12, borderRadius: 10, alignItems: 'center' },
-  activeTab: { backgroundColor: '#0d47a1' },
-  tabText: { color: '#888', fontWeight: '600' },
-  activeTabText: { color: '#fff' },
-  form: { margin: 16 },
-  input: { backgroundColor: '#fff', borderRadius: 12, padding: 16, fontSize: 16, marginBottom: 16, color: '#333', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 1 },
-  button: { borderRadius: 12, padding: 16, alignItems: 'center' },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#0d47a1', marginHorizontal: 16, marginBottom: 12 },
-  txCard: { backgroundColor: '#fff', marginHorizontal: 16, marginBottom: 8, borderRadius: 12, padding: 16, flexDirection: 'row', alignItems: 'center' },
-  txIconCircle: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  balanceAmount: { color: '#fff', fontSize: 40, fontWeight: 'bold', marginVertical: 8 },
+  balanceRow: { flexDirection: 'row', justifyContent: 'space-around', marginTop: 8 },
+  balanceStat: { alignItems: 'center' },
+  balanceStatLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 12 },
+  balanceStatValue: { color: '#fff', fontSize: 16, fontWeight: 'bold', marginTop: 4 },
+  balanceDivider: { width: 1, backgroundColor: 'rgba(255,255,255,0.3)' },
+  infoCard: { backgroundColor: '#e3f2fd', margin: 16, borderRadius: 16, padding: 16, flexDirection: 'row', alignItems: 'flex-start' },
+  infoIcon: { fontSize: 24, marginRight: 12 },
+  infoText: { flex: 1 },
+  infoTitle: { fontSize: 14, fontWeight: 'bold', color: '#0d47a1', marginBottom: 4 },
+  infoDesc: { fontSize: 12, color: '#555', lineHeight: 18 },
+  actionsRow: { flexDirection: 'row', marginHorizontal: 16, gap: 12, marginBottom: 8 },
+  actionBtn: { flex: 1, backgroundColor: '#fff', borderRadius: 16, padding: 16, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
+  actionBtnIcon: { fontSize: 28, marginBottom: 8 },
+  actionBtnText: { fontSize: 12, color: '#0d47a1', fontWeight: '600', textAlign: 'center' },
+  historyHeader: { marginHorizontal: 16, marginTop: 16, marginBottom: 12 },
+  historyTitle: { fontSize: 18, fontWeight: 'bold', color: '#0d47a1', marginBottom: 12 },
+  filterRow: { flexDirection: 'row', gap: 8 },
+  filterBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: '#fff' },
+  filterBtnActive: { backgroundColor: '#0d47a1' },
+  filterBtnText: { fontSize: 13, color: '#888', fontWeight: '600' },
+  filterBtnTextActive: { color: '#fff' },
+  emptyState: { alignItems: 'center', padding: 40 },
+  emptyIcon: { fontSize: 40, marginBottom: 12 },
+  emptyText: { fontSize: 16, fontWeight: 'bold', color: '#333' },
+  emptySubText: { fontSize: 14, color: '#888', marginTop: 4, textAlign: 'center' },
+  txCard: { backgroundColor: '#fff', marginHorizontal: 16, marginBottom: 8, borderRadius: 12, padding: 16, flexDirection: 'row', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 1 },
+  txIconCircle: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  txIcon: { fontSize: 20 },
   txMiddle: { flex: 1 },
   txDesc: { fontSize: 14, color: '#333', fontWeight: '600' },
-  txDate: { fontSize: 12, color: '#888', marginTop: 2 },
-  txAmount: { fontSize: 16, fontWeight: 'bold' }
+  txDate: { fontSize: 11, color: '#888', marginTop: 2 },
+  txStatus: { fontSize: 11, fontWeight: '600', marginTop: 2 },
+  txRight: { alignItems: 'flex-end' },
+  txAmount: { fontSize: 15, fontWeight: 'bold' },
+  txBalance: { fontSize: 11, color: '#888', marginTop: 2 }
 })
