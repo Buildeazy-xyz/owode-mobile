@@ -8,6 +8,7 @@ import DashboardScreen from '../screens/DashboardScreen'
 import WalletScreen from '../screens/WalletScreen'
 import AjoScreen from '../screens/AjoScreen'
 import ProfileScreen from '../screens/ProfileScreen'
+import TransferScreen from '../screens/TransferScreen'
 
 const Stack = createNativeStackNavigator()
 
@@ -25,6 +26,7 @@ export default function AppNavigator() {
             <Stack.Screen name="Wallet" component={WalletScreen} />
             <Stack.Screen name="Ajo" component={AjoScreen} />
             <Stack.Screen name="Profile" component={ProfileScreen} />
+            <Stack.Screen name="Transfer" component={TransferScreen} />
           </>
         ) : (
           <>
