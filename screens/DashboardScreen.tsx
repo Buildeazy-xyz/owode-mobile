@@ -3,12 +3,15 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, A
 import { LinearGradient } from 'expo-linear-gradient'
 import { useAuth } from '../context/AuthContext'
 import { walletAPI } from '../utils/api'
+import * as Haptics from 'expo-haptics'
+
 
 export default function DashboardScreen({ navigation }: any) {
   const { user, logout } = useAuth()
   const [wallet, setWallet] = useState<any>(null)
   const [refreshing, setRefreshing] = useState(false)
 
+  
   const loadWallet = async () => {
     try {
       const response = await walletAPI.getBalance()
@@ -20,11 +23,13 @@ export default function DashboardScreen({ navigation }: any) {
 
   useEffect(() => { loadWallet() }, [])
 
-  const onRefresh = async () => {
-    setRefreshing(true)
-    await loadWallet()
-    setRefreshing(false)
-  }
+  
+const onRefresh = async () => {
+  setRefreshing(true)
+  await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+  await loadWallet()
+  setRefreshing(false)
+}
 
   return (
     <ScrollView style={styles.container} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>

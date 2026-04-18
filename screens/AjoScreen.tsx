@@ -136,6 +136,7 @@ export default function AjoScreen({ navigation }: any) {
                 </TouchableOpacity>
               ))}
             </View>
+            
             <TouchableOpacity style={styles.createGroupBtn} onPress={handleCreateGroup} disabled={loading}>
               {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.createGroupBtnText}>Create Group</Text>}
             </TouchableOpacity>
