@@ -21,12 +21,13 @@ interface AuthContextType {
   user: User | null
   token: string | null
   isLoading: boolean
-  login: (phone: string, pin: string) => Promise<void>
+  login: (phone: string, password: string) => Promise<void>
   register: (data: {
     fullName: string
     phone: string
     email?: string
-    pin: string
+    password: string
+    transactionPin: string
   }) => Promise<void>
   logout: () => Promise<void>
 }
@@ -56,8 +57,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     loadUser()
   }, [])
 
-  const login = async (phone: string, pin: string) => {
-    const response = await authAPI.login({ phone, pin })
+  const login = async (phone: string, password: string) => {
+    const response = await authAPI.login({ phone, password })
     const { user, token } = response.data.data
     await AsyncStorage.setItem('owode_token', token)
     await AsyncStorage.setItem('owode_user', JSON.stringify(user))
@@ -69,7 +70,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     fullName: string
     phone: string
     email?: string
-    pin: string
+    password: string
+    transactionPin: string
   }) => {
     const response = await authAPI.register(data)
     const { user, token } = response.data.data

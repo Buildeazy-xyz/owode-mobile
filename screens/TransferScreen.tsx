@@ -42,22 +42,29 @@ export default function TransferScreen({ navigation }: any) {
     }
   }
 
-  const executeTransfer = async () => {
-    try {
-      setLoading(true)
-      const response = await walletAPI.transfer(recipientPhone, Number(amount), description)
-      Alert.alert(
-        '✅ Transfer Successful!',
-        `₦${Number(amount).toLocaleString()} sent to ${response.data.data.recipient}!\n\nNew Balance: ₦${response.data.data.newBalance.toLocaleString()}`,
-        [{ text: 'Done', onPress: () => navigation.goBack() }]
-      )
-    } catch (error: any) {
-      Alert.alert('Transfer Failed', error.response?.data?.message || 'Something went wrong')
-    } finally {
-      setLoading(false)
-    }
+ const executeTransfer = async () => {
+  try {
+    setLoading(true)
+    const response = await walletAPI.transfer(recipientPhone, Number(amount), description, transactionPin)
+    navigation.replace('Receipt', {
+      transaction: {
+        type: 'DEBIT',
+        amount: Number(amount),
+        balance: response.data.data.newBalance,
+        description: `Transfer to ${response.data.data.recipient}`,
+        reference: response.data.data.reference,
+        status: 'SUCCESS',
+        createdAt: new Date().toISOString()
+      }
+    })
+  } catch (error: any) {
+    Alert.alert('Transfer Failed', error.response?.data?.message || 'Something went wrong')
+  } finally {
+    setLoading(false)
   }
-
+}
+const [transactionPin, setTransactionPin] = useState('')
+const [step, setStep] = useState<'form' | 'pin'>('form')
   const quickAmounts = [500, 1000, 2000, 5000, 10000, 20000]
 
   return (
@@ -124,7 +131,20 @@ export default function TransferScreen({ navigation }: any) {
             onChangeText={setDescription}
           />
         </View>
-
+onPress={() => {
+  if (!recipientPhone || !amount || !description) {
+    Alert.alert('Error', 'All fields are required')
+    return
+  }
+  Alert.alert(
+    'Confirm Transfer',
+    `Send ₦${Number(amount).toLocaleString()} to ${recipientPhone}?`,
+    [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Confirm & Enter PIN', onPress: () => setStep('pin') }
+    ]
+  )
+}}
         {/* Send Button */}
         <TouchableOpacity style={styles.sendButton} onPress={handleTransfer} disabled={loading}>
           {loading ? (

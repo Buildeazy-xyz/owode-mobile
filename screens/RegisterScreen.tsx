@@ -8,17 +8,27 @@ export default function RegisterScreen({ navigation }: any) {
   const [fullName, setFullName] = useState('')
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
-  const [pin, setPin] = useState('')
-  const [confirmPin, setConfirmPin] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [transactionPin, setTransactionPin] = useState('')
   const [loading, setLoading] = useState(false)
 
   const handleRegister = async () => {
-    if (!fullName || !phone || !pin) { Alert.alert('Error', 'Full name, phone and PIN are required'); return }
-    if (pin !== confirmPin) { Alert.alert('Error', 'PINs do not match'); return }
-    if (pin.length !== 4) { Alert.alert('Error', 'PIN must be exactly 4 digits'); return }
+    if (!fullName || !phone || !password || !transactionPin) {
+      Alert.alert('Error', 'All fields except email are required')
+      return
+    }
+    if (password !== confirmPassword) {
+      Alert.alert('Error', 'Passwords do not match')
+      return
+    }
+    if (transactionPin.length !== 4 || isNaN(Number(transactionPin))) {
+      Alert.alert('Error', 'Transaction PIN must be exactly 4 digits')
+      return
+    }
     try {
       setLoading(true)
-      await register({ fullName, phone, email, pin })
+      await register({ fullName, phone, email, password, transactionPin })
     } catch (error: any) {
       Alert.alert('Registration Failed', error.response?.data?.message || 'Something went wrong')
     } finally {
@@ -40,11 +50,24 @@ export default function RegisterScreen({ navigation }: any) {
         <Text style={styles.title}>Create Account</Text>
         <Text style={styles.subtitle}>Join millions saving with OWODE</Text>
 
-        <TextInput style={styles.input} placeholder="Full Name" placeholderTextColor="#888" value={fullName} onChangeText={setFullName} />
-        <TextInput style={styles.input} placeholder="Phone Number" placeholderTextColor="#888" value={phone} onChangeText={setPhone} keyboardType="phone-pad" maxLength={11} />
-        <TextInput style={styles.input} placeholder="Email (optional)" placeholderTextColor="#888" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
-        <TextInput style={styles.input} placeholder="4-digit PIN" placeholderTextColor="#888" value={pin} onChangeText={setPin} secureTextEntry keyboardType="numeric" maxLength={4} />
-        <TextInput style={styles.input} placeholder="Confirm PIN" placeholderTextColor="#888" value={confirmPin} onChangeText={setConfirmPin} secureTextEntry keyboardType="numeric" maxLength={4} />
+        <Text style={styles.inputLabel}>Full Name</Text>
+        <TextInput style={styles.input} placeholder="John Doe" placeholderTextColor="#888" value={fullName} onChangeText={setFullName} />
+
+        <Text style={styles.inputLabel}>Phone Number</Text>
+        <TextInput style={styles.input} placeholder="08012345678" placeholderTextColor="#888" value={phone} onChangeText={setPhone} keyboardType="phone-pad" maxLength={11} />
+
+        <Text style={styles.inputLabel}>Email (optional)</Text>
+        <TextInput style={styles.input} placeholder="john@email.com" placeholderTextColor="#888" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
+
+        <Text style={styles.inputLabel}>Password (letters + numbers)</Text>
+        <TextInput style={styles.input} placeholder="e.g. owode123" placeholderTextColor="#888" value={password} onChangeText={setPassword} secureTextEntry />
+
+        <Text style={styles.inputLabel}>Confirm Password</Text>
+        <TextInput style={styles.input} placeholder="Repeat password" placeholderTextColor="#888" value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry />
+
+        <Text style={styles.inputLabel}>4-digit Transaction PIN</Text>
+        <Text style={styles.inputHint}>Used to authorize money transfers</Text>
+        <TextInput style={styles.input} placeholder="e.g. 1234" placeholderTextColor="#888" value={transactionPin} onChangeText={setTransactionPin} secureTextEntry keyboardType="numeric" maxLength={4} />
 
         <TouchableOpacity style={styles.button} onPress={handleRegister} disabled={loading}>
           {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Create Account</Text>}
@@ -61,15 +84,17 @@ export default function RegisterScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0d47a1' },
   header: { paddingTop: 60, paddingBottom: 30, alignItems: 'center' },
-  logoCircle: { width: 70, height: 70, borderRadius: 35, backgroundColor: '#f5a623', justifyContent: 'center', alignItems: 'center', marginBottom: 10, shadowColor: '#f5a623', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.8, shadowRadius: 15, elevation: 10 },
+  logoCircle: { width: 70, height: 70, borderRadius: 35, backgroundColor: '#f5a623', justifyContent: 'center', alignItems: 'center', marginBottom: 10 },
   logoLetter: { fontSize: 36, fontWeight: 'bold', color: '#fff' },
   logo: { fontSize: 32, fontWeight: 'bold', color: '#fff', letterSpacing: 6 },
   tagline: { fontSize: 13, color: '#f5a623', marginTop: 4, letterSpacing: 3 },
   form: { backgroundColor: '#fff', borderTopLeftRadius: 30, borderTopRightRadius: 30, padding: 30 },
   title: { fontSize: 24, fontWeight: 'bold', color: '#0d47a1', marginBottom: 4 },
-  subtitle: { fontSize: 14, color: '#888', marginBottom: 30 },
+  subtitle: { fontSize: 14, color: '#888', marginBottom: 24 },
+  inputLabel: { fontSize: 13, fontWeight: '600', color: '#0d47a1', marginBottom: 6 },
+  inputHint: { fontSize: 11, color: '#888', marginBottom: 6, marginTop: -4 },
   input: { backgroundColor: '#f5f5f5', borderRadius: 12, padding: 16, fontSize: 16, marginBottom: 16, color: '#333' },
-  button: { backgroundColor: '#0d47a1', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 20 },
+  button: { backgroundColor: '#0d47a1', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 20, marginTop: 8 },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
   link: { textAlign: 'center', color: '#888', fontSize: 14, marginBottom: 40 },
   linkBold: { color: '#f5a623', fontWeight: 'bold' }

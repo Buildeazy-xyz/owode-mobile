@@ -9,6 +9,8 @@ import WalletScreen from '../screens/WalletScreen'
 import AjoScreen from '../screens/AjoScreen'
 import ProfileScreen from '../screens/ProfileScreen'
 import TransferScreen from '../screens/TransferScreen'
+import ReceiptScreen from '../screens/ReceiptScreen'
+import SetAppPinScreen from '../screens/SetAppPinScreen'
 
 const Stack = createNativeStackNavigator()
 
@@ -27,6 +29,9 @@ export default function AppNavigator() {
             <Stack.Screen name="Ajo" component={AjoScreen} />
             <Stack.Screen name="Profile" component={ProfileScreen} />
             <Stack.Screen name="Transfer" component={TransferScreen} />
+            <Stack.Screen name="Receipt" component={ReceiptScreen} />
+            <Stack.Screen name="SetAppPin" component={SetAppPinScreen} />
+
           </>
         ) : (
           <>

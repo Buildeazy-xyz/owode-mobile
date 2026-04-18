@@ -112,6 +112,16 @@ export default function ProfileScreen({ navigation }: any) {
           </View>
         </View>
       </View>
+      {/* App PIN Setup */}
+<View style={styles.section}>
+  <Text style={styles.sectionTitle}>App Security</Text>
+  <TouchableOpacity
+    style={styles.submitBtn}
+    onPress={() => navigation.navigate('SetAppPin')}
+  >
+    <Text style={styles.submitBtnText}>🔒 Set App PIN (6 digits)</Text>
+  </TouchableOpacity>
+</View>
 
       {/* Submit BVN */}
       {!kycStatus?.hasBVN && (
