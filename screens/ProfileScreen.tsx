@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import {
-  View, Text, StyleSheet, TouchableOpacity,
-  Alert, ScrollView, TextInput, ActivityIndicator
-} from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, TextInput, ActivityIndicator } from 'react-native'
 import { useAuth } from '../context/AuthContext'
 import { kycAPI } from '../utils/api'
 
@@ -18,17 +15,14 @@ export default function ProfileScreen({ navigation }: any) {
       const response = await kycAPI.getStatus()
       setKycStatus(response.data.data)
     } catch (error) {
-      console.error('KYC load error')
+      console.log('KYC status not loaded')
     }
   }
 
   useEffect(() => { loadKYC() }, [])
 
   const handleSubmitBVN = async () => {
-    if (!bvn || bvn.length !== 11) {
-      Alert.alert('Error', 'BVN must be exactly 11 digits')
-      return
-    }
+    if (!bvn || bvn.length !== 11) { Alert.alert('Error', 'BVN must be exactly 11 digits'); return }
     try {
       setLoading(true)
       await kycAPI.submitBVN(bvn)
@@ -42,10 +36,7 @@ export default function ProfileScreen({ navigation }: any) {
   }
 
   const handleSubmitNIN = async () => {
-    if (!nin || nin.length !== 11) {
-      Alert.alert('Error', 'NIN must be exactly 11 digits')
-      return
-    }
+    if (!nin || nin.length !== 11) { Alert.alert('Error', 'NIN must be exactly 11 digits'); return }
     try {
       setLoading(true)
       await kycAPI.submitNIN(nin)
@@ -75,7 +66,6 @@ export default function ProfileScreen({ navigation }: any) {
         <View />
       </View>
 
-      {/* Profile Info */}
       <View style={styles.profileCard}>
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>{user?.fullName?.charAt(0)}</Text>
@@ -87,9 +77,33 @@ export default function ProfileScreen({ navigation }: any) {
         </View>
       </View>
 
+      {/* Security Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>🔐 Security</Text>
+        <View style={styles.menuCard}>
+          <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('SetTransactionPin')}>
+            <Text style={styles.menuIcon}>💳</Text>
+            <View style={styles.menuText}>
+              <Text style={styles.menuLabel}>Transaction PIN</Text>
+              <Text style={styles.menuSub}>{user?.hasTransactionPin ? 'PIN is set ✅' : 'Not set — tap to set'}</Text>
+            </View>
+            <Text style={styles.menuArrow}>→</Text>
+          </TouchableOpacity>
+          <View style={styles.menuDivider} />
+          <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('SetAppPin')}>
+            <Text style={styles.menuIcon}>🔒</Text>
+            <View style={styles.menuText}>
+              <Text style={styles.menuLabel}>App Lock PIN</Text>
+              <Text style={styles.menuSub}>6-digit PIN when reopening app</Text>
+            </View>
+            <Text style={styles.menuArrow}>→</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
       {/* KYC Status */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>KYC Status</Text>
+        <Text style={styles.sectionTitle}>📋 KYC Status</Text>
         <View style={styles.kycCard}>
           <View style={styles.kycRow}>
             <Text style={styles.kycLabel}>BVN</Text>
@@ -106,22 +120,11 @@ export default function ProfileScreen({ navigation }: any) {
           <View style={styles.kycRow}>
             <Text style={styles.kycLabel}>Status</Text>
             <Text style={[styles.kycStatus, {
-              color: kycStatus?.status === 'VERIFIED' ? '#22c55e' :
-                kycStatus?.status === 'PENDING' ? '#f5a623' : '#ef4444'
-            }]}>{kycStatus?.status}</Text>
+              color: kycStatus?.status === 'VERIFIED' ? '#22c55e' : kycStatus?.status === 'PENDING' ? '#f5a623' : '#ef4444'
+            }]}>{kycStatus?.status || 'UNVERIFIED'}</Text>
           </View>
         </View>
       </View>
-      {/* App PIN Setup */}
-<View style={styles.section}>
-  <Text style={styles.sectionTitle}>App Security</Text>
-  <TouchableOpacity
-    style={styles.submitBtn}
-    onPress={() => navigation.navigate('SetAppPin')}
-  >
-    <Text style={styles.submitBtnText}>🔒 Set App PIN (6 digits)</Text>
-  </TouchableOpacity>
-</View>
 
       {/* Submit BVN */}
       {!kycStatus?.hasBVN && (
@@ -145,7 +148,6 @@ export default function ProfileScreen({ navigation }: any) {
         </View>
       )}
 
-      {/* Logout */}
       <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
         <Text style={styles.logoutText}>Logout</Text>
       </TouchableOpacity>
@@ -155,24 +157,32 @@ export default function ProfileScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
-  header: { backgroundColor: '#1a1a2e', padding: 24, paddingTop: 60, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  header: { backgroundColor: '#0d47a1', padding: 24, paddingTop: 60, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   back: { color: '#f5a623', fontSize: 16 },
   headerTitle: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
   profileCard: { backgroundColor: '#fff', margin: 16, borderRadius: 20, padding: 24, alignItems: 'center' },
-  avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#f5a623', justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
+  avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#0d47a1', justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
   avatarText: { color: '#fff', fontSize: 32, fontWeight: 'bold' },
   name: { fontSize: 20, fontWeight: 'bold', color: '#1a1a2e' },
   phone: { fontSize: 14, color: '#888', marginTop: 4 },
   badge: { marginTop: 12, paddingHorizontal: 16, paddingVertical: 6, borderRadius: 20 },
   badgeText: { color: '#fff', fontWeight: 'bold', fontSize: 12 },
   section: { margin: 16, marginTop: 0 },
-  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#1a1a2e', marginBottom: 12 },
+  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#0d47a1', marginBottom: 12 },
+  menuCard: { backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden' },
+  menuItem: { flexDirection: 'row', alignItems: 'center', padding: 16 },
+  menuIcon: { fontSize: 24, marginRight: 12 },
+  menuText: { flex: 1 },
+  menuLabel: { fontSize: 15, fontWeight: '600', color: '#333' },
+  menuSub: { fontSize: 12, color: '#888', marginTop: 2 },
+  menuArrow: { color: '#888', fontSize: 18 },
+  menuDivider: { height: 1, backgroundColor: '#f5f5f5', marginLeft: 52 },
   kycCard: { backgroundColor: '#fff', borderRadius: 16, padding: 16 },
   kycRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#f5f5f5' },
   kycLabel: { fontSize: 14, color: '#333', fontWeight: '600' },
   kycStatus: { fontSize: 14, fontWeight: '600' },
   input: { backgroundColor: '#fff', borderRadius: 12, padding: 16, fontSize: 16, marginBottom: 12, color: '#333' },
-  submitBtn: { backgroundColor: '#1a1a2e', borderRadius: 12, padding: 16, alignItems: 'center' },
+  submitBtn: { backgroundColor: '#0d47a1', borderRadius: 12, padding: 16, alignItems: 'center' },
   submitBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
   logoutBtn: { margin: 16, backgroundColor: '#ef4444', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 40 },
   logoutText: { color: '#fff', fontSize: 16, fontWeight: 'bold' }

@@ -1,20 +1,20 @@
 import React, { useState } from 'react'
-import {
-  View, Text, StyleSheet, TouchableOpacity,
-  TextInput, Alert, ActivityIndicator,
-  ScrollView, KeyboardAvoidingView, Platform
-} from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { walletAPI } from '../utils/api'
+import PinKeypad from '../components/PinKeypad'
+import { useAuth } from '../context/AuthContext'
 
 export default function TransferScreen({ navigation }: any) {
+  const { user } = useAuth()
   const [recipientPhone, setRecipientPhone] = useState('')
   const [amount, setAmount] = useState('')
   const [description, setDescription] = useState('')
   const [loading, setLoading] = useState(false)
-  const [confirmed, setConfirmed] = useState(false)
+  const [step, setStep] = useState<'form' | 'pin'>('form')
+  const quickAmounts = [500, 1000, 2000, 5000, 10000, 20000]
 
-  const handleTransfer = async () => {
+  const handleContinue = () => {
     if (!recipientPhone || !amount || !description) {
       Alert.alert('Error', 'All fields are required')
       return
@@ -28,44 +28,73 @@ export default function TransferScreen({ navigation }: any) {
       return
     }
 
-    // Show confirmation first
-    if (!confirmed) {
+    // Check if transaction PIN is set
+    if (!user?.hasTransactionPin) {
       Alert.alert(
-        'Confirm Transfer',
-        `Send ₦${Number(amount).toLocaleString()} to ${recipientPhone}?`,
+        'Transaction PIN Required',
+        'You need to set a transaction PIN before making transfers.',
         [
           { text: 'Cancel', style: 'cancel' },
-          { text: 'Confirm', onPress: () => executeTransfer() }
+          { text: 'Set PIN Now', onPress: () => navigation.navigate('SetTransactionPin') }
         ]
       )
       return
     }
+
+    Alert.alert(
+      'Confirm Transfer',
+      `Send ₦${Number(amount).toLocaleString()} to ${recipientPhone}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Confirm & Enter PIN', onPress: () => setStep('pin') }
+      ]
+    )
   }
 
- const executeTransfer = async () => {
-  try {
-    setLoading(true)
-    const response = await walletAPI.transfer(recipientPhone, Number(amount), description, transactionPin)
-    navigation.replace('Receipt', {
-      transaction: {
-        type: 'DEBIT',
-        amount: Number(amount),
-        balance: response.data.data.newBalance,
-        description: `Transfer to ${response.data.data.recipient}`,
-        reference: response.data.data.reference,
-        status: 'SUCCESS',
-        createdAt: new Date().toISOString()
-      }
-    })
-  } catch (error: any) {
-    Alert.alert('Transfer Failed', error.response?.data?.message || 'Something went wrong')
-  } finally {
-    setLoading(false)
+  const executeTransfer = async (transactionPin: string) => {
+    try {
+      setLoading(true)
+      const response = await walletAPI.transfer(recipientPhone, Number(amount), description, transactionPin)
+      navigation.replace('Receipt', {
+        transaction: {
+          type: 'DEBIT',
+          amount: Number(amount),
+          balance: response.data.data.newBalance,
+          description: `Transfer to ${response.data.data.recipient}`,
+          reference: response.data.data.reference,
+          status: 'SUCCESS',
+          createdAt: new Date().toISOString()
+        }
+      })
+    } catch (error: any) {
+      Alert.alert('Transfer Failed', error.response?.data?.message || 'Something went wrong')
+      setStep('form')
+    } finally {
+      setLoading(false)
+    }
   }
-}
-const [transactionPin, setTransactionPin] = useState('')
-const [step, setStep] = useState<'form' | 'pin'>('form')
-  const quickAmounts = [500, 1000, 2000, 5000, 10000, 20000]
+
+  if (step === 'pin') {
+    return (
+      <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.pinContainer}>
+        {loading ? (
+          <ActivityIndicator size="large" color="#f5a623" />
+        ) : (
+          <>
+            <PinKeypad
+              title="Transaction PIN"
+              subtitle="Enter your 4-digit transaction PIN"
+              pinLength={4}
+              onComplete={executeTransfer}
+            />
+            <TouchableOpacity onPress={() => setStep('form')}>
+              <Text style={styles.backLink}>← Go back</Text>
+            </TouchableOpacity>
+          </>
+        )}
+      </LinearGradient>
+    )
+  }
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
@@ -78,78 +107,31 @@ const [step, setStep] = useState<'form' | 'pin'>('form')
       </LinearGradient>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Recipient */}
         <View style={styles.card}>
           <Text style={styles.label}>Recipient Phone Number</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="08012345678"
-            placeholderTextColor="#888"
-            value={recipientPhone}
-            onChangeText={setRecipientPhone}
-            keyboardType="phone-pad"
-            maxLength={11}
-          />
+          <TextInput style={styles.input} placeholder="08012345678" placeholderTextColor="#888" value={recipientPhone} onChangeText={setRecipientPhone} keyboardType="phone-pad" maxLength={11} />
         </View>
 
-        {/* Amount */}
         <View style={styles.card}>
           <Text style={styles.label}>Amount (₦)</Text>
-          <TextInput
-            style={styles.amountInput}
-            placeholder="0.00"
-            placeholderTextColor="#888"
-            value={amount}
-            onChangeText={setAmount}
-            keyboardType="numeric"
-          />
-          {/* Quick amounts */}
+          <TextInput style={styles.amountInput} placeholder="0.00" placeholderTextColor="#888" value={amount} onChangeText={setAmount} keyboardType="numeric" />
           <Text style={styles.quickLabel}>Quick Select</Text>
           <View style={styles.quickRow}>
             {quickAmounts.map(q => (
-              <TouchableOpacity
-                key={q}
-                style={[styles.quickBtn, amount === String(q) && styles.quickBtnActive]}
-                onPress={() => setAmount(String(q))}
-              >
-                <Text style={[styles.quickBtnText, amount === String(q) && styles.quickBtnTextActive]}>
-                  ₦{q.toLocaleString()}
-                </Text>
+              <TouchableOpacity key={q} style={[styles.quickBtn, amount === String(q) && styles.quickBtnActive]} onPress={() => setAmount(String(q))}>
+                <Text style={[styles.quickBtnText, amount === String(q) && styles.quickBtnTextActive]}>₦{q.toLocaleString()}</Text>
               </TouchableOpacity>
             ))}
           </View>
         </View>
 
-        {/* Description */}
         <View style={styles.card}>
           <Text style={styles.label}>Description</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="What is this for?"
-            placeholderTextColor="#888"
-            value={description}
-            onChangeText={setDescription}
-          />
+          <TextInput style={styles.input} placeholder="What is this for?" placeholderTextColor="#888" value={description} onChangeText={setDescription} />
         </View>
-onPress={() => {
-  if (!recipientPhone || !amount || !description) {
-    Alert.alert('Error', 'All fields are required')
-    return
-  }
-  Alert.alert(
-    'Confirm Transfer',
-    `Send ₦${Number(amount).toLocaleString()} to ${recipientPhone}?`,
-    [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Confirm & Enter PIN', onPress: () => setStep('pin') }
-    ]
-  )
-}}
-        {/* Send Button */}
-        <TouchableOpacity style={styles.sendButton} onPress={handleTransfer} disabled={loading}>
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
+
+        <TouchableOpacity style={styles.sendButton} onPress={handleContinue} disabled={loading}>
+          {loading ? <ActivityIndicator color="#fff" /> : (
             <>
               <Text style={styles.sendButtonText}>Send Money 💸</Text>
               {amount ? <Text style={styles.sendButtonAmount}>₦{Number(amount).toLocaleString()}</Text> : null}
@@ -157,9 +139,7 @@ onPress={() => {
           )}
         </TouchableOpacity>
 
-        <Text style={styles.disclaimer}>
-          🔒 Transfers are instant and secured by OWODE's double-entry ledger system
-        </Text>
+        <Text style={styles.disclaimer}>🔒 Transfers are instant and secured by OWODE's double-entry ledger system</Text>
       </ScrollView>
     </KeyboardAvoidingView>
   )
@@ -167,6 +147,7 @@ onPress={() => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
+  pinContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
   header: { padding: 24, paddingTop: 60, paddingBottom: 30 },
   back: { color: '#f5a623', fontSize: 16, marginBottom: 16 },
   headerTitle: { color: '#fff', fontSize: 24, fontWeight: 'bold' },
@@ -185,5 +166,6 @@ const styles = StyleSheet.create({
   sendButton: { backgroundColor: '#0d47a1', borderRadius: 16, padding: 20, alignItems: 'center', marginBottom: 16 },
   sendButtonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
   sendButtonAmount: { color: 'rgba(255,255,255,0.8)', fontSize: 14, marginTop: 4 },
-  disclaimer: { textAlign: 'center', color: '#888', fontSize: 12, marginBottom: 40, lineHeight: 20 }
+  disclaimer: { textAlign: 'center', color: '#888', fontSize: 12, marginBottom: 40, lineHeight: 20 },
+  backLink: { color: 'rgba(255,255,255,0.7)', fontSize: 14, marginTop: 20 }
 })

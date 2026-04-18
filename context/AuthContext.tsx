@@ -9,6 +9,7 @@ interface User {
   email: string | null
   role: string
   isVerified: boolean
+  hasTransactionPin: boolean
   wallet: {
     id: string
     balance: number
@@ -22,14 +23,9 @@ interface AuthContextType {
   token: string | null
   isLoading: boolean
   login: (phone: string, password: string) => Promise<void>
-  register: (data: {
-    fullName: string
-    phone: string
-    email?: string
-    password: string
-    transactionPin: string
-  }) => Promise<void>
+  register: (data: { fullName: string; phone: string; email?: string; password: string }) => Promise<void>
   logout: () => Promise<void>
+  refreshUser: (updatedUser: User) => void
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -66,13 +62,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setToken(token)
   }
 
-  const register = async (data: {
-    fullName: string
-    phone: string
-    email?: string
-    password: string
-    transactionPin: string
-  }) => {
+  const register = async (data: { fullName: string; phone: string; email?: string; password: string }) => {
     const response = await authAPI.register(data)
     const { user, token } = response.data.data
     await AsyncStorage.setItem('owode_token', token)
@@ -84,12 +74,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logout = async () => {
     await AsyncStorage.removeItem('owode_token')
     await AsyncStorage.removeItem('owode_user')
+    await AsyncStorage.removeItem('has_app_pin')
     setUser(null)
     setToken(null)
   }
 
+  const refreshUser = (updatedUser: User) => {
+    setUser(updatedUser)
+    AsyncStorage.setItem('owode_user', JSON.stringify(updatedUser))
+  }
+
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, isLoading, login, register, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   )

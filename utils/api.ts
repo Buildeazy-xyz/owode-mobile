@@ -16,12 +16,16 @@ api.interceptors.request.use(async (config) => {
 })
 
 export const authAPI = {
-  register: (data: { fullName: string; phone: string; email?: string; password: string; transactionPin: string }) =>
+  register: (data: { fullName: string; phone: string; email?: string; password: string }) =>
     api.post('/users/register', data),
   login: (data: { phone: string; password: string }) =>
     api.post('/users/login', data),
-  setAppPin: (appPin: string) => api.post('/users/app-pin/set', { appPin }),
-  verifyAppPin: (appPin: string) => api.post('/users/app-pin/verify', { appPin }),
+  setTransactionPin: (transactionPin: string) =>
+    api.post('/users/transaction-pin/set', { transactionPin }),
+  setAppPin: (appPin: string) =>
+    api.post('/users/app-pin/set', { appPin }),
+  verifyAppPin: (appPin: string) =>
+    api.post('/users/app-pin/verify', { appPin })
 }
 
 export const walletAPI = {
@@ -30,8 +34,8 @@ export const walletAPI = {
     api.post('/wallet/credit', { amount, description }),
   debit: (amount: number, description: string) =>
     api.post('/wallet/debit', { amount, description }),
- transfer: (recipientPhone: string, amount: number, description: string, transactionPin: string) =>
-  api.post('/wallet/transfer', { recipientPhone, amount, description, transactionPin })
+  transfer: (recipientPhone: string, amount: number, description: string, transactionPin: string) =>
+    api.post('/wallet/transfer', { recipientPhone, amount, description, transactionPin })
 }
 
 export const ajoAPI = {
