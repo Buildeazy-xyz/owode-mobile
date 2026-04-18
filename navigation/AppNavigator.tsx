@@ -14,6 +14,7 @@ import SetAppPinScreen from '../screens/SetAppPinScreen'
 import SetTransactionPinScreen from '../screens/SetTransactionPinScreen'
 import GuaranteedAjoScreen from '../screens/GuaranteedAjoScreen'
 import TrustScoreScreen from '../screens/TrustScoreScreen'
+import GroupHistoryScreen from '../screens/GroupHistoryScreen'
 
 const Stack = createNativeStackNavigator()
 
@@ -36,6 +37,7 @@ export default function AppNavigator() {
             <Stack.Screen name="Receipt" component={ReceiptScreen} />
             <Stack.Screen name="SetAppPin" component={SetAppPinScreen} />
             <Stack.Screen name="SetTransactionPin" component={SetTransactionPinScreen} />
+<Stack.Screen name="GroupHistory" component={GroupHistoryScreen} />
           </>
         ) : (
           <>

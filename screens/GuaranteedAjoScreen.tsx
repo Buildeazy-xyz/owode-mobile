@@ -263,6 +263,8 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
                     <Text style={styles.confirmLabel}>Group</Text>
                     <Text style={styles.confirmValue}>{selectedGroup.name}</Text>
                   </View>
+                   {/* Risk Level */}
+   
                   <View style={styles.confirmRow}>
                     <Text style={styles.confirmLabel}>Contribution</Text>
                     <Text style={styles.confirmValue}>₦{selectedGroup.amount?.toLocaleString()}</Text>
@@ -282,7 +284,9 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
                       🤖 Your payout is protected by the Owode Avatar
                     </Text>
                   </View>
+                  
                 </>
+                
               )}
               <TouchableOpacity style={styles.createGroupBtn} onPress={() => setPinStep(true)}>
                 <Text style={styles.createGroupBtnText}>Continue to PIN →</Text>
@@ -290,13 +294,16 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
               <TouchableOpacity onPress={() => setContributeModal(false)}>
                 <Text style={styles.cancelText}>Cancel</Text>
               </TouchableOpacity>
+
             </View>
           </View>
         )}
       </Modal>
     </View>
   )
+ 
 }
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
@@ -312,6 +319,8 @@ const styles = StyleSheet.create({
   emptyState: { alignItems: 'center', padding: 60 },
   emptyIcon: { fontSize: 56, marginBottom: 16 },
   emptyText: { fontSize: 18, fontWeight: 'bold', color: '#333' },
+  riskBadge: { borderRadius: 8, padding: 8, marginBottom: 12 },
+riskBadgeText: { fontSize: 12, fontWeight: '600', color: '#333' },
   emptySubText: { fontSize: 14, color: '#888', textAlign: 'center', marginTop: 8, marginBottom: 24 },
   createFirstBtn: { backgroundColor: '#0d47a1', borderRadius: 16, paddingHorizontal: 32, paddingVertical: 16 },
   createFirstBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
