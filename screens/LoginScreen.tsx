@@ -1,24 +1,54 @@
 import React, { useState } from 'react'
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native'
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useAuth } from '../context/AuthContext'
+import PinKeypad from '../components/PinKeypad'
 
 export default function LoginScreen({ navigation }: any) {
   const { login } = useAuth()
   const [phone, setPhone] = useState('')
-  const [pin, setPin] = useState('')
+  const [step, setStep] = useState<'phone' | 'pin'>('phone')
   const [loading, setLoading] = useState(false)
 
-  const handleLogin = async () => {
-    if (!phone || !pin) { Alert.alert('Error', 'Please enter your phone number and PIN'); return }
+  const handlePhoneNext = () => {
+    if (!phone || phone.length !== 11) {
+      Alert.alert('Error', 'Enter a valid 11 digit phone number')
+      return
+    }
+    setStep('pin')
+  }
+
+  const handlePinComplete = async (pin: string) => {
     try {
       setLoading(true)
       await login(phone, pin)
     } catch (error: any) {
       Alert.alert('Login Failed', error.response?.data?.message || 'Something went wrong')
+      setStep('phone')
     } finally {
       setLoading(false)
     }
+  }
+
+  if (step === 'pin') {
+    return (
+      <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.pinContainer}>
+        {loading ? (
+          <ActivityIndicator size="large" color="#f5a623" />
+        ) : (
+          <>
+            <PinKeypad
+              title="Enter PIN"
+              subtitle={`Logging in as ${phone}`}
+              onComplete={handlePinComplete}
+            />
+            <TouchableOpacity onPress={() => setStep('phone')}>
+              <Text style={styles.backLink}>← Change number</Text>
+            </TouchableOpacity>
+          </>
+        )}
+      </LinearGradient>
+    )
   }
 
   return (
@@ -33,13 +63,20 @@ export default function LoginScreen({ navigation }: any) {
 
       <View style={styles.form}>
         <Text style={styles.title}>Welcome Back!</Text>
-        <Text style={styles.subtitle}>Login to your account</Text>
+        <Text style={styles.subtitle}>Enter your phone number to continue</Text>
 
-        <TextInput style={styles.input} placeholder="Phone Number" placeholderTextColor="#888" value={phone} onChangeText={setPhone} keyboardType="phone-pad" maxLength={11} />
-        <TextInput style={styles.input} placeholder="4-digit PIN" placeholderTextColor="#888" value={pin} onChangeText={setPin} secureTextEntry keyboardType="numeric" maxLength={4} />
+        <TextInput
+          style={styles.input}
+          placeholder="Phone Number (08012345678)"
+          placeholderTextColor="#888"
+          value={phone}
+          onChangeText={setPhone}
+          keyboardType="phone-pad"
+          maxLength={11}
+        />
 
-        <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
-          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Login</Text>}
+        <TouchableOpacity style={styles.button} onPress={handlePhoneNext}>
+          <Text style={styles.buttonText}>Continue →</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => navigation.navigate('Register')}>
@@ -52,6 +89,7 @@ export default function LoginScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0d47a1' },
+  pinContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
   header: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 40 },
   logoCircle: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#f5a623', justifyContent: 'center', alignItems: 'center', marginBottom: 12, shadowColor: '#f5a623', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.8, shadowRadius: 15, elevation: 10 },
   logoLetter: { fontSize: 40, fontWeight: 'bold', color: '#fff' },
@@ -64,5 +102,6 @@ const styles = StyleSheet.create({
   button: { backgroundColor: '#0d47a1', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 20 },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
   link: { textAlign: 'center', color: '#888', fontSize: 14 },
-  linkBold: { color: '#f5a623', fontWeight: 'bold' }
+  linkBold: { color: '#f5a623', fontWeight: 'bold' },
+  backLink: { color: 'rgba(255,255,255,0.7)', fontSize: 14, marginTop: 20 }
 })
