@@ -47,10 +47,24 @@ export const ajoAPI = {
   contribute: (groupId: string) => api.post('/ajo/contribute', { groupId })
 }
 
+export const guaranteedAjoAPI = {
+  getAllGroups: () => api.get('/guaranteed-ajo/groups'),
+  getGroup: (id: string) => api.get(`/guaranteed-ajo/groups/${id}`),
+  createGroup: (data: { name: string; amount: number; frequency: string; totalMembers: number }) =>
+    api.post('/guaranteed-ajo/create', data),
+  joinGroup: (groupId: string) => api.post('/guaranteed-ajo/join', { groupId }),
+  contribute: (groupId: string, transactionPin: string) =>
+    api.post('/guaranteed-ajo/contribute', { groupId, transactionPin })
+}
+
 export const kycAPI = {
   submitBVN: (bvn: string) => api.post('/kyc/bvn', { bvn }),
   submitNIN: (nin: string) => api.post('/kyc/nin', { nin }),
   getStatus: () => api.get('/kyc/status')
+}
+
+export const trustAPI = {
+  getMyScore: () => api.get('/trust/my-score')
 }
 
 export default api

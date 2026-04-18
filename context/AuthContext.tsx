@@ -10,6 +10,7 @@ interface User {
   role: string
   isVerified: boolean
   hasTransactionPin: boolean
+  trustScore: number
   wallet: {
     id: string
     balance: number

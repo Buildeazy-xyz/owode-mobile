@@ -19,6 +19,7 @@ export default function RegisterScreen({ navigation }: any) {
     }
     if (password !== confirmPassword) {
       Alert.alert('Error', 'Passwords do not match')
+      
       return
     }
     const passwordRegex = /^(?=.*[a-zA-Z])(?=.*[0-9]).{6,}$/
@@ -26,6 +27,7 @@ export default function RegisterScreen({ navigation }: any) {
       Alert.alert('Error', 'Password must be at least 6 characters with letters and numbers')
       return
     }
+    
     try {
       setLoading(true)
       await register({ fullName, phone, email, password })
@@ -34,8 +36,8 @@ export default function RegisterScreen({ navigation }: any) {
     } finally {
       setLoading(false)
     }
+    
   }
-
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.header}>

@@ -58,25 +58,48 @@ export default function DashboardScreen({ navigation }: any) {
         </View>
       </LinearGradient>
 
-      <Text style={styles.sectionTitle}>Quick Actions</Text>
-      <View style={styles.actionsGrid}>
-        <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('Wallet')}>
-          <Text style={styles.actionIcon}>💰</Text>
-          <Text style={styles.actionLabel}>Wallet</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('Transfer')}>
-          <Text style={styles.actionIcon}>💸</Text>
-          <Text style={styles.actionLabel}>Send Money</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('Ajo')}>
-          <Text style={styles.actionIcon}>🤝</Text>
-          <Text style={styles.actionLabel}>Ajo Groups</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('Profile')}>
-          <Text style={styles.actionIcon}>👤</Text>
-          <Text style={styles.actionLabel}>Profile</Text>
-        </TouchableOpacity>
-      </View>
+{/* Trust Score Widget */}
+<TouchableOpacity style={styles.trustCard} onPress={() => navigation.navigate('TrustScore')}>
+  <View>
+    <Text style={styles.trustLabel}>Your Trust Score</Text>
+    <Text style={styles.trustScore}>{Math.round(user?.trustScore || 50)}/100</Text>
+  </View>
+  <View style={styles.trustRight}>
+    <Text style={styles.trustEmoji}>
+      {(user?.trustScore || 50) >= 80 ? '🌟' : (user?.trustScore || 50) >= 50 ? '😊' : '😐'}
+    </Text>
+    <Text style={styles.trustArrow}>→</Text>
+  </View>
+</TouchableOpacity>
+
+    {/* Quick Actions */}
+<Text style={styles.sectionTitle}>Quick Actions</Text>
+<View style={styles.actionsGrid}>
+  <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('Wallet')}>
+    <Text style={styles.actionIcon}>💰</Text>
+    <Text style={styles.actionLabel}>Wallet</Text>
+  </TouchableOpacity>
+  <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('Transfer')}>
+    <Text style={styles.actionIcon}>💸</Text>
+    <Text style={styles.actionLabel}>Send Money</Text>
+  </TouchableOpacity>
+  <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('Ajo')}>
+    <Text style={styles.actionIcon}>🤝</Text>
+    <Text style={styles.actionLabel}>Standard Ajo</Text>
+  </TouchableOpacity>
+  <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('GuaranteedAjo')}>
+    <Text style={styles.actionIcon}>🛡️</Text>
+    <Text style={styles.actionLabel}>Guaranteed Ajo</Text>
+  </TouchableOpacity>
+  <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('TrustScore')}>
+    <Text style={styles.actionIcon}>⭐</Text>
+    <Text style={styles.actionLabel}>Trust Score</Text>
+  </TouchableOpacity>
+  <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('Profile')}>
+    <Text style={styles.actionIcon}>👤</Text>
+    <Text style={styles.actionLabel}>Profile</Text>
+  </TouchableOpacity>
+</View>
 
       <Text style={styles.sectionTitle}>Recent Transactions</Text>
       {wallet?.transactions?.length === 0 ? (
@@ -121,10 +144,16 @@ const styles = StyleSheet.create({
   walletSubValue: { color: '#fff', fontSize: 16, fontWeight: 'bold', textAlign: 'center' },
   divider: { width: 1, backgroundColor: 'rgba(255,255,255,0.3)' },
   sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#0d47a1', marginHorizontal: 16, marginTop: 20, marginBottom: 12 },
-  actionsGrid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: 16, gap: 12 },
-  actionCard: { width: '47%', backgroundColor: '#fff', borderRadius: 16, padding: 20, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
-  actionIcon: { fontSize: 32, marginBottom: 8 },
-  actionLabel: { fontSize: 13, color: '#0d47a1', fontWeight: '600' },
+actionsGrid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: 16, gap: 10 },
+actionCard: { width: '30%', backgroundColor: '#fff', borderRadius: 16, padding: 14, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
+actionIcon: { fontSize: 28, marginBottom: 6 },
+actionLabel: { fontSize: 11, color: '#0d47a1', fontWeight: '600', textAlign: 'center' },
+trustCard: { backgroundColor: '#fff', marginHorizontal: 16, marginTop: 16, borderRadius: 16, padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
+trustLabel: { fontSize: 12, color: '#888', marginBottom: 4 },
+trustScore: { fontSize: 22, fontWeight: 'bold', color: '#0d47a1' },
+trustRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+trustEmoji: { fontSize: 28 },
+trustArrow: { color: '#888', fontSize: 18 },
   emptyState: { backgroundColor: '#fff', margin: 16, borderRadius: 16, padding: 30, alignItems: 'center' },
   emptyIcon: { fontSize: 40, marginBottom: 12 },
   emptyText: { fontSize: 16, fontWeight: 'bold', color: '#333' },

@@ -12,6 +12,8 @@ import TransferScreen from '../screens/TransferScreen'
 import ReceiptScreen from '../screens/ReceiptScreen'
 import SetAppPinScreen from '../screens/SetAppPinScreen'
 import SetTransactionPinScreen from '../screens/SetTransactionPinScreen'
+import GuaranteedAjoScreen from '../screens/GuaranteedAjoScreen'
+import TrustScoreScreen from '../screens/TrustScoreScreen'
 
 const Stack = createNativeStackNavigator()
 
@@ -27,6 +29,8 @@ export default function AppNavigator() {
             <Stack.Screen name="Dashboard" component={DashboardScreen} />
             <Stack.Screen name="Wallet" component={WalletScreen} />
             <Stack.Screen name="Ajo" component={AjoScreen} />
+            <Stack.Screen name="GuaranteedAjo" component={GuaranteedAjoScreen} />
+            <Stack.Screen name="TrustScore" component={TrustScoreScreen} />
             <Stack.Screen name="Profile" component={ProfileScreen} />
             <Stack.Screen name="Transfer" component={TransferScreen} />
             <Stack.Screen name="Receipt" component={ReceiptScreen} />
