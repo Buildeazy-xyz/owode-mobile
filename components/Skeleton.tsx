@@ -1,7 +1,13 @@
 import React, { useEffect, useRef } from 'react'
-import { View, Animated, StyleSheet } from 'react-native'
+import { Animated, DimensionValue } from 'react-native'
 
-export default function Skeleton({ width, height, borderRadius = 8 }: { width: number | string; height: number; borderRadius?: number }) {
+interface SkeletonProps {
+  width: DimensionValue
+  height: number
+  borderRadius?: number
+}
+
+export default function Skeleton({ width, height, borderRadius = 8 }: SkeletonProps) {
   const opacity = useRef(new Animated.Value(0.3)).current
 
   useEffect(() => {
@@ -14,6 +20,6 @@ export default function Skeleton({ width, height, borderRadius = 8 }: { width: n
   }, [])
 
   return (
-    <Animated.View style={[{ width, height, borderRadius, backgroundColor: '#e0e0e0', opacity }]} />
+    <Animated.View style={{ width, height, borderRadius, backgroundColor: '#e0e0e0', opacity }} />
   )
 }
