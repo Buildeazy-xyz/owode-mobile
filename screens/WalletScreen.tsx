@@ -1,24 +1,53 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity,
   ScrollView, RefreshControl, Alert
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { walletAPI } from '../utils/api'
+import { announcePayment } from '../utils/speech'
+import { showPaymentNotification } from '../utils/notifications'
+
 
 export default function WalletScreen({ navigation }: any) {
   const [wallet, setWallet] = useState<any>(null)
+  
   const [refreshing, setRefreshing] = useState(false)
   const [filter, setFilter] = useState<'ALL' | 'CREDIT' | 'DEBIT'>('ALL')
+  const announcedRef = useRef(false)
+  const lastTxRef = useRef<string | null>(null)
 
   const loadWallet = async () => {
     try {
       const response = await walletAPI.getBalance()
       setWallet(response.data.data)
+      const latestTx = response.data.data?.transactions?.[0]
+      if (latestTx && !announcedRef.current) {
+        announcePayment({
+          type: latestTx.type,
+          amount: latestTx.amount,
+          sender: latestTx.description?.includes('from') ?
+            latestTx.description.split('from')[1]?.split('—')[0]?.trim() : undefined
+        })
+        announcedRef.current = true
+      }
+      // In loadWallet, after detecting new transaction:
+      if (latestTx && latestTx.id !== lastTxRef.current) {
+        lastTxRef.current = latestTx.id
+        await showPaymentNotification({
+          type: latestTx.type,
+          amount: latestTx.amount,
+          balance: latestTx.balance,
+          sender: latestTx.description?.includes('from')
+            ? latestTx.description.split('from')[1]?.split('—')[0]?.trim()
+            : undefined
+        })
+      }
     } catch (error) {
       Alert.alert('Error', 'Could not load wallet')
     }
   }
+  
 
   useEffect(() => { loadWallet() }, [])
 
@@ -27,6 +56,7 @@ export default function WalletScreen({ navigation }: any) {
     await loadWallet()
     setRefreshing(false)
   }
+
 
   const filteredTransactions = wallet?.transactions?.filter((tx: any) => {
     if (filter === 'ALL') return true

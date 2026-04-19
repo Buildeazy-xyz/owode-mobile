@@ -6,6 +6,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient'
 import { ajoAPI } from '../utils/api'
 import { useAuth } from '../context/AuthContext'
+import { announcePayment } from '../utils/speech'
 
 export default function AjoScreen({ navigation }: any) {
   const { user } = useAuth()
@@ -53,11 +54,14 @@ export default function AjoScreen({ navigation }: any) {
             try {
               const response = await ajoAPI.contribute(groupId)
               const data = response.data.data
-              if (data.payoutSent) {
-                Alert.alert('🎉 Payout!', `₦${data.payoutAmount?.toLocaleString()} paid out this cycle!`)
-              } else {
-                Alert.alert('✅ Contributed!', `${data.paidCount} of ${data.paidCount + data.remainingCount} members paid`)
-              }
+                            
+                // After successful contribution:
+                if (data.payoutSent) {
+                  announcePayment({ type: 'CREDIT', amount: data.payoutAmount, sender: 'Ajo Group' })
+                  Alert.alert('🎉 Payout!', `₦${data.payoutAmount?.toLocaleString()} paid out this cycle!`)
+                } else {
+                  Alert.alert('✅ Contributed!', `${data.paidCount} of ${data.paidCount + data.remainingCount} members paid`)
+                }
               await loadGroups()
             } catch (error: any) {
               Alert.alert('Error', error.response?.data?.message || 'Something went wrong')

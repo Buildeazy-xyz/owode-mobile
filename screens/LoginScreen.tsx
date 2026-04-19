@@ -65,8 +65,8 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 14, color: '#888', marginBottom: 24 },
   inputLabel: { fontSize: 13, fontWeight: '600', color: '#0d47a1', marginBottom: 6 },
   input: { backgroundColor: '#f5f5f5', borderRadius: 12, padding: 16, fontSize: 16, marginBottom: 16, color: '#333' },
-  button: { backgroundColor: '#0d47a1', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 20, marginTop: 8 },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-  link: { textAlign: 'center', color: '#888', fontSize: 14 },
-  linkBold: { color: '#f5a623', fontWeight: 'bold' }
+ button: { backgroundColor: '#f5a623', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 20, marginTop: 8 },
+buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+link: { color: '#666', fontSize: 14, textAlign: 'center', marginTop: 16 },
+linkBold: { color: '#f5a623', fontWeight: 'bold' }
 })

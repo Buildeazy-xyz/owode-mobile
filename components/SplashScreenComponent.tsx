@@ -49,9 +49,9 @@ const styles = StyleSheet.create({
   logoLetter: { fontSize: 52, fontWeight: 'bold', color: '#fff' },
   appName: { fontSize: 48, fontWeight: 'bold', color: '#fff', letterSpacing: 8 },
   appTagline: { fontSize: 16, color: '#f5a623', letterSpacing: 4, marginTop: 4 },
-  divider: { width: 60, height: 2, backgroundColor: '#f5a623', marginVertical: 24, borderRadius: 2 },
+  divider: { width: 60, height: 3, backgroundColor: '#f5a623', marginVertical: 24, borderRadius: 2 },
   mission: { fontSize: 14, color: 'rgba(255,255,255,0.6)', textAlign: 'center', lineHeight: 22 },
   bottom: { paddingBottom: 40, alignItems: 'center' },
-  bottomText: { fontSize: 12, color: 'rgba(255,255,255,0.4)', letterSpacing: 2 },
+  bottomText: { fontSize: 12, color: 'rgba(255,255,255,0.5)', letterSpacing: 2 },
   version: { fontSize: 11, color: 'rgba(255,255,255,0.2)', marginTop: 8 }
 })

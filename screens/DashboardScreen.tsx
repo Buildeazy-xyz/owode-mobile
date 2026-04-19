@@ -1,29 +1,38 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Alert } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useAuth } from '../context/AuthContext'
 import { walletAPI } from '../utils/api'
 import * as Haptics from 'expo-haptics'
+import { announcePayment } from '../utils/speech'
+
+
 
 
 export default function DashboardScreen({ navigation }: any) {
   const { user, logout } = useAuth()
   const [wallet, setWallet] = useState<any>(null)
   const [refreshing, setRefreshing] = useState(false)
+  const lastTxRef = useRef<string | null>(null)
 
   
   const loadWallet = async () => {
     try {
       const response = await walletAPI.getBalance()
       setWallet(response.data.data)
+      // After loadWallet succeeds, add:
+      const latestTx = response.data.data?.transactions?.[0]
+      if (latestTx && latestTx.id !== lastTxRef.current && latestTx.type === 'CREDIT') {
+        lastTxRef.current = latestTx.id
+        const senderName = latestTx.description?.includes('from')
+          ? latestTx.description.split('from')[1]?.split('—')[0]?.trim()
+          : 'OWODE'
+        announcePayment({ type: 'CREDIT', amount: latestTx.amount, sender: senderName })
+      }
     } catch (error: any) {
       Alert.alert('Error', 'Could not load wallet')
     }
   }
-
-  useEffect(() => { loadWallet() }, [])
-
-  
 const onRefresh = async () => {
   setRefreshing(true)
   await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)

@@ -41,19 +41,22 @@ export default function SetAppPinScreen({ navigation }: any) {
       {loading ? (
         <ActivityIndicator size="large" color="#f5a623" />
       ) : step === 'set' ? (
-        <PinKeypad
-          title="Set App PIN"
-          subtitle="Choose a 6-digit PIN to lock your app"
-          pinLength={6}
-          onComplete={handleFirstPin}
-        />
-      ) : (
-        <PinKeypad
-          title="Confirm PIN"
-          subtitle="Enter the same PIN again to confirm"
-          pinLength={6}
-          onComplete={handleConfirmPin}
-        />
+        // Step set:
+      <PinKeypad
+        title="Set App Lock PIN"
+        subtitle="Choose a 6-digit PIN to lock your app"
+        pinLength={6}
+        onComplete={handleFirstPin}
+      />
+
+
+            ) : (
+      <PinKeypad
+        title="Confirm App PIN"
+        subtitle="Enter the same 6-digit PIN again"
+        pinLength={6}
+        onComplete={handleConfirmPin}
+      />
       )}
     </LinearGradient>
   )

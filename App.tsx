@@ -5,6 +5,7 @@ import AppNavigator from './navigation/AppNavigator'
 import SplashScreenComponent from './components/SplashScreenComponent'
 import AppLockScreen from './screens/AppLockScreen'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { registerForPushNotifications } from './utils/notifications'
 
 function AppContent() {
   const { user } = useAuth()
@@ -12,17 +13,21 @@ function AppContent() {
   const [hasAppPin, setHasAppPin] = useState(false)
 
   useEffect(() => {
+    registerForPushNotifications()
+  }, [])
+
+  useEffect(() => {
     const checkAppPin = async () => {
       const pin = await AsyncStorage.getItem('has_app_pin')
       setHasAppPin(!!pin)
     }
-    checkAppPin()
+    if (user) checkAppPin()
   }, [user])
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextState) => {
-      if (nextState === 'background') {
-        if (hasAppPin && user) setIsLocked(true)
+      if (nextState === 'background' && hasAppPin && user) {
+        setIsLocked(true)
       }
     })
     return () => subscription?.remove()

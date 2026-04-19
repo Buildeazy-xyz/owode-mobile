@@ -49,19 +49,22 @@ export default function SetTransactionPinScreen({ navigation, route }: any) {
       {loading ? (
         <ActivityIndicator size="large" color="#f5a623" />
       ) : step === 'set' ? (
+
         <PinKeypad
           title="Set Transaction PIN"
-          subtitle="Choose a 4-digit PIN for transfers"
+          subtitle="Choose a secure 4-digit PIN for all transfers"
           pinLength={4}
           onComplete={handleFirstPin}
         />
+
       ) : (
-        <PinKeypad
-          title="Confirm PIN"
-          subtitle="Enter the same PIN again"
-          pinLength={4}
-          onComplete={handleConfirmPin}
-        />
+        
+          <PinKeypad
+            title="Confirm PIN"
+            subtitle="Enter the same 4-digit PIN again"
+            pinLength={4}
+            onComplete={handleConfirmPin}
+          />
       )}
     </LinearGradient>
   )

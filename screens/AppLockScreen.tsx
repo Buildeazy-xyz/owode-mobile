@@ -1,14 +1,29 @@
-import React, { useState } from 'react'
-import { View, Text, StyleSheet, Alert, TouchableOpacity, ActivityIndicator } from 'react-native'
-import { LinearGradient } from 'expo-linear-gradient'
+import React, { useState, useEffect } from 'react'
+import { View, Text, StyleSheet, Alert, ActivityIndicator, TouchableOpacity } from 'react-native'
 import PinKeypad from '../components/PinKeypad'
 import { authAPI } from '../utils/api'
 import { useAuth } from '../context/AuthContext'
+import * as LocalAuthentication from 'expo-local-authentication'
 
 export default function AppLockScreen({ onUnlock }: { onUnlock: () => void }) {
   const { logout, user } = useAuth()
   const [loading, setLoading] = useState(false)
-  const [isSettingPin, setIsSettingPin] = useState(false)
+
+  useEffect(() => { tryBiometric() }, [])
+
+  const tryBiometric = async () => {
+    try {
+      const compatible = await LocalAuthentication.hasHardwareAsync()
+      const enrolled = await LocalAuthentication.isEnrolledAsync()
+      if (compatible && enrolled) {
+        const result = await LocalAuthentication.authenticateAsync({
+          promptMessage: 'Verify your identity to open OWODE',
+          fallbackLabel: 'Use PIN instead'
+        })
+        if (result.success) onUnlock()
+      }
+    } catch (e) {}
+  }
 
   const handlePinComplete = async (pin: string) => {
     try {
@@ -22,32 +37,41 @@ export default function AppLockScreen({ onUnlock }: { onUnlock: () => void }) {
     }
   }
 
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#f5a623" />
+        <Text style={styles.loadingText}>Verifying...</Text>
+      </View>
+    )
+  }
+
   return (
-    <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.container}>
-      <Text style={styles.greeting}>Welcome back</Text>
-      <Text style={styles.name}>{user?.fullName} 👋</Text>
-
-      {loading ? (
-        <ActivityIndicator size="large" color="#f5a623" style={{ marginTop: 40 }} />
-      ) : (
-        <PinKeypad
-          title="Enter App PIN"
-          subtitle="Enter your 6-digit PIN to continue"
-          onComplete={handlePinComplete}
-        />
-      )}
-
-      <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
-        <Text style={styles.logoutText}>Login with password instead</Text>
-      </TouchableOpacity>
-    </LinearGradient>
+    <View style={{ flex: 1 }}>
+      <PinKeypad
+        title={`Welcome back`}
+        subtitle={`${user?.fullName} — Enter your 6-digit app PIN`}
+        pinLength={6}
+        onComplete={handlePinComplete}
+      />
+      <View style={styles.bottomActions}>
+        <TouchableOpacity onPress={tryBiometric} style={styles.biometricBtn}>
+          <Text style={styles.biometricText}>👆 Use Fingerprint</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={logout} style={styles.logoutBtn}>
+          <Text style={styles.logoutText}>Login with password instead</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
-  greeting: { color: 'rgba(255,255,255,0.7)', fontSize: 16, marginBottom: 4 },
-  name: { color: '#fff', fontSize: 24, fontWeight: 'bold', marginBottom: 40 },
-  logoutBtn: { marginTop: 20 },
-  logoutText: { color: 'rgba(255,255,255,0.5)', fontSize: 14 }
+  loadingContainer: { flex: 1, backgroundColor: '#0d47a1', justifyContent: 'center', alignItems: 'center' },
+  loadingText: { color: '#fff', marginTop: 16, fontSize: 16 },
+  bottomActions: { position: 'absolute', bottom: 40, left: 0, right: 0, alignItems: 'center', gap: 12 },
+  biometricBtn: { backgroundColor: 'rgba(245,166,35,0.2)', borderRadius: 20, paddingHorizontal: 24, paddingVertical: 10 },
+  biometricText: { color: '#f5a623', fontWeight: '600', fontSize: 14 },
+  logoutBtn: {},
+  logoutText: { color: 'rgba(255,255,255,0.4)', fontSize: 13 }
 })

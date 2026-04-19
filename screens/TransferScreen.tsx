@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { walletAPI } from '../utils/api'
 import PinKeypad from '../components/PinKeypad'
 import { useAuth } from '../context/AuthContext'
+import { announcePayment } from '../utils/speech'
 
 export default function TransferScreen({ navigation }: any) {
   const { user } = useAuth()
@@ -65,7 +66,10 @@ export default function TransferScreen({ navigation }: any) {
           status: 'SUCCESS',
           createdAt: new Date().toISOString()
         }
+        
       })
+
+    announcePayment({ type: 'DEBIT', amount: Number(amount) })
     } catch (error: any) {
       Alert.alert('Transfer Failed', error.response?.data?.message || 'Something went wrong')
       setStep('form')
@@ -74,27 +78,23 @@ export default function TransferScreen({ navigation }: any) {
     }
   }
 
-  if (step === 'pin') {
-    return (
-      <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.pinContainer}>
-        {loading ? (
-          <ActivityIndicator size="large" color="#f5a623" />
-        ) : (
-          <>
-            <PinKeypad
-              title="Transaction PIN"
-              subtitle="Enter your 4-digit transaction PIN"
-              pinLength={4}
-              onComplete={executeTransfer}
-            />
-            <TouchableOpacity onPress={() => setStep('form')}>
-              <Text style={styles.backLink}>← Go back</Text>
-            </TouchableOpacity>
-          </>
-        )}
-      </LinearGradient>
-    )
-  }
+if (step === 'pin') {
+  return (
+    <View style={{ flex: 1 }}>
+      <PinKeypad
+        title="Transaction PIN"
+        subtitle={`Authorizing ₦${Number(amount).toLocaleString()} transfer`}
+        pinLength={4}
+        onComplete={executeTransfer}
+      />
+      <View style={{ position: 'absolute', bottom: 40, left: 0, right: 0, alignItems: 'center' }}>
+        <TouchableOpacity onPress={() => setStep('form')}>
+          <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14 }}>← Cancel transfer</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  )
+}
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
