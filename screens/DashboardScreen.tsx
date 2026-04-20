@@ -5,6 +5,8 @@ import { useAuth } from '../context/AuthContext'
 import { walletAPI } from '../utils/api'
 import * as Haptics from 'expo-haptics'
 import { announcePayment } from '../utils/speech'
+import { isBiometricEnabled, getBiometricType } from '../utils/biometrics'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 
 
@@ -33,6 +35,28 @@ export default function DashboardScreen({ navigation }: any) {
       Alert.alert('Error', 'Could not load wallet')
     }
   }
+
+  const checkBiometricSetup = async () => {
+    const enabled = await isBiometricEnabled()
+    // Only show setup prompt if not enabled and not dismissed
+    if (!enabled) {
+      const dismissed = await AsyncStorage.getItem('biometric_prompt_dismissed')
+      if (!dismissed) {
+        const info = await getBiometricType()
+        if (info.hasAny) {
+          Alert.alert(
+            `Enable ${info.label}?`,
+            `Set up ${info.label} for faster and more secure access to OWODE`,
+            [
+              { text: 'Not Now', onPress: () => AsyncStorage.setItem('biometric_prompt_dismissed', 'true') },
+              { text: `Enable ${info.icon}`, onPress: () => navigation.navigate('BiometricSetup') }
+            ]
+          )
+        }
+      }
+    }
+  }
+
 const onRefresh = async () => {
   setRefreshing(true)
   await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)

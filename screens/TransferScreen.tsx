@@ -5,6 +5,7 @@ import { walletAPI } from '../utils/api'
 import PinKeypad from '../components/PinKeypad'
 import { useAuth } from '../context/AuthContext'
 import { announcePayment } from '../utils/speech'
+import { authenticateWithBiometrics, isBiometricEnabled, getBiometricType } from '../utils/biometrics'
 
 export default function TransferScreen({ navigation }: any) {
   const { user } = useAuth()
@@ -14,6 +15,34 @@ export default function TransferScreen({ navigation }: any) {
   const [loading, setLoading] = useState(false)
   const [step, setStep] = useState<'form' | 'pin'>('form')
   const quickAmounts = [500, 1000, 2000, 5000, 10000, 20000]
+
+  const handlePinStep = async () => {
+    // Check if biometrics is enabled — use it instead of PIN if available
+    const bioEnabled = await isBiometricEnabled()
+    if (bioEnabled) {
+      const bioInfo = await getBiometricType()
+      Alert.alert(
+        'Authorize Transfer',
+        `Use ${bioInfo.label} or PIN to authorize ₦${Number(amount).toLocaleString()} transfer`,
+        [
+          {
+            text: `${bioInfo.icon} ${bioInfo.label}`,
+            onPress: async () => {
+              const success = await authenticateWithBiometrics('Authorize this transfer')
+              if (success) {
+                // Use a special bypass token for biometric auth
+                executeTransfer('BIOMETRIC_AUTH')
+              }
+            }
+          },
+          { text: '🔢 Use PIN', onPress: () => setStep('pin') },
+          { text: 'Cancel', style: 'cancel' }
+        ]
+      )
+    } else {
+      setStep('pin')
+    }
+  }
 
   const handleContinue = () => {
     if (!recipientPhone || !amount || !description) {
@@ -47,7 +76,7 @@ export default function TransferScreen({ navigation }: any) {
       `Send ₦${Number(amount).toLocaleString()} to ${recipientPhone}?`,
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Confirm & Enter PIN', onPress: () => setStep('pin') }
+        { text: 'Confirm & Authorize', onPress: handlePinStep }
       ]
     )
   }

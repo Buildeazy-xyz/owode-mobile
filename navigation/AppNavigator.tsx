@@ -15,7 +15,9 @@ import SetTransactionPinScreen from '../screens/SetTransactionPinScreen'
 import GuaranteedAjoScreen from '../screens/GuaranteedAjoScreen'
 import TrustScoreScreen from '../screens/TrustScoreScreen'
 import GroupHistoryScreen from '../screens/GroupHistoryScreen'
+import BiometricSetupScreen from '../screens/BiometricSetupScreen'
 
+// Inside logged in stack:
 const Stack = createNativeStackNavigator()
 
 export default function AppNavigator() {
@@ -37,6 +39,8 @@ export default function AppNavigator() {
             <Stack.Screen name="Receipt" component={ReceiptScreen} />
             <Stack.Screen name="SetAppPin" component={SetAppPinScreen} />
             <Stack.Screen name="SetTransactionPin" component={SetTransactionPinScreen} />
+            <Stack.Screen name="BiometricSetup" component={BiometricSetupScreen} />
+
 <Stack.Screen name="GroupHistory" component={GroupHistoryScreen} />
           </>
         ) : (

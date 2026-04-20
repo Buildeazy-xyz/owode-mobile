@@ -77,29 +77,38 @@ export default function ProfileScreen({ navigation }: any) {
         </View>
       </View>
 
-      {/* Security Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>🔐 Security</Text>
-        <View style={styles.menuCard}>
-          <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('SetTransactionPin')}>
-            <Text style={styles.menuIcon}>💳</Text>
-            <View style={styles.menuText}>
-              <Text style={styles.menuLabel}>Transaction PIN</Text>
-              <Text style={styles.menuSub}>{user?.hasTransactionPin ? 'PIN is set ✅' : 'Not set — tap to set'}</Text>
-            </View>
-            <Text style={styles.menuArrow}>→</Text>
-          </TouchableOpacity>
-          <View style={styles.menuDivider} />
-          <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('SetAppPin')}>
-            <Text style={styles.menuIcon}>🔒</Text>
-            <View style={styles.menuText}>
-              <Text style={styles.menuLabel}>App Lock PIN</Text>
-              <Text style={styles.menuSub}>6-digit PIN when reopening app</Text>
-            </View>
-            <Text style={styles.menuArrow}>→</Text>
-          </TouchableOpacity>
-        </View>
+     {/* Security Section */}
+<View style={styles.section}>
+  <Text style={styles.sectionTitle}>🔐 Security</Text>
+  <View style={styles.menuCard}>
+    <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('SetTransactionPin')}>
+      <Text style={styles.menuIcon}>💳</Text>
+      <View style={styles.menuText}>
+        <Text style={styles.menuLabel}>Transaction PIN</Text>
+        <Text style={styles.menuSub}>{user?.hasTransactionPin ? 'PIN is set ✅' : 'Not set — tap to set'}</Text>
       </View>
+      <Text style={styles.menuArrow}>→</Text>
+    </TouchableOpacity>
+    <View style={styles.menuDivider} />
+    <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('SetAppPin')}>
+      <Text style={styles.menuIcon}>🔒</Text>
+      <View style={styles.menuText}>
+        <Text style={styles.menuLabel}>App Lock PIN</Text>
+        <Text style={styles.menuSub}>6-digit PIN when reopening app</Text>
+      </View>
+      <Text style={styles.menuArrow}>→</Text>
+    </TouchableOpacity>
+    <View style={styles.menuDivider} />
+    <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('BiometricSetup')}>
+      <Text style={styles.menuIcon}>👆</Text>
+      <View style={styles.menuText}>
+        <Text style={styles.menuLabel}>Fingerprint / Face ID</Text>
+        <Text style={styles.menuSub}>Use biometrics for faster access</Text>
+      </View>
+      <Text style={styles.menuArrow}>→</Text>
+    </TouchableOpacity>
+  </View>
+</View>
 
       {/* KYC Status */}
       <View style={styles.section}>

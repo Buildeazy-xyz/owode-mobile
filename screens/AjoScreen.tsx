@@ -1,18 +1,20 @@
 import React, { useEffect, useState } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  ScrollView, Alert, RefreshControl, ActivityIndicator
+  ScrollView, Alert, RefreshControl, ActivityIndicator,
+  TextInput
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { ajoAPI } from '../utils/api'
 import { useAuth } from '../context/AuthContext'
-import { announcePayment } from '../utils/speech'
+import { announceAjoPayout, announceContribution } from '../utils/speech'
 
 export default function AjoScreen({ navigation }: any) {
   const { user } = useAuth()
   const [groups, setGroups] = useState<any[]>([])
   const [refreshing, setRefreshing] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
 
   const loadGroups = async () => {
     try {
@@ -54,14 +56,13 @@ export default function AjoScreen({ navigation }: any) {
             try {
               const response = await ajoAPI.contribute(groupId)
               const data = response.data.data
-                            
-                // After successful contribution:
-                if (data.payoutSent) {
-                  announcePayment({ type: 'CREDIT', amount: data.payoutAmount, sender: 'Ajo Group' })
-                  Alert.alert('🎉 Payout!', `₦${data.payoutAmount?.toLocaleString()} paid out this cycle!`)
-                } else {
-                  Alert.alert('✅ Contributed!', `${data.paidCount} of ${data.paidCount + data.remainingCount} members paid`)
-                }
+              if (data.payoutSent) {
+                announceAjoPayout(data.payoutAmount, groupName)
+                Alert.alert('🎉 Payout!', `₦${data.payoutAmount?.toLocaleString()} paid out this cycle!`)
+              } else {
+                announceContribution(amount, groupName)
+                Alert.alert('✅ Contributed!', `${data.paidCount} of ${data.paidCount + data.remainingCount} members paid`)
+              }
               await loadGroups()
             } catch (error: any) {
               Alert.alert('Error', error.response?.data?.message || 'Something went wrong')
@@ -75,6 +76,14 @@ export default function AjoScreen({ navigation }: any) {
   const isMyGroup = (group: any) => group.members?.some((m: any) => m.userId === user?.id)
   const myMember = (group: any) => group.members?.find((m: any) => m.userId === user?.id)
 
+  const filteredGroups = groups
+    .filter(g => !g.isGuaranteed)
+    .filter(g =>
+      !search ||
+      g.name.toLowerCase().includes(search.toLowerCase()) ||
+      g.frequency.toLowerCase().includes(search.toLowerCase())
+    )
+
   return (
     <View style={styles.container}>
       <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.header}>
@@ -85,9 +94,28 @@ export default function AjoScreen({ navigation }: any) {
         <View style={{ width: 40 }} />
       </LinearGradient>
 
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <View style={styles.searchBar}>
+          <Text style={styles.searchIcon}>🔍</Text>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search groups..."
+            placeholderTextColor="#888"
+            value={search}
+            onChangeText={setSearch}
+          />
+          {search ? (
+            <TouchableOpacity onPress={() => setSearch('')}>
+              <Text style={styles.clearSearch}>✕</Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
+      </View>
+
       <View style={styles.infoBar}>
         <Text style={styles.infoBarText}>
-          💡 Groups are created by OWODE admins. Join any open group below!
+          💡 Groups are created by OWODE admins. Join any open group!
         </Text>
       </View>
 
@@ -98,14 +126,18 @@ export default function AjoScreen({ navigation }: any) {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           showsVerticalScrollIndicator={false}
         >
-          {groups.filter(g => !g.isGuaranteed).length === 0 ? (
+          {filteredGroups.length === 0 ? (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyIcon}>🤝</Text>
-              <Text style={styles.emptyText}>No Ajo groups available</Text>
-              <Text style={styles.emptySubText}>Check back soon — OWODE admins are creating groups for you!</Text>
+              <Text style={styles.emptyIcon}>{search ? '🔍' : '🤝'}</Text>
+              <Text style={styles.emptyText}>
+                {search ? `No groups found for "${search}"` : 'No Ajo groups available'}
+              </Text>
+              <Text style={styles.emptySubText}>
+                {search ? 'Try a different search term' : 'Check back soon — OWODE admins are creating groups!'}
+              </Text>
             </View>
           ) : (
-            groups.filter(g => !g.isGuaranteed).map(group => {
+            filteredGroups.map(group => {
               const isFull = group.members?.length >= group.totalMembers
               const spotsLeft = group.totalMembers - (group.members?.length || 0)
               const isMember = isMyGroup(group)
@@ -113,7 +145,6 @@ export default function AjoScreen({ navigation }: any) {
 
               return (
                 <View key={group.id} style={styles.groupCard}>
-                  {/* Header */}
                   <View style={styles.groupHeader}>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.groupName}>{group.name}</Text>
@@ -126,11 +157,9 @@ export default function AjoScreen({ navigation }: any) {
                     </View>
                   </View>
 
-                  {/* Amount */}
                   <Text style={styles.groupAmount}>₦{group.amount?.toLocaleString()}</Text>
                   <Text style={styles.groupAmountLabel}>per contribution cycle</Text>
 
-                  {/* Progress */}
                   <View style={styles.progressSection}>
                     <View style={styles.progressRow}>
                       <Text style={styles.progressLabel}>Members</Text>
@@ -147,7 +176,6 @@ export default function AjoScreen({ navigation }: any) {
                     </View>
                   </View>
 
-                  {/* Not full warning */}
                   {!isFull && (
                     <View style={styles.warningBox}>
                       <Text style={styles.warningText}>
@@ -156,7 +184,6 @@ export default function AjoScreen({ navigation }: any) {
                     </View>
                   )}
 
-                  {/* Members avatars */}
                   <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.membersRow}>
                     {group.members?.map((m: any) => (
                       <View key={m.id} style={styles.memberChip}>
@@ -171,7 +198,6 @@ export default function AjoScreen({ navigation }: any) {
                         </Text>
                       </View>
                     ))}
-                    {/* Empty slots */}
                     {Array.from({ length: spotsLeft }).map((_, i) => (
                       <View key={`empty-${i}`} style={styles.memberChip}>
                         <View style={[styles.memberAvatar, { backgroundColor: '#f0f0f0' }]}>
@@ -182,7 +208,6 @@ export default function AjoScreen({ navigation }: any) {
                     ))}
                   </ScrollView>
 
-                  {/* Actions */}
                   <View style={styles.groupActions}>
                     {!isMember ? (
                       <TouchableOpacity
@@ -195,7 +220,7 @@ export default function AjoScreen({ navigation }: any) {
                     ) : (
                       <>
                         <View style={styles.memberBadge}>
-                          <Text style={styles.memberBadgeText}>✅ You're a member (Position #{member?.position})</Text>
+                          <Text style={styles.memberBadgeText}>✅ Member — Position #{member?.position}</Text>
                         </View>
                         <TouchableOpacity
                           style={[styles.actionBtn, styles.contributeBtn, (!isFull || member?.hasPaid) && styles.actionBtnDisabled]}
@@ -210,8 +235,7 @@ export default function AjoScreen({ navigation }: any) {
                     )}
                   </View>
 
-                  {/* Cycle info */}
-                  <Text style={styles.cycleInfo}>Cycle {group.currentCycle} • Created by OWODE</Text>
+                  <Text style={styles.cycleInfo}>Cycle {group.currentCycle} • Created by OWODE Admin</Text>
                 </View>
               )
             })
@@ -228,11 +252,16 @@ const styles = StyleSheet.create({
   header: { padding: 24, paddingTop: 60, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   back: { color: '#f5a623', fontSize: 16 },
   headerTitle: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-  infoBar: { backgroundColor: '#e3f2fd', padding: 12, paddingHorizontal: 16 },
+  searchContainer: { backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 12 },
+  searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f5f5f5', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, gap: 8 },
+  searchIcon: { fontSize: 16 },
+  searchInput: { flex: 1, fontSize: 15, color: '#333' },
+  clearSearch: { fontSize: 14, color: '#888', padding: 4 },
+  infoBar: { backgroundColor: '#e3f2fd', padding: 10, paddingHorizontal: 16 },
   infoBarText: { fontSize: 12, color: '#0d47a1', textAlign: 'center' },
   emptyState: { alignItems: 'center', padding: 60 },
   emptyIcon: { fontSize: 56, marginBottom: 16 },
-  emptyText: { fontSize: 18, fontWeight: 'bold', color: '#333', marginBottom: 8 },
+  emptyText: { fontSize: 18, fontWeight: 'bold', color: '#333', marginBottom: 8, textAlign: 'center' },
   emptySubText: { fontSize: 14, color: '#888', textAlign: 'center', lineHeight: 22 },
   groupCard: { backgroundColor: '#fff', margin: 16, marginBottom: 8, borderRadius: 20, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 10, elevation: 3 },
   groupHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
