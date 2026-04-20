@@ -72,3 +72,4 @@ export const isBiometricEnrolled = async (): Promise<boolean> => {
     return false
   }
 }
+

@@ -22,20 +22,25 @@ export const registerForPushNotifications = async () => {
       finalStatus = status
     }
 
-    if (finalStatus !== 'granted') return null
+    if (finalStatus !== 'granted') {
+      console.log('Push notification permission denied')
+      return null
+    }
 
     if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync('owode-alerts', {
+      await Notifications.setNotificationChannelAsync('owode-payments', {
         name: 'OWODE Payment Alerts',
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
-        sound: 'default'
+        sound: 'default',
+        enableVibrate: true,
+        showBadge: true
       })
     }
 
     return true
   } catch (error) {
-    console.log('Push notification setup failed:', error)
+    console.log('Push notification setup:', error)
     return null
   }
 }
@@ -46,16 +51,21 @@ export const showPaymentNotification = async (data: {
   sender?: string
   balance: number
 }) => {
-  const title = data.type === 'CREDIT' ? '💰 Payment Received!' : '💸 Payment Sent'
-  const body = data.type === 'CREDIT'
-    ? `₦${data.amount.toLocaleString()} received${data.sender ? ` from ${data.sender}` : ''} • Balance: ₦${data.balance.toLocaleString()}`
-    : `₦${data.amount.toLocaleString()} sent from your wallet • Balance: ₦${data.balance.toLocaleString()}`
+  try {
+    const title = data.type === 'CREDIT' ? '💰 Payment Received!' : '💸 Payment Sent'
+    const body = data.type === 'CREDIT'
+      ? `₦${data.amount.toLocaleString()} received${data.sender ? ` from ${data.sender}` : ''} • Bal: ₦${data.balance.toLocaleString()}`
+      : `₦${data.amount.toLocaleString()} sent • Bal: ₦${data.balance.toLocaleString()}`
 
-  await Notifications.scheduleNotificationAsync({
-    content: { title, body, sound: 'default' },
-    trigger: null
-  })
+    await Notifications.scheduleNotificationAsync({
+      content: { title, body, sound: 'default', priority: Notifications.AndroidNotificationPriority.MAX },
+      trigger: null
+    })
 
-  // Also speak it out loud
-  announcePayment({ type: data.type, amount: data.amount, sender: data.sender })
+    announcePayment({ type: data.type, amount: data.amount, sender: data.sender })
+  } catch (error) {
+    console.log('Notification error (non-critical):', error)
+    // Still do voice even if notification fails
+    announcePayment({ type: data.type, amount: data.amount, sender: data.sender })
+  }
 }
