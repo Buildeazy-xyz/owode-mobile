@@ -7,8 +7,13 @@ import {
 import { LinearGradient } from 'expo-linear-gradient'
 import { guaranteedAjoAPI } from '../utils/api'
 import PinKeypad from '../components/PinKeypad'
+import { useAuth } from '../context/AuthContext'
+import { authenticateWithBiometrics, isBiometricEnabled, getBiometricType } from '../utils/biometrics'
 
 export default function GuaranteedAjoScreen({ navigation }: any) {
+  const { user } = useAuth()
+  const isAdmin = user?.role === 'ADMIN'
+  
   const [groups, setGroups] = useState<any[]>([])
   const [refreshing, setRefreshing] = useState(false)
   const [modalVisible, setModalVisible] = useState(false)
@@ -20,6 +25,7 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
   const [amount, setAmount] = useState('')
   const [frequency, setFrequency] = useState('WEEKLY')
   const [totalMembers, setTotalMembers] = useState('')
+  const [search, setSearch] = useState('')
 
   const loadGroups = async () => {
     try {
@@ -37,6 +43,13 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
     await loadGroups()
     setRefreshing(false)
   }
+
+  // Filter groups:
+  const filteredGroups = groups.filter(g =>
+    !search ||
+    g.name.toLowerCase().includes(search.toLowerCase()) ||
+    g.frequency.toLowerCase().includes(search.toLowerCase())
+  )
 
   const handleCreateGroup = async () => {
     if (!name || !amount || !totalMembers) {
@@ -69,9 +82,33 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
     }
   }
 
-  const handleContribute = (group: any) => {
+  const handleContribute = async (group: any) => {
     setSelectedGroup(group)
-    setContributeModal(true)
+    
+    const bioEnabled = await isBiometricEnabled()
+    if (bioEnabled) {
+      const bioInfo = await getBiometricType()
+      Alert.alert(
+        'Authorize Contribution',
+        `Contribute ₦${(group.amount + group.guaranteeFee)?.toLocaleString()} to "${group.name}"?`,
+        [
+          {
+            text: `${bioInfo.icon} ${bioInfo.label}`,
+            onPress: async () => {
+              const success = await authenticateWithBiometrics('Authorize Ajo contribution')
+              if (success) {
+                setLoading(true)
+                await executeContribution('BIOMETRIC_AUTH')
+              }
+            }
+          },
+          { text: '🔢 Use PIN', onPress: () => setContributeModal(true) },
+          { text: 'Cancel', style: 'cancel' }
+        ]
+      )
+    } else {
+      setContributeModal(true)
+    }
   }
 
   const executeContribution = async (pin: string) => {
@@ -103,10 +140,33 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
           <Text style={styles.back}>← Back</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>🛡️ Guaranteed Ajo</Text>
-        <TouchableOpacity onPress={() => setModalVisible(true)}>
-          <Text style={styles.createBtn}>+ New</Text>
-        </TouchableOpacity>
+        {isAdmin ? (
+          <TouchableOpacity onPress={() => setModalVisible(true)}>
+            <Text style={styles.createBtn}>+ New</Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={{ width: 40 }} />
+        )}
       </LinearGradient>
+
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <View style={styles.searchBar}>
+          <Text style={styles.searchIcon}>🔍</Text>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search guaranteed groups..."
+            placeholderTextColor="#888"
+            value={search}
+            onChangeText={setSearch}
+          />
+          {search ? (
+            <TouchableOpacity onPress={() => setSearch('')}>
+              <Text style={styles.clearSearch}>✕</Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
+      </View>
 
       {/* Info Banner */}
       <View style={styles.infoBanner}>
@@ -118,17 +178,19 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
       </View>
 
       <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
-        {groups.length === 0 ? (
+        {filteredGroups.length === 0 ? (
           <View style={styles.emptyState}>
             <Text style={styles.emptyIcon}>🛡️</Text>
             <Text style={styles.emptyText}>No Guaranteed Ajo groups yet</Text>
-            <Text style={styles.emptySubText}>Create one to start saving with zero risk!</Text>
-            <TouchableOpacity style={styles.createFirstBtn} onPress={() => setModalVisible(true)}>
-              <Text style={styles.createFirstBtnText}>Create First Group</Text>
-            </TouchableOpacity>
+            <Text style={styles.emptySubText}>{isAdmin ? 'Create one to start saving with zero risk!' : 'Join a group to start saving!'}</Text>
+            {isAdmin ? (
+              <TouchableOpacity style={styles.createFirstBtn} onPress={() => setModalVisible(true)}>
+                <Text style={styles.createFirstBtnText}>Create First Group</Text>
+              </TouchableOpacity>
+            ) : null}
           </View>
         ) : (
-          groups.map(group => (
+          filteredGroups.map(group => (
             <View key={group.id} style={styles.groupCard}>
               <View style={styles.groupHeader}>
                 <View>
@@ -370,5 +432,10 @@ riskBadgeText: { fontSize: 12, fontWeight: '600', color: '#333' },
   confirmLabel: { fontSize: 14, color: '#888' },
   confirmValue: { fontSize: 14, color: '#333' },
   avatarNote: { backgroundColor: '#e3f2fd', borderRadius: 12, padding: 12, marginVertical: 16 },
-  avatarNoteText: { fontSize: 12, color: '#0d47a1', textAlign: 'center' }
+  avatarNoteText: { fontSize: 12, color: '#0d47a1', textAlign: 'center' },
+  searchContainer: { backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 12 },
+  searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f5f5f5', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, gap: 8 },
+  searchIcon: { fontSize: 16 },
+  searchInput: { flex: 1, fontSize: 15, color: '#333' },
+  clearSearch: { fontSize: 14, color: '#888', padding: 4 }
 })

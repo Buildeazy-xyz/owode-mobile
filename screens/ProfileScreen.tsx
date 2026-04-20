@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, TextInput, ActivityIndicator } from 'react-native'
 import { useAuth } from '../context/AuthContext'
 import { kycAPI } from '../utils/api'
-
+import { isBiometricEnabled, getBiometricType } from '../utils/biometrics'
 export default function ProfileScreen({ navigation }: any) {
   const { user, logout } = useAuth()
   const [kycStatus, setKycStatus] = useState<any>(null)
@@ -20,7 +20,18 @@ export default function ProfileScreen({ navigation }: any) {
   }
 
   useEffect(() => { loadKYC() }, [])
+const [bioEnabled, setBioEnabled] = useState(false)
+const [bioInfo, setBioInfo] = useState<any>(null)
 
+useEffect(() => {
+  const checkBio = async () => {
+    const enabled = await isBiometricEnabled()
+    const info = await getBiometricType()
+    setBioEnabled(enabled)
+    setBioInfo(info)
+  }
+  checkBio()
+}, [])
   const handleSubmitBVN = async () => {
     if (!bvn || bvn.length !== 11) { Alert.alert('Error', 'BVN must be exactly 11 digits'); return }
     try {
@@ -80,13 +91,19 @@ export default function ProfileScreen({ navigation }: any) {
      {/* Security Section */}
 <View style={styles.section}>
   <Text style={styles.sectionTitle}>🔐 Security</Text>
+  
   <View style={styles.menuCard}>
     <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('SetTransactionPin')}>
       <Text style={styles.menuIcon}>💳</Text>
+      
       <View style={styles.menuText}>
         <Text style={styles.menuLabel}>Transaction PIN</Text>
         <Text style={styles.menuSub}>{user?.hasTransactionPin ? 'PIN is set ✅' : 'Not set — tap to set'}</Text>
+
       </View>
+              <Text style={styles.menuSub}>
+          {bioEnabled ? `${bioInfo?.label} is active ✅` : 'Not set up — tap to enable'}
+        </Text>
       <Text style={styles.menuArrow}>→</Text>
     </TouchableOpacity>
     <View style={styles.menuDivider} />

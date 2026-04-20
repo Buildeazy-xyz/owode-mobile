@@ -56,6 +56,20 @@ export default function DashboardScreen({ navigation }: any) {
       }
     }
   }
+// Add biometric status to the header avatar area
+const [bioEnabled, setBioEnabled] = useState(false)
+const [bioInfo, setBioInfo] = useState<any>(null)
+
+useEffect(() => {
+  const checkBio = async () => {
+    const enabled = await isBiometricEnabled()
+    const info = await getBiometricType()
+    setBioEnabled(enabled)
+    setBioInfo(info)
+  }
+  checkBio()
+}, [])
+
 
 const onRefresh = async () => {
   setRefreshing(true)
@@ -100,7 +114,7 @@ const onRefresh = async () => {
           </View>
         </View>
       </LinearGradient>
-
+ 
 {/* Trust Score Widget */}
 <TouchableOpacity style={styles.trustCard} onPress={() => navigation.navigate('TrustScore')}>
   <View>
@@ -113,6 +127,22 @@ const onRefresh = async () => {
     </Text>
     <Text style={styles.trustArrow}>→</Text>
   </View>
+</TouchableOpacity>
+     
+<TouchableOpacity onPress={() => navigation.navigate('Profile')} style={styles.headerRight}>
+  <View style={styles.avatar}>
+    <Text style={styles.avatarText}>{user?.fullName?.charAt(0)}</Text>
+  </View>
+  {bioEnabled && (
+    <View style={styles.bioBadge}>
+      <Text style={{ fontSize: 10 }}>{bioInfo?.hasFaceID ? '😊' : '👆'}</Text>
+    </View>
+  )}
+  {!user?.isVerified && (
+    <View style={styles.notificationBadge}>
+      <Text style={styles.notificationBadgeText}>!</Text>
+    </View>
+  )}
 </TouchableOpacity>
 
     {/* Quick Actions */}
@@ -141,6 +171,10 @@ const onRefresh = async () => {
   <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('Profile')}>
     <Text style={styles.actionIcon}>👤</Text>
     <Text style={styles.actionLabel}>Profile</Text>
+  </TouchableOpacity>
+  <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('BiometricSetup')}>
+    <Text style={styles.actionIcon}>{bioInfo?.hasFaceID ? '😊' : '👆'}</Text>
+    <Text style={styles.actionLabel}>{bioEnabled ? 'Bio Active' : 'Enable Bio'}</Text>
   </TouchableOpacity>
 </View>
 
@@ -197,7 +231,9 @@ trustScore: { fontSize: 22, fontWeight: 'bold', color: '#0d47a1' },
 trustRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
 trustEmoji: { fontSize: 28 },
 trustArrow: { color: '#888', fontSize: 18 },
-  emptyState: { backgroundColor: '#fff', margin: 16, borderRadius: 16, padding: 30, alignItems: 'center' },
+bioBadge: { position: 'absolute', bottom: -2, right: -2, width: 18, height: 18, borderRadius: 9, backgroundColor: '#22c55e', justifyContent: 'center', alignItems: 'center' },  notificationBadge: { position: 'absolute', bottom: -4, right: -4, width: 20, height: 20, borderRadius: 10, backgroundColor: '#ef4444', justifyContent: 'center', alignItems: 'center' },
+  notificationBadgeText: { color: '#fff', fontSize: 12, fontWeight: 'bold', textAlign: 'center' },
+  headerRight: { position: 'relative' },  emptyState: { backgroundColor: '#fff', margin: 16, borderRadius: 16, padding: 30, alignItems: 'center' },
   emptyIcon: { fontSize: 40, marginBottom: 12 },
   emptyText: { fontSize: 16, fontWeight: 'bold', color: '#333' },
   emptySubText: { fontSize: 14, color: '#888', marginTop: 4 },
