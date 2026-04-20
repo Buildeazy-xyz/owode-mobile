@@ -64,6 +64,11 @@ const onRefresh = async () => {
   setRefreshing(false)
 }
 
+  useEffect(() => {
+    loadWallet()
+    checkBiometricSetup()
+  }, [])
+
   return (
     <ScrollView style={styles.container} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
       <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.header}>
