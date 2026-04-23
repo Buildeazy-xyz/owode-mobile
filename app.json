@@ -37,6 +37,12 @@
       "expo-font",
       "expo-local-authentication",
       [
+        "expo-camera",
+        {
+          "cameraPermission": "OWODE needs camera access to verify your identity"
+        }
+      ],
+      [
         "expo-notifications",
         {
           "icon": "./assets/icon.png",

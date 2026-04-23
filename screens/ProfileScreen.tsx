@@ -124,6 +124,15 @@ useEffect(() => {
       </View>
       <Text style={styles.menuArrow}>→</Text>
     </TouchableOpacity>
+    <View style={styles.menuDivider} />
+    <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('FaceVerification')}>
+      <Text style={styles.menuIcon}>😊</Text>
+      <View style={styles.menuText}>
+        <Text style={styles.menuLabel}>Face Verification</Text>
+        <Text style={styles.menuSub}>{user?.isVerified ? 'Verified ✅' : 'Verify your identity with your face'}</Text>
+      </View>
+      <Text style={styles.menuArrow}>→</Text>
+    </TouchableOpacity>
   </View>
 </View>
 
