@@ -10,9 +10,9 @@ import axios from 'axios'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const { width, height } = Dimensions.get('window')
-const BASE_URL = 'http://192.168.88.21:3000/api'
-
-export default function FaceVerificationScreen({ navigation }: any) {
+const BASE_URL = 'https://owodeplatform-production.up.railway.app/api'
+  
+  export default function FaceVerificationScreen({ navigation }: any) {
   const [permission, requestPermission] = useCameraPermissions()
   const [step, setStep] = useState<'intro' | 'camera' | 'processing' | 'success' | 'failed'>('intro')
   const [instruction, setInstruction] = useState('Position your face in the oval')
