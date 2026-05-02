@@ -26,11 +26,17 @@
         "backgroundColor": "#0d47a1"
       },
       "package": "com.owodealajo.mobile",
+      "versionCode": 1,
+      "compileSdkVersion": 35,
+      "targetSdkVersion": 35,
+      "minSdkVersion": 24,
       "permissions": [
         "USE_BIOMETRIC",
         "USE_FINGERPRINT",
         "CAMERA",
-        "VIBRATE"
+        "VIBRATE",
+        "RECEIVE_BOOT_COMPLETED",
+        "SCHEDULE_EXACT_ALARM"
       ]
     },
     "plugins": [
@@ -46,7 +52,8 @@
         "expo-notifications",
         {
           "icon": "./assets/icon.png",
-          "color": "#0d47a1"
+          "color": "#0d47a1",
+          "defaultChannel": "owode-payments"
         }
       ]
     ],

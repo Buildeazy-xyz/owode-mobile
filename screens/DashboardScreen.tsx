@@ -129,21 +129,7 @@ const onRefresh = async () => {
   </View>
 </TouchableOpacity>
      
-<TouchableOpacity onPress={() => navigation.navigate('Profile')} style={styles.headerRight}>
-  <View style={styles.avatar}>
-    <Text style={styles.avatarText}>{user?.fullName?.charAt(0)}</Text>
-  </View>
-  {bioEnabled && (
-    <View style={styles.bioBadge}>
-      <Text style={{ fontSize: 10 }}>{bioInfo?.hasFaceID ? '😊' : '👆'}</Text>
-    </View>
-  )}
-  {!user?.isVerified && (
-    <View style={styles.notificationBadge}>
-      <Text style={styles.notificationBadgeText}>!</Text>
-    </View>
-  )}
-</TouchableOpacity>
+
 
     {/* Quick Actions */}
 <Text style={styles.sectionTitle}>Quick Actions</Text>
