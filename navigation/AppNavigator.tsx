@@ -17,7 +17,7 @@ import TrustScoreScreen from '../screens/TrustScoreScreen'
 import GroupHistoryScreen from '../screens/GroupHistoryScreen'
 import BiometricSetupScreen from '../screens/BiometricSetupScreen'
 import FaceVerificationScreen from '../screens/FaceVerificationScreen'
-
+import SavingsScreen from '../screens/SavingsScreen'
 
 const Stack = createNativeStackNavigator()
 
@@ -42,9 +42,8 @@ export default function AppNavigator() {
             <Stack.Screen name="SetTransactionPin" component={SetTransactionPinScreen} />
             <Stack.Screen name="BiometricSetup" component={BiometricSetupScreen} />
             <Stack.Screen name="FaceVerification" component={FaceVerificationScreen} />
-
-
-<Stack.Screen name="GroupHistory" component={GroupHistoryScreen} />
+            <Stack.Screen name="GroupHistory" component={GroupHistoryScreen} />
+            <Stack.Screen name="Savings" component={SavingsScreen} />
           </>
         ) : (
           <>

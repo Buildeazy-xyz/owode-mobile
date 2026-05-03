@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity,
   ScrollView, Alert, RefreshControl, Modal,
-  TextInput, ActivityIndicator
+  TextInput, ActivityIndicator, Share
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { guaranteedAjoAPI } from '../utils/api'
@@ -12,19 +12,13 @@ import { authenticateWithBiometrics, isBiometricEnabled, getBiometricType } from
 
 export default function GuaranteedAjoScreen({ navigation }: any) {
   const { user } = useAuth()
-  const isAdmin = user?.role === 'ADMIN'
-  
+
   const [groups, setGroups] = useState<any[]>([])
   const [refreshing, setRefreshing] = useState(false)
-  const [modalVisible, setModalVisible] = useState(false)
   const [contributeModal, setContributeModal] = useState(false)
   const [selectedGroup, setSelectedGroup] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [pinStep, setPinStep] = useState(false)
-  const [name, setName] = useState('')
-  const [amount, setAmount] = useState('')
-  const [frequency, setFrequency] = useState('WEEKLY')
-  const [totalMembers, setTotalMembers] = useState('')
   const [search, setSearch] = useState('')
 
   const loadGroups = async () => {
@@ -44,33 +38,11 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
     setRefreshing(false)
   }
 
-  // Filter groups:
   const filteredGroups = groups.filter(g =>
     !search ||
     g.name.toLowerCase().includes(search.toLowerCase()) ||
     g.frequency.toLowerCase().includes(search.toLowerCase())
   )
-
-  const handleCreateGroup = async () => {
-    if (!name || !amount || !totalMembers) {
-      Alert.alert('Error', 'All fields are required')
-      return
-    }
-    try {
-      setLoading(true)
-      await guaranteedAjoAPI.createGroup({
-        name, amount: Number(amount), frequency, totalMembers: Number(totalMembers)
-      })
-      Alert.alert('🛡️ Group Created!', 'Your Guaranteed Ajo group is live!')
-      setModalVisible(false)
-      setName(''); setAmount(''); setTotalMembers('')
-      await loadGroups()
-    } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.message || 'Something went wrong')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handleJoin = async (groupId: string) => {
     try {
@@ -82,9 +54,28 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
     }
   }
 
+  const handleShare = async (group: any) => {
+    try {
+      await Share.share({
+        message:
+          `🛡️ Join my GUARANTEED Ajo group on OWODE!\n\n` +
+          `Group: ${group.name}\n` +
+          `Amount: ₦${group.amount?.toLocaleString()} per cycle\n` +
+          `Guarantee fee: ₦${group.guaranteeFee?.toLocaleString()}\n` +
+          `Frequency: ${group.frequency}\n\n` +
+          `✅ Your payout is 100% GUARANTEED by OWODE Avatar AI!\n` +
+          `Even if someone defaults, you still get paid in full!\n\n` +
+          `Download OWODE Alajo and search for "${group.name}" to join!\n\n` +
+          `Download: https://play.google.com/store/apps/details?id=com.owode.alajo.app`,
+        title: 'Join my Guaranteed OWODE Ajo Group!'
+      })
+    } catch (error) {
+      console.log('Share error:', error)
+    }
+  }
+
   const handleContribute = async (group: any) => {
     setSelectedGroup(group)
-    
     const bioEnabled = await isBiometricEnabled()
     if (bioEnabled) {
       const bioInfo = await getBiometricType()
@@ -118,7 +109,6 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
       const data = response.data.data
       setContributeModal(false)
       setPinStep(false)
-
       if (data.payoutSent) {
         Alert.alert('🎉 Payout Sent!', `₦${data.payoutAmount?.toLocaleString()} has been paid out this cycle!`)
       } else {
@@ -140,16 +130,9 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
           <Text style={styles.back}>← Back</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>🛡️ Guaranteed Ajo</Text>
-        {isAdmin ? (
-          <TouchableOpacity onPress={() => setModalVisible(true)}>
-            <Text style={styles.createBtn}>+ New</Text>
-          </TouchableOpacity>
-        ) : (
-          <View style={{ width: 40 }} />
-        )}
+        <View style={{ width: 40 }} />
       </LinearGradient>
 
-      {/* Search Bar */}
       <View style={styles.searchContainer}>
         <View style={styles.searchBar}>
           <Text style={styles.searchIcon}>🔍</Text>
@@ -168,7 +151,6 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
         </View>
       </View>
 
-      {/* Info Banner */}
       <View style={styles.infoBanner}>
         <Text style={styles.infoBannerIcon}>🤖</Text>
         <View style={styles.infoBannerText}>
@@ -182,12 +164,7 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
           <View style={styles.emptyState}>
             <Text style={styles.emptyIcon}>🛡️</Text>
             <Text style={styles.emptyText}>No Guaranteed Ajo groups yet</Text>
-            <Text style={styles.emptySubText}>{isAdmin ? 'Create one to start saving with zero risk!' : 'Join a group to start saving!'}</Text>
-            {isAdmin ? (
-              <TouchableOpacity style={styles.createFirstBtn} onPress={() => setModalVisible(true)}>
-                <Text style={styles.createFirstBtnText}>Create First Group</Text>
-              </TouchableOpacity>
-            ) : null}
+            <Text style={styles.emptySubText}>Check back soon — OWODE admins are creating groups!</Text>
           </View>
         ) : (
           filteredGroups.map(group => (
@@ -205,7 +182,6 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
               <Text style={styles.groupAmount}>₦{group.amount?.toLocaleString()} per cycle</Text>
               <Text style={styles.groupFee}>+ ₦{group.guaranteeFee?.toLocaleString()} guarantee fee</Text>
 
-              {/* Avatar coverage indicator */}
               <View style={styles.avatarCoverage}>
                 <Text style={styles.avatarCoverageText}>
                   🤖 Avatar Coverage: {group.avatarCoveredCount}/{group.maxAvatarCoverage} used
@@ -221,7 +197,6 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
                 </View>
               </View>
 
-              {/* Members list */}
               <Text style={styles.membersTitle}>Members ({group.members?.length}/{group.totalMembers})</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.membersRow}>
                 {group.members?.map((m: any) => (
@@ -249,51 +224,15 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
                   <Text style={styles.contributeBtnText}>💸 Contribute</Text>
                 </TouchableOpacity>
               </View>
+
+              <TouchableOpacity style={styles.shareBtn} onPress={() => handleShare(group)}>
+                <Text style={styles.shareBtnText}>📤 Share Group with Friends</Text>
+              </TouchableOpacity>
             </View>
           ))
         )}
+        <View style={{ height: 40 }} />
       </ScrollView>
-
-      {/* Create Group Modal */}
-      <Modal visible={modalVisible} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modal}>
-            <Text style={styles.modalTitle}>🛡️ Create Guaranteed Ajo</Text>
-            <Text style={styles.modalSubtitle}>Requires BVN/NIN verification</Text>
-
-            <TextInput style={styles.input} placeholder="Group Name" value={name} onChangeText={setName} />
-            <TextInput style={styles.input} placeholder="Amount per cycle (₦)" value={amount} onChangeText={setAmount} keyboardType="numeric" />
-            <TextInput style={styles.input} placeholder="Number of Members (excluding Avatar)" value={totalMembers} onChangeText={setTotalMembers} keyboardType="numeric" />
-
-            <View style={styles.freqRow}>
-              {['DAILY', 'WEEKLY', 'MONTHLY'].map(f => (
-                <TouchableOpacity
-                  key={f}
-                  style={[styles.freqBtn, frequency === f && styles.freqBtnActive]}
-                  onPress={() => setFrequency(f)}
-                >
-                  <Text style={[styles.freqBtnText, frequency === f && styles.freqBtnTextActive]}>{f}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            {amount ? (
-              <View style={styles.feeInfo}>
-                <Text style={styles.feeInfoText}>
-                  💡 Guarantee fee: ₦{(Number(amount) * 0.005).toLocaleString()} per contribution
-                </Text>
-              </View>
-            ) : null}
-
-            <TouchableOpacity style={styles.createGroupBtn} onPress={handleCreateGroup} disabled={loading}>
-              {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.createGroupBtnText}>Create Guaranteed Group</Text>}
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setModalVisible(false)}>
-              <Text style={styles.cancelText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
 
       {/* Contribute Modal */}
       <Modal visible={contributeModal} animationType="slide" transparent>
@@ -325,8 +264,6 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
                     <Text style={styles.confirmLabel}>Group</Text>
                     <Text style={styles.confirmValue}>{selectedGroup.name}</Text>
                   </View>
-                   {/* Risk Level */}
-   
                   <View style={styles.confirmRow}>
                     <Text style={styles.confirmLabel}>Contribution</Text>
                     <Text style={styles.confirmValue}>₦{selectedGroup.amount?.toLocaleString()}</Text>
@@ -342,13 +279,9 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
                     </Text>
                   </View>
                   <View style={styles.avatarNote}>
-                    <Text style={styles.avatarNoteText}>
-                      🤖 Your payout is protected by the Owode Avatar
-                    </Text>
+                    <Text style={styles.avatarNoteText}>🤖 Your payout is protected by the Owode Avatar</Text>
                   </View>
-                  
                 </>
-                
               )}
               <TouchableOpacity style={styles.createGroupBtn} onPress={() => setPinStep(true)}>
                 <Text style={styles.createGroupBtnText}>Continue to PIN →</Text>
@@ -356,23 +289,19 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
               <TouchableOpacity onPress={() => setContributeModal(false)}>
                 <Text style={styles.cancelText}>Cancel</Text>
               </TouchableOpacity>
-
             </View>
           </View>
         )}
       </Modal>
     </View>
   )
- 
 }
-
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
   header: { padding: 24, paddingTop: 60, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   back: { color: '#f5a623', fontSize: 16 },
   headerTitle: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-  createBtn: { color: '#f5a623', fontSize: 16, fontWeight: 'bold' },
   infoBanner: { backgroundColor: '#e3f2fd', margin: 16, borderRadius: 16, padding: 16, flexDirection: 'row', alignItems: 'flex-start' },
   infoBannerIcon: { fontSize: 28, marginRight: 12 },
   infoBannerText: { flex: 1 },
@@ -381,11 +310,7 @@ const styles = StyleSheet.create({
   emptyState: { alignItems: 'center', padding: 60 },
   emptyIcon: { fontSize: 56, marginBottom: 16 },
   emptyText: { fontSize: 18, fontWeight: 'bold', color: '#333' },
-  riskBadge: { borderRadius: 8, padding: 8, marginBottom: 12 },
-riskBadgeText: { fontSize: 12, fontWeight: '600', color: '#333' },
   emptySubText: { fontSize: 14, color: '#888', textAlign: 'center', marginTop: 8, marginBottom: 24 },
-  createFirstBtn: { backgroundColor: '#0d47a1', borderRadius: 16, paddingHorizontal: 32, paddingVertical: 16 },
-  createFirstBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
   groupCard: { backgroundColor: '#fff', margin: 16, marginBottom: 8, borderRadius: 20, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
   groupHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
   groupName: { fontSize: 16, fontWeight: 'bold', color: '#0d47a1', marginBottom: 4 },
@@ -405,28 +330,21 @@ riskBadgeText: { fontSize: 12, fontWeight: '600', color: '#333' },
   memberAvatarText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
   memberName: { fontSize: 10, color: '#333', textAlign: 'center', width: 56 },
   memberPaid: { fontSize: 12, marginTop: 2 },
-  groupActions: { flexDirection: 'row', gap: 8 },
+  groupActions: { flexDirection: 'row', gap: 8, marginBottom: 8 },
   joinBtn: { flex: 1, backgroundColor: '#f5f5f5', borderRadius: 12, padding: 12, alignItems: 'center' },
   joinBtnText: { color: '#0d47a1', fontWeight: '600', fontSize: 13 },
   contributeBtn: { flex: 1, backgroundColor: '#0d47a1', borderRadius: 12, padding: 12, alignItems: 'center' },
   contributeBtnText: { color: '#fff', fontWeight: '600', fontSize: 13 },
+  shareBtn: { backgroundColor: '#f0f9ff', borderRadius: 12, padding: 12, alignItems: 'center', borderWidth: 1, borderColor: '#0d47a1', marginTop: 4 },
+  shareBtnText: { color: '#0d47a1', fontWeight: '600', fontSize: 14 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modal: { backgroundColor: '#fff', borderTopLeftRadius: 30, borderTopRightRadius: 30, padding: 30 },
   modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#0d47a1', marginBottom: 4 },
-  modalSubtitle: { fontSize: 13, color: '#888', marginBottom: 20 },
-  input: { backgroundColor: '#f5f5f5', borderRadius: 12, padding: 16, fontSize: 16, marginBottom: 12, color: '#333' },
-  freqRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
-  freqBtn: { flex: 1, backgroundColor: '#f5f5f5', borderRadius: 10, padding: 10, alignItems: 'center' },
-  freqBtnActive: { backgroundColor: '#0d47a1' },
-  freqBtnText: { color: '#888', fontWeight: '600', fontSize: 12 },
-  freqBtnTextActive: { color: '#fff' },
-  feeInfo: { backgroundColor: '#e3f2fd', borderRadius: 12, padding: 12, marginBottom: 16 },
-  feeInfoText: { fontSize: 12, color: '#0d47a1' },
   createGroupBtn: { backgroundColor: '#0d47a1', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 12 },
   createGroupBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
   cancelText: { textAlign: 'center', color: '#888', fontSize: 14, marginBottom: 8 },
-  pinContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
-  cancelPinText: { color: 'rgba(255,255,255,0.7)', fontSize: 14, marginTop: 20 },
+  pinContainer: { flex: 1 },
+  cancelPinText: { color: 'rgba(255,255,255,0.7)', fontSize: 14, marginTop: 20, textAlign: 'center' },
   confirmRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#f5f5f5' },
   confirmTotal: { borderBottomWidth: 0, marginTop: 4 },
   confirmLabel: { fontSize: 14, color: '#888' },

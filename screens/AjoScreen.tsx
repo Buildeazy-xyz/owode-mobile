@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity,
   ScrollView, Alert, RefreshControl, ActivityIndicator,
-  TextInput
+  TextInput, Share
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { ajoAPI } from '../utils/api'
@@ -73,6 +73,26 @@ export default function AjoScreen({ navigation }: any) {
     )
   }
 
+  const handleShare = async (group: any) => {
+    try {
+      const spotsLeft = group.totalMembers - (group.members?.length || 0)
+      await Share.share({
+        message:
+          `🤝 Join my Ajo group on OWODE Alajo!\n\n` +
+          `Group: ${group.name}\n` +
+          `Amount: ₦${group.amount?.toLocaleString()} per cycle\n` +
+          `Frequency: ${group.frequency}\n` +
+          `Spots left: ${spotsLeft}\n\n` +
+          `Download OWODE Alajo and search for "${group.name}" to join!\n\n` +
+          `🛡️ Your payout is GUARANTEED by OWODE Avatar AI\n\n` +
+          `Download: https://play.google.com/store/apps/details?id=com.owode.alajo.app`,
+        title: 'Join my OWODE Ajo Group!'
+      })
+    } catch (error) {
+      console.log('Share error:', error)
+    }
+  }
+
   const isMyGroup = (group: any) => group.members?.some((m: any) => m.userId === user?.id)
   const myMember = (group: any) => group.members?.find((m: any) => m.userId === user?.id)
 
@@ -94,7 +114,6 @@ export default function AjoScreen({ navigation }: any) {
         <View style={{ width: 40 }} />
       </LinearGradient>
 
-      {/* Search Bar */}
       <View style={styles.searchContainer}>
         <View style={styles.searchBar}>
           <Text style={styles.searchIcon}>🔍</Text>
@@ -233,6 +252,13 @@ export default function AjoScreen({ navigation }: any) {
                         </TouchableOpacity>
                       </>
                     )}
+
+                    <TouchableOpacity
+                      style={styles.shareBtn}
+                      onPress={() => handleShare(group)}
+                    >
+                      <Text style={styles.shareBtnText}>📤 Share Group with Friends</Text>
+                    </TouchableOpacity>
                   </View>
 
                   <Text style={styles.cycleInfo}>Cycle {group.currentCycle} • Created by OWODE Admin</Text>
@@ -293,5 +319,7 @@ const styles = StyleSheet.create({
   contributeBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
   memberBadge: { backgroundColor: '#e8f5e9', borderRadius: 10, padding: 10, marginBottom: 8, alignItems: 'center' },
   memberBadgeText: { fontSize: 13, color: '#22c55e', fontWeight: '600' },
-  cycleInfo: { fontSize: 11, color: '#ccc', textAlign: 'center', marginTop: 12 }
+  cycleInfo: { fontSize: 11, color: '#ccc', textAlign: 'center', marginTop: 12 },
+  shareBtn: { backgroundColor: '#f0f9ff', borderRadius: 12, padding: 12, alignItems: 'center', borderWidth: 1, borderColor: '#0d47a1', marginTop: 4 },
+  shareBtnText: { color: '#0d47a1', fontWeight: '600', fontSize: 14 }
 })
