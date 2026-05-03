@@ -162,10 +162,6 @@ const onRefresh = async () => {
     <Text style={styles.actionIcon}>{bioInfo?.hasFaceID ? '😊' : '👆'}</Text>
     <Text style={styles.actionLabel}>{bioEnabled ? 'Bio Active' : 'Enable Bio'}</Text>
   </TouchableOpacity>
-  <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('BiometricSetup')}>
-  <Text style={styles.actionIcon}>{bioInfo?.hasFaceID ? '😊' : '👆'}</Text>
-  <Text style={styles.actionLabel}>{bioEnabled ? 'Bio Active' : 'Enable Bio'}</Text>
-</TouchableOpacity>
 <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('Savings')}>
   <Text style={styles.actionIcon}>🐷</Text>
   <Text style={styles.actionLabel}>My Savings</Text>
