@@ -2,17 +2,29 @@ import React, { useEffect, useState } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity,
   ScrollView, Alert, RefreshControl, Modal,
-  TextInput, ActivityIndicator
+  TextInput, ActivityIndicator, Platform
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { savingsAPI } from '../utils/api'
+
+const GOAL_CATEGORIES = [
+  { icon: '📱', label: 'Gadget' },
+  { icon: '🏠', label: 'House' },
+  { icon: '🚗', label: 'Car' },
+  { icon: '✈️', label: 'Travel' },
+  { icon: '📚', label: 'Education' },
+  { icon: '💒', label: 'Wedding' },
+  { icon: '🏥', label: 'Medical' },
+  { icon: '💼', label: 'Business' },
+  { icon: '🎁', label: 'Gift' },
+  { icon: '🐷', label: 'General' },
+]
 
 export default function SavingsScreen({ navigation }: any) {
   const [goals, setGoals] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
-  const [createModal, setCreateModal] = useState(false)
-  const [depositModal, setDepositModal] = useState(false)
+  const [screen, setScreen] = useState<'list' | 'create' | 'deposit'>('list')
   const [selectedGoal, setSelectedGoal] = useState<any>(null)
   const [saving, setSaving] = useState(false)
 
@@ -24,6 +36,7 @@ export default function SavingsScreen({ navigation }: any) {
   const [targetDate, setTargetDate] = useState('')
   const [autoDebitAmount, setAutoDebitAmount] = useState('')
   const [autoDebitFreq, setAutoDebitFreq] = useState('WEEKLY')
+  const [selectedCategory, setSelectedCategory] = useState(GOAL_CATEGORIES[9])
   const [depositAmount, setDepositAmount] = useState('')
 
   const loadGoals = async () => {
@@ -53,7 +66,7 @@ export default function SavingsScreen({ navigation }: any) {
     try {
       setSaving(true)
       await savingsAPI.createGoal({
-        title,
+        title: `${selectedCategory.icon} ${title}`,
         description,
         goalAmount: Number(goalAmount),
         initialDeposit: initialDeposit ? Number(initialDeposit) : undefined,
@@ -61,10 +74,11 @@ export default function SavingsScreen({ navigation }: any) {
         autoDebitFreq: autoDebitAmount ? autoDebitFreq : undefined,
         targetDate
       })
-      Alert.alert('🎯 Goal Created!', `Your savings goal "${title}" has been created!`)
-      setCreateModal(false)
+      Alert.alert('🎯 Goal Created!', `Your savings goal has been created!`)
+      setScreen('list')
       setTitle(''); setDescription(''); setGoalAmount('')
       setInitialDeposit(''); setTargetDate(''); setAutoDebitAmount('')
+      setSelectedCategory(GOAL_CATEGORIES[9])
       await loadGoals()
     } catch (error: any) {
       Alert.alert('Error', error.response?.data?.message || 'Something went wrong')
@@ -82,7 +96,7 @@ export default function SavingsScreen({ navigation }: any) {
       setSaving(true)
       const response = await savingsAPI.deposit(selectedGoal.id, Number(depositAmount))
       Alert.alert('✅ Deposited!', response.data.message)
-      setDepositModal(false)
+      setScreen('list')
       setDepositAmount('')
       await loadGoals()
     } catch (error: any) {
@@ -105,14 +119,11 @@ export default function SavingsScreen({ navigation }: any) {
           text: 'Withdraw', style: isEarly ? 'destructive' : 'default',
           onPress: async () => {
             try {
-              setSaving(true)
               const response = await savingsAPI.withdraw(goal.id)
               Alert.alert('✅ Withdrawn!', response.data.message)
               await loadGoals()
             } catch (error: any) {
               Alert.alert('Error', error.response?.data?.message || 'Something went wrong')
-            } finally {
-              setSaving(false)
             }
           }
         }
@@ -126,15 +137,274 @@ export default function SavingsScreen({ navigation }: any) {
     return '#0d47a1'
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'COMPLETED': return '#22c55e'
-      case 'WITHDRAWN': return '#888'
-      case 'CANCELLED': return '#ef4444'
-      default: return '#0d47a1'
-    }
+  // CREATE SCREEN
+  if (screen === 'create') {
+    return (
+      <View style={styles.container}>
+        <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.createHeader}>
+          <TouchableOpacity onPress={() => setScreen('list')}>
+            <Text style={styles.back}>← Back</Text>
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>🎯 Create Goal</Text>
+          <View style={{ width: 50 }} />
+        </LinearGradient>
+
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <View style={styles.createContent}>
+
+            {/* Category Selector */}
+            <Text style={styles.fieldLabel}>What are you saving for?</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryRow}>
+              {GOAL_CATEGORIES.map((cat, i) => (
+                <TouchableOpacity
+                  key={i}
+                  style={[styles.categoryChip, selectedCategory.label === cat.label && styles.categoryChipActive]}
+                  onPress={() => setSelectedCategory(cat)}
+                >
+                  <Text style={styles.categoryIcon}>{cat.icon}</Text>
+                  <Text style={[styles.categoryLabel, selectedCategory.label === cat.label && styles.categoryLabelActive]}>
+                    {cat.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            {/* Goal Title */}
+            <Text style={styles.fieldLabel}>Goal Name *</Text>
+            <View style={styles.inputWrapper}>
+              <Text style={styles.inputPrefix}>{selectedCategory.icon}</Text>
+              <TextInput
+                style={styles.inputWithPrefix}
+                placeholder="e.g. New iPhone 16"
+                placeholderTextColor="#aaa"
+                value={title}
+                onChangeText={setTitle}
+              />
+            </View>
+
+            {/* Description */}
+            <Text style={styles.fieldLabel}>Description (optional)</Text>
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              placeholder="Why are you saving for this?"
+              placeholderTextColor="#aaa"
+              value={description}
+              onChangeText={setDescription}
+              multiline
+              numberOfLines={3}
+            />
+
+            {/* Goal Amount */}
+            <Text style={styles.fieldLabel}>Target Amount *</Text>
+            <View style={styles.inputWrapper}>
+              <Text style={styles.inputPrefix}>₦</Text>
+              <TextInput
+                style={styles.inputWithPrefix}
+                placeholder="0.00"
+                placeholderTextColor="#aaa"
+                value={goalAmount}
+                onChangeText={setGoalAmount}
+                keyboardType="numeric"
+              />
+            </View>
+
+            {/* Initial Deposit */}
+            <Text style={styles.fieldLabel}>Initial Deposit (optional)</Text>
+            <View style={styles.inputWrapper}>
+              <Text style={styles.inputPrefix}>₦</Text>
+              <TextInput
+                style={styles.inputWithPrefix}
+                placeholder="0.00"
+                placeholderTextColor="#aaa"
+                value={initialDeposit}
+                onChangeText={setInitialDeposit}
+                keyboardType="numeric"
+              />
+            </View>
+
+            {/* Target Date */}
+            <Text style={styles.fieldLabel}>Target Date *</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="YYYY-MM-DD (e.g. 2026-12-31)"
+              placeholderTextColor="#aaa"
+              value={targetDate}
+              onChangeText={setTargetDate}
+            />
+
+            {/* Auto Debit */}
+            <View style={styles.autoDebitSection}>
+              <View style={styles.autoDebitHeader}>
+                <Text style={styles.fieldLabel}>🔄 Auto-Debit Setup</Text>
+                <Text style={styles.autoDebitHint}>Automatically save from wallet</Text>
+              </View>
+              <View style={styles.inputWrapper}>
+                <Text style={styles.inputPrefix}>₦</Text>
+                <TextInput
+                  style={styles.inputWithPrefix}
+                  placeholder="Amount to auto-save"
+                  placeholderTextColor="#aaa"
+                  value={autoDebitAmount}
+                  onChangeText={setAutoDebitAmount}
+                  keyboardType="numeric"
+                />
+              </View>
+
+              {autoDebitAmount ? (
+                <View style={styles.freqRow}>
+                  {['DAILY', 'WEEKLY', 'MONTHLY'].map(f => (
+                    <TouchableOpacity
+                      key={f}
+                      style={[styles.freqBtn, autoDebitFreq === f && styles.freqBtnActive]}
+                      onPress={() => setAutoDebitFreq(f)}
+                    >
+                      <Text style={[styles.freqBtnText, autoDebitFreq === f && styles.freqBtnTextActive]}>{f}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              ) : null}
+            </View>
+
+            {/* Summary Card */}
+            {goalAmount && targetDate ? (
+              <View style={styles.summaryPreview}>
+                <Text style={styles.summaryPreviewTitle}>📋 Goal Summary</Text>
+                <View style={styles.summaryPreviewRow}>
+                  <Text style={styles.summaryPreviewLabel}>Goal</Text>
+                  <Text style={styles.summaryPreviewValue}>{selectedCategory.icon} {title || 'Untitled'}</Text>
+                </View>
+                <View style={styles.summaryPreviewRow}>
+                  <Text style={styles.summaryPreviewLabel}>Target Amount</Text>
+                  <Text style={styles.summaryPreviewValue}>₦{Number(goalAmount).toLocaleString()}</Text>
+                </View>
+                {initialDeposit ? (
+                  <View style={styles.summaryPreviewRow}>
+                    <Text style={styles.summaryPreviewLabel}>Starting with</Text>
+                    <Text style={styles.summaryPreviewValue}>₦{Number(initialDeposit).toLocaleString()}</Text>
+                  </View>
+                ) : null}
+                <View style={styles.summaryPreviewRow}>
+                  <Text style={styles.summaryPreviewLabel}>Target Date</Text>
+                  <Text style={styles.summaryPreviewValue}>{targetDate}</Text>
+                </View>
+                {autoDebitAmount ? (
+                  <View style={styles.summaryPreviewRow}>
+                    <Text style={styles.summaryPreviewLabel}>Auto-save</Text>
+                    <Text style={styles.summaryPreviewValue}>₦{Number(autoDebitAmount).toLocaleString()} {autoDebitFreq.toLowerCase()}</Text>
+                  </View>
+                ) : null}
+                <View style={[styles.summaryPreviewRow, { borderBottomWidth: 0 }]}>
+                  <Text style={styles.summaryPreviewLabel}>Early withdrawal penalty</Text>
+                  <Text style={[styles.summaryPreviewValue, { color: '#f5a623' }]}>5%</Text>
+                </View>
+              </View>
+            ) : null}
+
+            {/* Create Button */}
+            <TouchableOpacity
+              style={[styles.createGoalBtn, saving && { opacity: 0.7 }]}
+              onPress={handleCreate}
+              disabled={saving}
+            >
+              <LinearGradient colors={['#0d47a1', '#1565c0']} style={styles.createGoalBtnGradient}>
+                {saving ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.createGoalBtnText}>🎯 Create Savings Goal</Text>
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
+
+            <View style={{ height: 40 }} />
+          </View>
+        </ScrollView>
+      </View>
+    )
   }
 
+  // DEPOSIT SCREEN
+  if (screen === 'deposit') {
+    return (
+      <View style={styles.container}>
+        <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.createHeader}>
+          <TouchableOpacity onPress={() => setScreen('list')}>
+            <Text style={styles.back}>← Back</Text>
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>💰 Add Money</Text>
+          <View style={{ width: 50 }} />
+        </LinearGradient>
+
+        <View style={styles.depositContent}>
+          {selectedGoal && (
+            <>
+              <View style={styles.depositGoalInfo}>
+                <Text style={styles.depositGoalTitle}>{selectedGoal.title}</Text>
+                <Text style={styles.depositGoalProgress}>
+                  ₦{selectedGoal.currentAmount?.toLocaleString()} of ₦{selectedGoal.goalAmount?.toLocaleString()}
+                </Text>
+                <View style={styles.depositProgressBar}>
+                  <View style={[
+                    styles.depositProgressFill,
+                    { width: `${Math.min(selectedGoal.progress, 100)}%` }
+                  ]} />
+                </View>
+                <Text style={styles.depositProgressPercent}>{selectedGoal.progress}% complete</Text>
+              </View>
+
+              <Text style={styles.fieldLabel}>Amount to deposit</Text>
+              <View style={styles.inputWrapper}>
+                <Text style={styles.inputPrefix}>₦</Text>
+                <TextInput
+                  style={styles.inputWithPrefix}
+                  placeholder="0.00"
+                  placeholderTextColor="#aaa"
+                  value={depositAmount}
+                  onChangeText={setDepositAmount}
+                  keyboardType="numeric"
+                  autoFocus
+                />
+              </View>
+
+              {depositAmount && Number(depositAmount) > 0 && (
+                <View style={styles.summaryPreview}>
+                  <View style={styles.summaryPreviewRow}>
+                    <Text style={styles.summaryPreviewLabel}>Current savings</Text>
+                    <Text style={styles.summaryPreviewValue}>₦{selectedGoal.currentAmount?.toLocaleString()}</Text>
+                  </View>
+                  <View style={styles.summaryPreviewRow}>
+                    <Text style={styles.summaryPreviewLabel}>Adding</Text>
+                    <Text style={[styles.summaryPreviewValue, { color: '#22c55e' }]}>+₦{Number(depositAmount).toLocaleString()}</Text>
+                  </View>
+                  <View style={[styles.summaryPreviewRow, { borderBottomWidth: 0 }]}>
+                    <Text style={[styles.summaryPreviewLabel, { fontWeight: 'bold' }]}>New total</Text>
+                    <Text style={[styles.summaryPreviewValue, { fontWeight: 'bold', color: '#0d47a1' }]}>
+                      ₦{(selectedGoal.currentAmount + Number(depositAmount)).toLocaleString()}
+                    </Text>
+                  </View>
+                </View>
+              )}
+
+              <TouchableOpacity
+                style={[styles.createGoalBtn, saving && { opacity: 0.7 }]}
+                onPress={handleDeposit}
+                disabled={saving}
+              >
+                <LinearGradient colors={['#22c55e', '#16a34a']} style={styles.createGoalBtnGradient}>
+                  {saving ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={styles.createGoalBtnText}>💰 Deposit to Savings</Text>
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
+      </View>
+    )
+  }
+
+  // MAIN LIST SCREEN
   return (
     <View style={styles.container}>
       <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.header}>
@@ -142,7 +412,7 @@ export default function SavingsScreen({ navigation }: any) {
           <Text style={styles.back}>← Back</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>🐷 My Savings</Text>
-        <TouchableOpacity onPress={() => setCreateModal(true)}>
+        <TouchableOpacity onPress={() => setScreen('create')}>
           <Text style={styles.newBtn}>+ New</Text>
         </TouchableOpacity>
       </LinearGradient>
@@ -184,50 +454,52 @@ export default function SavingsScreen({ navigation }: any) {
             <View style={styles.emptyState}>
               <Text style={styles.emptyIcon}>🐷</Text>
               <Text style={styles.emptyText}>No savings goals yet</Text>
-              <Text style={styles.emptySubText}>Create your first savings goal and start building your future!</Text>
-              <TouchableOpacity style={styles.createFirstBtn} onPress={() => setCreateModal(true)}>
+              <Text style={styles.emptySubText}>Create your first goal and start building your future!</Text>
+              <TouchableOpacity style={styles.createFirstBtn} onPress={() => setScreen('create')}>
                 <Text style={styles.createFirstBtnText}>🎯 Create First Goal</Text>
               </TouchableOpacity>
             </View>
           ) : (
             goals.map(goal => (
               <View key={goal.id} style={styles.goalCard}>
-                {/* Header */}
                 <View style={styles.goalHeader}>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.goalTitle}>{goal.title}</Text>
-                    {goal.description ? (
-                      <Text style={styles.goalDesc}>{goal.description}</Text>
-                    ) : null}
+                    {goal.description ? <Text style={styles.goalDesc}>{goal.description}</Text> : null}
                   </View>
-                  <View style={[styles.statusBadge, { backgroundColor: getStatusColor(goal.status) + '20' }]}>
-                    <Text style={[styles.statusBadgeText, { color: getStatusColor(goal.status) }]}>
-                      {goal.status}
+                  <View style={[styles.statusBadge, {
+                    backgroundColor: goal.status === 'COMPLETED' ? '#e8f5e9' :
+                      goal.status === 'WITHDRAWN' ? '#f5f5f5' : '#e3f2fd'
+                  }]}>
+                    <Text style={[styles.statusBadgeText, {
+                      color: goal.status === 'COMPLETED' ? '#22c55e' :
+                        goal.status === 'WITHDRAWN' ? '#888' : '#0d47a1'
+                    }]}>
+                      {goal.status === 'COMPLETED' ? '✅ Done' :
+                        goal.status === 'WITHDRAWN' ? '🏦 Withdrawn' : '🔵 Active'}
                     </Text>
                   </View>
                 </View>
 
-                {/* Amounts */}
                 <View style={styles.amountsRow}>
-                  <View>
-                    <Text style={styles.currentAmountLabel}>Saved</Text>
-                    <Text style={styles.currentAmount}>₦{goal.currentAmount?.toLocaleString()}</Text>
+                  <View style={styles.amountBox}>
+                    <Text style={styles.amountBoxLabel}>Saved</Text>
+                    <Text style={styles.amountBoxValue}>₦{goal.currentAmount?.toLocaleString()}</Text>
                   </View>
-                  <View style={styles.amountsDivider} />
-                  <View>
-                    <Text style={styles.goalAmountLabel}>Target</Text>
-                    <Text style={styles.goalAmountText}>₦{goal.goalAmount?.toLocaleString()}</Text>
+                  <View style={styles.amountBox}>
+                    <Text style={styles.amountBoxLabel}>Target</Text>
+                    <Text style={styles.amountBoxValue}>₦{goal.goalAmount?.toLocaleString()}</Text>
                   </View>
-                  <View style={styles.amountsDivider} />
-                  <View>
-                    <Text style={styles.daysLeftLabel}>Days Left</Text>
-                    <Text style={[styles.daysLeftText, { color: goal.daysLeft === 0 ? '#22c55e' : goal.daysLeft < 30 ? '#f5a623' : '#0d47a1' }]}>
-                      {goal.daysLeft === 0 ? '🎉 Ready!' : `${goal.daysLeft}d`}
+                  <View style={styles.amountBox}>
+                    <Text style={styles.amountBoxLabel}>Days Left</Text>
+                    <Text style={[styles.amountBoxValue, {
+                      color: goal.daysLeft === 0 ? '#22c55e' : goal.daysLeft < 30 ? '#f5a623' : '#0d47a1'
+                    }]}>
+                      {goal.daysLeft === 0 ? '🎉' : `${goal.daysLeft}d`}
                     </Text>
                   </View>
                 </View>
 
-                {/* Progress Bar */}
                 <View style={styles.progressSection}>
                   <View style={styles.progressRow}>
                     <Text style={styles.progressLabel}>Progress</Text>
@@ -238,43 +510,36 @@ export default function SavingsScreen({ navigation }: any) {
                   <View style={styles.progressBar}>
                     <View style={[
                       styles.progressBarFill,
-                      {
-                        width: `${Math.min(goal.progress, 100)}%`,
-                        backgroundColor: getProgressColor(goal.progress)
-                      }
+                      { width: `${Math.min(goal.progress, 100)}%`, backgroundColor: getProgressColor(goal.progress) }
                     ]} />
                   </View>
                 </View>
 
-                {/* Auto debit info */}
                 {goal.autoDebitAmount > 0 && (
-                  <View style={styles.autoDebitInfo}>
-                    <Text style={styles.autoDebitText}>
-                      🔄 Auto-debit: ₦{goal.autoDebitAmount?.toLocaleString()} {goal.autoDebitFreq?.toLowerCase()}
+                  <View style={styles.autoDebitBadge}>
+                    <Text style={styles.autoDebitBadgeText}>
+                      🔄 Auto-saving ₦{goal.autoDebitAmount?.toLocaleString()} {goal.autoDebitFreq?.toLowerCase()}
                     </Text>
                   </View>
                 )}
 
-                {/* Target date */}
                 <Text style={styles.targetDate}>
-                  🎯 Target: {new Date(goal.targetDate).toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  🎯 Target: {new Date(goal.targetDate).toLocaleDateString('en-NG', {
+                    day: 'numeric', month: 'long', year: 'numeric'
+                  })}
                 </Text>
 
-                {/* Early withdrawal warning */}
                 {!goal.canWithdrawFree && goal.status === 'ACTIVE' && (
-                  <View style={styles.warningBox}>
-                    <Text style={styles.warningText}>
-                      ⚠️ Early withdrawal penalty: {goal.penaltyPercent}%
-                    </Text>
+                  <View style={styles.penaltyWarning}>
+                    <Text style={styles.penaltyWarningText}>⚠️ Early withdrawal: {goal.penaltyPercent}% penalty applies</Text>
                   </View>
                 )}
 
-                {/* Actions */}
                 {goal.status === 'ACTIVE' && (
                   <View style={styles.actions}>
                     <TouchableOpacity
                       style={styles.depositBtn}
-                      onPress={() => { setSelectedGoal(goal); setDepositModal(true) }}
+                      onPress={() => { setSelectedGoal(goal); setScreen('deposit') }}
                     >
                       <Text style={styles.depositBtnText}>💰 Add Money</Text>
                     </TouchableOpacity>
@@ -282,20 +547,17 @@ export default function SavingsScreen({ navigation }: any) {
                       style={[styles.withdrawBtn, !goal.canWithdrawFree && styles.withdrawBtnEarly]}
                       onPress={() => handleWithdraw(goal)}
                     >
-                      <Text style={styles.withdrawBtnText}>
-                        {goal.canWithdrawFree ? '🏦 Withdraw' : '⚠️ Early Withdraw'}
+                      <Text style={[styles.withdrawBtnText, !goal.canWithdrawFree && { color: '#f5a623' }]}>
+                        {goal.canWithdrawFree ? '🏦 Withdraw' : '⚠️ Early'}
                       </Text>
                     </TouchableOpacity>
                   </View>
                 )}
 
                 {goal.status === 'COMPLETED' && (
-                  <View style={styles.completedBanner}>
-                    <Text style={styles.completedBannerText}>🎉 Goal Reached! Withdraw your savings!</Text>
-                    <TouchableOpacity style={styles.withdrawCompletedBtn} onPress={() => handleWithdraw(goal)}>
-                      <Text style={styles.withdrawCompletedBtnText}>🏦 Withdraw Now</Text>
-                    </TouchableOpacity>
-                  </View>
+                  <TouchableOpacity style={styles.withdrawCompletedBtn} onPress={() => handleWithdraw(goal)}>
+                    <Text style={styles.withdrawCompletedBtnText}>🎉 Goal Reached! Withdraw Now</Text>
+                  </TouchableOpacity>
                 )}
               </View>
             ))
@@ -303,125 +565,6 @@ export default function SavingsScreen({ navigation }: any) {
           <View style={{ height: 40 }} />
         </ScrollView>
       )}
-
-      {/* Create Goal Modal */}
-      <Modal visible={createModal} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
-          <ScrollView>
-            <View style={styles.modal}>
-              <Text style={styles.modalTitle}>🎯 Create Savings Goal</Text>
-              <Text style={styles.modalSubtitle}>Set a target and start saving!</Text>
-
-              <TextInput
-                style={styles.input}
-                placeholder="Goal title (e.g. New iPhone)"
-                value={title}
-                onChangeText={setTitle}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Description (optional)"
-                value={description}
-                onChangeText={setDescription}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Goal amount (₦)"
-                value={goalAmount}
-                onChangeText={setGoalAmount}
-                keyboardType="numeric"
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Initial deposit (₦) — optional"
-                value={initialDeposit}
-                onChangeText={setInitialDeposit}
-                keyboardType="numeric"
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Target date (YYYY-MM-DD)"
-                value={targetDate}
-                onChangeText={setTargetDate}
-              />
-
-              <Text style={styles.sectionLabel}>Auto-debit (optional)</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Auto-debit amount (₦)"
-                value={autoDebitAmount}
-                onChangeText={setAutoDebitAmount}
-                keyboardType="numeric"
-              />
-
-              {autoDebitAmount ? (
-                <View style={styles.freqRow}>
-                  {['DAILY', 'WEEKLY', 'MONTHLY'].map(f => (
-                    <TouchableOpacity
-                      key={f}
-                      style={[styles.freqBtn, autoDebitFreq === f && styles.freqBtnActive]}
-                      onPress={() => setAutoDebitFreq(f)}
-                    >
-                      <Text style={[styles.freqBtnText, autoDebitFreq === f && styles.freqBtnTextActive]}>{f}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              ) : null}
-
-              <View style={styles.penaltyInfo}>
-                <Text style={styles.penaltyInfoText}>
-                  ⚠️ Early withdrawal penalty: 5% of saved amount
-                </Text>
-              </View>
-
-              <TouchableOpacity style={styles.createBtn} onPress={handleCreate} disabled={saving}>
-                {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.createBtnText}>🎯 Create Goal</Text>}
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => setCreateModal(false)}>
-                <Text style={styles.cancelText}>Cancel</Text>
-              </TouchableOpacity>
-            </View>
-          </ScrollView>
-        </View>
-      </Modal>
-
-      {/* Deposit Modal */}
-      <Modal visible={depositModal} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modal}>
-            <Text style={styles.modalTitle}>💰 Add Money</Text>
-            {selectedGoal && (
-              <Text style={styles.modalSubtitle}>
-                Adding to: {selectedGoal.title}
-              </Text>
-            )}
-            <TextInput
-              style={styles.input}
-              placeholder="Amount to deposit (₦)"
-              value={depositAmount}
-              onChangeText={setDepositAmount}
-              keyboardType="numeric"
-              autoFocus
-            />
-            {selectedGoal && depositAmount && (
-              <View style={styles.depositPreview}>
-                <Text style={styles.depositPreviewText}>
-                  New total: ₦{(selectedGoal.currentAmount + Number(depositAmount)).toLocaleString()}
-                </Text>
-                <Text style={styles.depositPreviewText}>
-                  Progress: {Math.round(((selectedGoal.currentAmount + Number(depositAmount)) / selectedGoal.goalAmount) * 100)}%
-                </Text>
-              </View>
-            )}
-            <TouchableOpacity style={styles.createBtn} onPress={handleDeposit} disabled={saving}>
-              {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.createBtnText}>💰 Deposit</Text>}
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => { setDepositModal(false); setDepositAmount('') }}>
-              <Text style={styles.cancelText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
     </View>
   )
 }
@@ -429,6 +572,7 @@ export default function SavingsScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
   header: { padding: 24, paddingTop: 60, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  createHeader: { padding: 24, paddingTop: 60, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   back: { color: '#f5a623', fontSize: 16 },
   headerTitle: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
   newBtn: { color: '#f5a623', fontSize: 16, fontWeight: 'bold' },
@@ -452,51 +596,63 @@ const styles = StyleSheet.create({
   goalDesc: { fontSize: 12, color: '#888' },
   statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
   statusBadgeText: { fontSize: 11, fontWeight: 'bold' },
-  amountsRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, backgroundColor: '#f8f9fa', borderRadius: 12, padding: 12 },
-  currentAmountLabel: { fontSize: 11, color: '#888', marginBottom: 2 },
-  currentAmount: { fontSize: 16, fontWeight: 'bold', color: '#0d47a1' },
-  goalAmountLabel: { fontSize: 11, color: '#888', marginBottom: 2 },
-  goalAmountText: { fontSize: 16, fontWeight: 'bold', color: '#333' },
-  daysLeftLabel: { fontSize: 11, color: '#888', marginBottom: 2 },
-  daysLeftText: { fontSize: 16, fontWeight: 'bold' },
-  amountsDivider: { width: 1, height: 30, backgroundColor: '#e0e0e0' },
+  amountsRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
+  amountBox: { flex: 1, backgroundColor: '#f8f9fa', borderRadius: 12, padding: 12, alignItems: 'center' },
+  amountBoxLabel: { fontSize: 11, color: '#888', marginBottom: 4 },
+  amountBoxValue: { fontSize: 14, fontWeight: 'bold', color: '#0d47a1' },
   progressSection: { marginBottom: 12 },
   progressRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
   progressLabel: { fontSize: 12, color: '#888' },
   progressPercent: { fontSize: 12, fontWeight: 'bold' },
-  progressBar: { height: 8, backgroundColor: '#f0f0f0', borderRadius: 4 },
-  progressBarFill: { height: 8, borderRadius: 4 },
-  autoDebitInfo: { backgroundColor: '#e3f2fd', borderRadius: 10, padding: 10, marginBottom: 8 },
-  autoDebitText: { fontSize: 12, color: '#0d47a1' },
+  progressBar: { height: 10, backgroundColor: '#f0f0f0', borderRadius: 5 },
+  progressBarFill: { height: 10, borderRadius: 5 },
+  autoDebitBadge: { backgroundColor: '#e3f2fd', borderRadius: 10, padding: 8, marginBottom: 8 },
+  autoDebitBadgeText: { fontSize: 12, color: '#0d47a1' },
   targetDate: { fontSize: 12, color: '#888', marginBottom: 8 },
-  warningBox: { backgroundColor: '#fff3e0', borderRadius: 10, padding: 10, marginBottom: 12 },
-  warningText: { fontSize: 12, color: '#f5a623' },
+  penaltyWarning: { backgroundColor: '#fff3e0', borderRadius: 10, padding: 8, marginBottom: 12 },
+  penaltyWarningText: { fontSize: 12, color: '#f5a623' },
   actions: { flexDirection: 'row', gap: 8 },
-  depositBtn: { flex: 1, backgroundColor: '#0d47a1', borderRadius: 12, padding: 12, alignItems: 'center' },
-  depositBtnText: { color: '#fff', fontWeight: '600', fontSize: 13 },
-  withdrawBtn: { flex: 1, backgroundColor: '#22c55e', borderRadius: 12, padding: 12, alignItems: 'center' },
-  withdrawBtnEarly: { backgroundColor: '#fee2e2' },
-  withdrawBtnText: { color: '#fff', fontWeight: '600', fontSize: 13 },
-  completedBanner: { backgroundColor: '#e8f5e9', borderRadius: 12, padding: 16, alignItems: 'center' },
-  completedBannerText: { color: '#22c55e', fontWeight: 'bold', fontSize: 14, marginBottom: 12 },
-  withdrawCompletedBtn: { backgroundColor: '#22c55e', borderRadius: 12, padding: 12, paddingHorizontal: 24 },
+  depositBtn: { flex: 2, backgroundColor: '#0d47a1', borderRadius: 12, padding: 14, alignItems: 'center' },
+  depositBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
+  withdrawBtn: { flex: 1, backgroundColor: '#e8f5e9', borderRadius: 12, padding: 14, alignItems: 'center' },
+  withdrawBtnEarly: { backgroundColor: '#fff3e0' },
+  withdrawBtnText: { color: '#22c55e', fontWeight: '600', fontSize: 14 },
+  withdrawCompletedBtn: { backgroundColor: '#22c55e', borderRadius: 12, padding: 14, alignItems: 'center' },
   withdrawCompletedBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modal: { backgroundColor: '#fff', borderTopLeftRadius: 30, borderTopRightRadius: 30, padding: 30 },
-  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#0d47a1', marginBottom: 4 },
-  modalSubtitle: { fontSize: 13, color: '#888', marginBottom: 20 },
-  input: { backgroundColor: '#f5f5f5', borderRadius: 12, padding: 16, fontSize: 16, marginBottom: 12, color: '#333' },
-  sectionLabel: { fontSize: 13, fontWeight: '600', color: '#0d47a1', marginBottom: 8 },
-  freqRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
-  freqBtn: { flex: 1, backgroundColor: '#f5f5f5', borderRadius: 10, padding: 10, alignItems: 'center' },
-  freqBtnActive: { backgroundColor: '#0d47a1' },
+  createContent: { padding: 20 },
+  depositContent: { padding: 20, flex: 1 },
+  fieldLabel: { fontSize: 14, fontWeight: '600', color: '#0d47a1', marginBottom: 8, marginTop: 16 },
+  categoryRow: { marginBottom: 8 },
+  categoryChip: { alignItems: 'center', marginRight: 12, backgroundColor: '#fff', borderRadius: 16, padding: 12, borderWidth: 2, borderColor: '#e0e0e0', width: 80 },
+  categoryChipActive: { borderColor: '#0d47a1', backgroundColor: '#e3f2fd' },
+  categoryIcon: { fontSize: 24, marginBottom: 4 },
+  categoryLabel: { fontSize: 11, color: '#888', fontWeight: '600' },
+  categoryLabelActive: { color: '#0d47a1' },
+  inputWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 14, borderWidth: 1.5, borderColor: '#e0e0e0', paddingHorizontal: 16, marginBottom: 4 },
+  inputPrefix: { fontSize: 18, color: '#0d47a1', fontWeight: 'bold', marginRight: 8 },
+  inputWithPrefix: { flex: 1, fontSize: 16, color: '#333', paddingVertical: 16 },
+  input: { backgroundColor: '#fff', borderRadius: 14, borderWidth: 1.5, borderColor: '#e0e0e0', paddingHorizontal: 16, paddingVertical: 16, fontSize: 16, color: '#333' },
+  textArea: { height: 80, textAlignVertical: 'top' },
+  autoDebitSection: { backgroundColor: '#f8f9fa', borderRadius: 16, padding: 16, marginTop: 8 },
+  autoDebitHeader: { marginBottom: 12 },
+  autoDebitHint: { fontSize: 12, color: '#888', marginTop: 2 },
+  freqRow: { flexDirection: 'row', gap: 8, marginTop: 8 },
+  freqBtn: { flex: 1, backgroundColor: '#fff', borderRadius: 10, padding: 10, alignItems: 'center', borderWidth: 1, borderColor: '#e0e0e0' },
+  freqBtnActive: { backgroundColor: '#0d47a1', borderColor: '#0d47a1' },
   freqBtnText: { color: '#888', fontWeight: '600', fontSize: 12 },
   freqBtnTextActive: { color: '#fff' },
-  penaltyInfo: { backgroundColor: '#fff3e0', borderRadius: 12, padding: 12, marginBottom: 16 },
-  penaltyInfoText: { fontSize: 12, color: '#f5a623' },
-  createBtn: { backgroundColor: '#0d47a1', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 12 },
-  createBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-  cancelText: { textAlign: 'center', color: '#888', fontSize: 14, marginBottom: 8 },
-  depositPreview: { backgroundColor: '#e3f2fd', borderRadius: 12, padding: 12, marginBottom: 16 },
-  depositPreviewText: { fontSize: 13, color: '#0d47a1', marginBottom: 4 }
+  summaryPreview: { backgroundColor: '#f8f9fa', borderRadius: 16, padding: 16, marginTop: 16 },
+  summaryPreviewTitle: { fontSize: 14, fontWeight: 'bold', color: '#0d47a1', marginBottom: 12 },
+  summaryPreviewRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#e0e0e0' },
+  summaryPreviewLabel: { fontSize: 13, color: '#888' },
+  summaryPreviewValue: { fontSize: 13, color: '#333', fontWeight: '600' },
+  createGoalBtn: { marginTop: 24, borderRadius: 16, overflow: 'hidden' },
+  createGoalBtnGradient: { padding: 18, alignItems: 'center' },
+  createGoalBtnText: { color: '#fff', fontSize: 17, fontWeight: 'bold' },
+  depositGoalInfo: { backgroundColor: '#e3f2fd', borderRadius: 16, padding: 16, marginBottom: 24 },
+  depositGoalTitle: { fontSize: 16, fontWeight: 'bold', color: '#0d47a1', marginBottom: 8 },
+  depositGoalProgress: { fontSize: 13, color: '#555', marginBottom: 8 },
+  depositProgressBar: { height: 8, backgroundColor: '#c5d8f0', borderRadius: 4, marginBottom: 4 },
+  depositProgressFill: { height: 8, backgroundColor: '#0d47a1', borderRadius: 4 },
+  depositProgressPercent: { fontSize: 12, color: '#0d47a1', fontWeight: '600' }
 })
