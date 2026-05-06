@@ -1,7 +1,7 @@
 import * as Notifications from 'expo-notifications'
+import * as Device from 'expo-device'
 import { Platform } from 'react-native'
 import { announcePayment } from './speech'
-import messaging from '@react-native-firebase/messaging'
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -13,22 +13,25 @@ Notifications.setNotificationHandler({
   }),
 })
 
-export const registerForPushNotifications = async () => {
+export const registerForPushNotifications = async (): Promise<string | null> => {
   try {
-    // Request permission
-    const authStatus = await messaging().requestPermission()
-    const enabled =
-      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-      authStatus === messaging.AuthorizationStatus.PROVISIONAL
-
-    if (!enabled) {
-      console.log('Push notification permission denied')
+    if (!Device.isDevice) {
+      console.log('Push notifications require physical device')
       return null
     }
 
-    // Get FCM token
-    const fcmToken = await messaging().getToken()
-    console.log('FCM Token:', fcmToken)
+    const { status: existingStatus } = await Notifications.getPermissionsAsync()
+    let finalStatus = existingStatus
+
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync()
+      finalStatus = status
+    }
+
+    if (finalStatus !== 'granted') {
+      console.log('Push notification permission denied')
+      return null
+    }
 
     if (Platform.OS === 'android') {
       await Notifications.setNotificationChannelAsync('owode-payments', {
@@ -41,11 +44,26 @@ export const registerForPushNotifications = async () => {
       })
     }
 
-    return fcmToken
+    const token = await Notifications.getExpoPushTokenAsync({
+      projectId: '9a3481c5-e161-47e5-844e-d608cbe23738'
+    })
+
+    console.log('Expo Push Token:', token.data)
+    return token.data
   } catch (error) {
-    console.log('Push notification setup:', error)
+    console.log('Push notification setup error:', error)
     return null
   }
+}
+
+export const setupBackgroundNotifications = () => {
+  Notifications.addNotificationReceivedListener(notification => {
+    console.log('Notification received:', notification)
+  })
+
+  Notifications.addNotificationResponseReceivedListener(response => {
+    console.log('Notification tapped:', response)
+  })
 }
 
 export const showPaymentNotification = async (data: {
@@ -75,21 +93,4 @@ export const showPaymentNotification = async (data: {
     console.log('Notification error:', error)
     announcePayment({ type: data.type, amount: data.amount, sender: data.sender })
   }
-}
-
-// Listen for background messages
-export const setupBackgroundNotifications = () => {
-  messaging().setBackgroundMessageHandler(async remoteMessage => {
-    console.log('Background notification:', remoteMessage)
-  })
-
-  messaging().onMessage(async remoteMessage => {
-    const { title, body } = remoteMessage.notification || {}
-    if (title && body) {
-      await Notifications.scheduleNotificationAsync({
-        content: { title, body, sound: 'default' },
-        trigger: null
-      })
-    }
-  })
 }
