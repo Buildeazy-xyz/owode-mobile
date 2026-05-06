@@ -26,7 +26,6 @@
         "backgroundColor": "#0d47a1"
       },
       "package": "com.owode.alajo.app",
-      "googleServicesFile": "./google-services.json",
       "versionCode": 1,
       "compileSdkVersion": 35,
       "targetSdkVersion": 35,
@@ -56,9 +55,7 @@
           "color": "#0d47a1",
           "defaultChannel": "owode-payments"
         }
-      ],
-      "@react-native-firebase/app",
-      "@react-native-firebase/messaging"
+      ]
     ],
     "extra": {
       "eas": {
