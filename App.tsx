@@ -5,7 +5,7 @@ import AppNavigator from './navigation/AppNavigator'
 import SplashScreenComponent from './components/SplashScreenComponent'
 import AppLockScreen from './screens/AppLockScreen'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { registerForPushNotifications } from './utils/notifications'
+import { registerForPushNotifications, setupBackgroundNotifications } from './utils/notifications'
 
 function AppContent() {
   const { user } = useAuth()
@@ -14,6 +14,7 @@ function AppContent() {
 
   useEffect(() => {
     registerForPushNotifications()
+    setupBackgroundNotifications()
   }, [])
 
   useEffect(() => {

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "136448718169",
+    "project_id": "owode-alajo",
+    "storage_bucket": "owode-alajo.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:136448718169:android:2b697524a0e6b7bc500848",
+        "android_client_info": {
+          "package_name": "com.owode.alajo.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBxH_KsaPM_StdobORJhzTMzIJm7jSv3Pk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
