@@ -42,7 +42,9 @@ export default function AppNavigator() {
             <Stack.Screen name="FaceVerification" component={FaceVerificationScreen} />
             <Stack.Screen name="GroupHistory" component={GroupHistoryScreen} />
             <Stack.Screen name="Savings" component={SavingsScreen} />
-          </>
+            <Stack.Screen name="SetAppPin" component={SetAppPinScreen} />
+            <Stack.Screen name="SetTransactionPin" component={SetTransactionPinScreen} />
+                      </>
         ) : (
           <>
             <Stack.Screen name="Login" component={LoginScreen} />

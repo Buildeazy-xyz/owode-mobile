@@ -1,5 +1,8 @@
 import React, { useState } from 'react'
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native'
+import {
+  View, Text, TextInput, TouchableOpacity, StyleSheet,
+  ActivityIndicator, Alert, KeyboardAvoidingView, Platform
+} from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useAuth } from '../context/AuthContext'
 
@@ -8,9 +11,13 @@ export default function LoginScreen({ navigation }: any) {
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const handleLogin = async () => {
-    if (!phone || !password) { Alert.alert('Error', 'Phone and password are required'); return }
+    if (!phone || !password) {
+      Alert.alert('Error', 'Phone and password are required')
+      return
+    }
     try {
       setLoading(true)
       await login(phone, password)
@@ -22,7 +29,10 @@ export default function LoginScreen({ navigation }: any) {
   }
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.header}>
         <View style={styles.logoCircle}>
           <Text style={styles.logoLetter}>O</Text>
@@ -32,21 +42,66 @@ export default function LoginScreen({ navigation }: any) {
       </LinearGradient>
 
       <View style={styles.form}>
-        <Text style={styles.title}>Welcome Back!</Text>
-        <Text style={styles.subtitle}>Login to your account</Text>
+        <Text style={styles.title}>Welcome Back! 👋</Text>
+        <Text style={styles.subtitle}>Login to your OWODE account</Text>
 
         <Text style={styles.inputLabel}>Phone Number</Text>
-        <TextInput style={styles.input} placeholder="08012345678" placeholderTextColor="#888" value={phone} onChangeText={setPhone} keyboardType="phone-pad" maxLength={11} />
+        <TextInput
+          style={styles.input}
+          placeholder="08012345678"
+          placeholderTextColor="#888"
+          value={phone}
+          onChangeText={setPhone}
+          keyboardType="phone-pad"
+          maxLength={11}
+        />
 
         <Text style={styles.inputLabel}>Password</Text>
-        <TextInput style={styles.input} placeholder="Enter your password" placeholderTextColor="#888" value={password} onChangeText={setPassword} secureTextEntry />
+        <View style={styles.passwordWrapper}>
+          <TextInput
+            style={styles.passwordInput}
+            placeholder="Enter your password"
+            placeholderTextColor="#888"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+          />
+          <TouchableOpacity
+            style={styles.eyeBtn}
+            onPress={() => setShowPassword(!showPassword)}
+          >
+            <Text style={styles.eyeIcon}>{showPassword ? '👁️' : '🙈'}</Text>
+          </TouchableOpacity>
+        </View>
 
-        <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
-          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Login</Text>}
+        {/* Security badges */}
+        <View style={styles.securityBadges}>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>🔒 Encrypted</Text>
+          </View>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>🛡️ Secure</Text>
+          </View>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>🏦 Bank-grade</Text>
+          </View>
+        </View>
+
+        <TouchableOpacity
+          style={styles.button}
+          onPress={handleLogin}
+          disabled={loading}
+        >
+          {loading
+            ? <ActivityIndicator color="#fff" />
+            : <Text style={styles.buttonText}>Login →</Text>
+          }
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-          <Text style={styles.link}>Don't have an account? <Text style={styles.linkBold}>Register</Text></Text>
+          <Text style={styles.link}>
+            Don't have an account? <Text style={styles.linkBold}>Register</Text>
+          </Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -65,8 +120,15 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 14, color: '#888', marginBottom: 24 },
   inputLabel: { fontSize: 13, fontWeight: '600', color: '#0d47a1', marginBottom: 6 },
   input: { backgroundColor: '#f5f5f5', borderRadius: 12, padding: 16, fontSize: 16, marginBottom: 16, color: '#333' },
- button: { backgroundColor: '#f5a623', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 20, marginTop: 8 },
-buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-link: { color: '#666', fontSize: 14, textAlign: 'center', marginTop: 16 },
-linkBold: { color: '#f5a623', fontWeight: 'bold' }
+  passwordWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f5f5f5', borderRadius: 12, marginBottom: 16 },
+  passwordInput: { flex: 1, padding: 16, fontSize: 16, color: '#333' },
+  eyeBtn: { padding: 16 },
+  eyeIcon: { fontSize: 18 },
+  securityBadges: { flexDirection: 'row', gap: 8, marginBottom: 20 },
+  badge: { backgroundColor: '#e3f2fd', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 6 },
+  badgeText: { fontSize: 11, color: '#0d47a1', fontWeight: '600' },
+  button: { backgroundColor: '#f5a623', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 20, marginTop: 8 },
+  buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  link: { color: '#666', fontSize: 14, textAlign: 'center', marginTop: 8 },
+  linkBold: { color: '#f5a623', fontWeight: 'bold' }
 })

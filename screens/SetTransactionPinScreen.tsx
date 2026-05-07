@@ -10,7 +10,7 @@ export default function SetTransactionPinScreen({ navigation, route }: any) {
   const [step, setStep] = useState<'set' | 'confirm'>('set')
   const [firstPin, setFirstPin] = useState('')
   const [loading, setLoading] = useState(false)
-  const onSuccess = route.params?.onSuccess
+  const fromRegister = route?.params?.fromRegister
 
   const handleFirstPin = (pin: string) => {
     setFirstPin(pin)
@@ -30,9 +30,20 @@ export default function SetTransactionPinScreen({ navigation, route }: any) {
       if (user) {
         refreshUser({ ...user, hasTransactionPin: true })
       }
-      Alert.alert('✅ Transaction PIN Set!', 'You can now make transfers securely.', [
-        { text: 'OK', onPress: () => navigation.goBack() }
-      ])
+
+      if (fromRegister) {
+        Alert.alert(
+          '🎉 Setup Complete!',
+          'Your account is fully secured! Welcome to OWODE Alajo!\n\n✅ App Lock PIN set\n✅ Transaction PIN set\n\nYou can now login!',
+          [{ text: 'Login Now', onPress: () => navigation.navigate('Login') }]
+        )
+      } else {
+        Alert.alert(
+          '✅ Transaction PIN Set!',
+          'You can now make secure transfers.',
+          [{ text: 'OK', onPress: () => navigation.goBack() }]
+        )
+      }
     } catch (error: any) {
       Alert.alert('Error', error.response?.data?.message || 'Something went wrong')
     } finally {
@@ -42,29 +53,52 @@ export default function SetTransactionPinScreen({ navigation, route }: any) {
 
   return (
     <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.container}>
-      <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()}>
-        <Text style={styles.backText}>← Back</Text>
-      </TouchableOpacity>
+      {!fromRegister && (
+        <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()}>
+          <Text style={styles.backText}>← Back</Text>
+        </TouchableOpacity>
+      )}
+
+      {/* Progress indicator for registration flow */}
+      {fromRegister && (
+        <View style={styles.progressContainer}>
+          <View style={styles.progressRow}>
+            <View style={[styles.progressStep, styles.progressStepDone]}>
+              <Text style={styles.progressStepText}>✅</Text>
+            </View>
+            <View style={styles.progressLine} />
+            <View style={[styles.progressStep, styles.progressStepDone]}>
+              <Text style={styles.progressStepText}>✅</Text>
+            </View>
+            <View style={styles.progressLine} />
+            <View style={[styles.progressStep, styles.progressStepActive]}>
+              <Text style={styles.progressStepText}>3</Text>
+            </View>
+          </View>
+          <View style={styles.progressLabels}>
+            <Text style={styles.progressLabel}>Register</Text>
+            <Text style={styles.progressLabel}>App PIN</Text>
+            <Text style={[styles.progressLabel, { color: '#f5a623' }]}>Trans PIN</Text>
+          </View>
+        </View>
+      )}
 
       {loading ? (
         <ActivityIndicator size="large" color="#f5a623" />
       ) : step === 'set' ? (
-
         <PinKeypad
           title="Set Transaction PIN"
           subtitle="Choose a secure 4-digit PIN for all transfers"
           pinLength={4}
           onComplete={handleFirstPin}
         />
-
       ) : (
-        
-          <PinKeypad
-            title="Confirm PIN"
-            subtitle="Enter the same 4-digit PIN again"
-            pinLength={4}
-            onComplete={handleConfirmPin}
-          />
+        <PinKeypad
+          title="Confirm Transaction PIN"
+          subtitle="Enter the same 4-digit PIN again to confirm"
+          pinLength={4}
+          onComplete={handleConfirmPin}
+        />
       )}
     </LinearGradient>
   )
@@ -73,5 +107,14 @@ export default function SetTransactionPinScreen({ navigation, route }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
   back: { position: 'absolute', top: 60, left: 24 },
-  backText: { color: '#f5a623', fontSize: 16 }
+  backText: { color: '#f5a623', fontSize: 16 },
+  progressContainer: { position: 'absolute', top: 60, left: 0, right: 0, alignItems: 'center' },
+  progressRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+  progressStep: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center' },
+  progressStepActive: { backgroundColor: '#f5a623' },
+  progressStepDone: { backgroundColor: '#22c55e' },
+  progressStepText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
+  progressLine: { width: 40, height: 2, backgroundColor: 'rgba(255,255,255,0.3)', marginHorizontal: 4 },
+  progressLabels: { flexDirection: 'row', gap: 28 },
+  progressLabel: { fontSize: 11, color: 'rgba(255,255,255,0.6)', fontWeight: '600' }
 })
