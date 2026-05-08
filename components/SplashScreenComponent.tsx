@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react'
 import { View, Text, StyleSheet, Animated, Dimensions } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
+import { Image } from 'react-native'
 
 const { width, height } = Dimensions.get('window')
 
@@ -26,9 +27,11 @@ export default function SplashScreenComponent({ onFinish }: { onFinish: () => vo
   return (
     <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.container}>
       <Animated.View style={[styles.content, { opacity: fadeAnim, transform: [{ scale: scaleAnim }, { translateY: slideAnim }] }]}>
-        <View style={styles.logoCircle}>
-          <Text style={styles.logoLetter}>O</Text>
-        </View>
+         <Image 
+                 source={require('./assets/owode-logo.png')}
+                 style={styles.logoImage}
+                 resizeMode="contain"
+               />
         <Text style={styles.appName}>OWODE</Text>
         <Text style={styles.appTagline}>Alajo Platform</Text>
         <View style={styles.divider} />
@@ -43,6 +46,7 @@ export default function SplashScreenComponent({ onFinish }: { onFinish: () => vo
 }
 
 const styles = StyleSheet.create({
+    logoImage: { width: 280, height: 100, marginBottom: 10 },
   container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   content: { alignItems: 'center', flex: 1, justifyContent: 'center' },
   logoCircle: { width: 100, height: 100, borderRadius: 50, backgroundColor: '#f5a623', justifyContent: 'center', alignItems: 'center', marginBottom: 20, shadowColor: '#f5a623', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.8, shadowRadius: 20, elevation: 10 },

@@ -5,6 +5,7 @@ import {
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useAuth } from '../context/AuthContext'
+import { Image } from 'react-native'
 
 export default function RegisterScreen({ navigation }: any) {
   const { register } = useAuth()
@@ -49,11 +50,11 @@ export default function RegisterScreen({ navigation }: any) {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.header}>
-        <View style={styles.logoCircle}>
-          <Text style={styles.logoLetter}>O</Text>
-        </View>
-        <Text style={styles.logo}>OWODE</Text>
-        <Text style={styles.tagline}>Alajo Platform</Text>
+             <Image 
+                  source={require('./assets/owode-logo.png')}
+                  style={styles.logoImage}
+                  resizeMode="contain"
+                />
       </LinearGradient>
 
       <ScrollView style={styles.form} showsVerticalScrollIndicator={false}>
@@ -162,9 +163,7 @@ export default function RegisterScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0d47a1' },
   header: { paddingTop: 60, paddingBottom: 30, alignItems: 'center' },
-  logoCircle: { width: 70, height: 70, borderRadius: 35, backgroundColor: '#f5a623', justifyContent: 'center', alignItems: 'center', marginBottom: 10, shadowColor: '#f5a623', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.6, shadowRadius: 12, elevation: 8 },
-  logoLetter: { fontSize: 36, fontWeight: 'bold', color: '#fff' },
-  logo: { fontSize: 32, fontWeight: 'bold', color: '#fff', letterSpacing: 6 },
+  logoImage: { width: 280, height: 100, marginBottom: 10 },
   tagline: { fontSize: 13, color: '#f5a623', marginTop: 4, letterSpacing: 3 },
   form: { backgroundColor: '#fff', borderTopLeftRadius: 30, borderTopRightRadius: 30, padding: 30 },
   title: { fontSize: 24, fontWeight: 'bold', color: '#0d47a1', marginBottom: 4 },
