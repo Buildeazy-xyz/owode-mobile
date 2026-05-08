@@ -28,7 +28,7 @@ export default function SplashScreenComponent({ onFinish }: { onFinish: () => vo
     <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.container}>
       <Animated.View style={[styles.content, { opacity: fadeAnim, transform: [{ scale: scaleAnim }, { translateY: slideAnim }] }]}>
          <Image 
-                 source={require('./assets/owode-logo.png')}
+                 source={require('../assets/owode-logo.png')}
                  style={styles.logoImage}
                  resizeMode="contain"
                />

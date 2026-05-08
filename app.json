@@ -27,9 +27,6 @@
       },
       "package": "com.owode.alajo.app",
       "versionCode": 1,
-      "compileSdkVersion": 35,
-      "targetSdkVersion": 35,
-      "minSdkVersion": 24,
       "permissions": [
         "USE_BIOMETRIC",
         "USE_FINGERPRINT",
