@@ -51,7 +51,7 @@ export default function RegisterScreen({ navigation }: any) {
     >
       <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.header}>
              <Image 
-                  source={require('./assets/owode-logo.png')}
+                  source={require('../assets/owode-logo.png')}
                   style={styles.logoImage}
                   resizeMode="contain"
                 />
