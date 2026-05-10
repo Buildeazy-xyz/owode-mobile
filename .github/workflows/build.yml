@@ -25,6 +25,10 @@ jobs:
       - name: Prebuild
         run: npx expo prebuild --platform android --clean
 
+      - name: Set version code
+        run: |
+          sed -i 's/versionCode [0-9]*/versionCode 7/' android/app/build.gradle
+
       - name: Decode Keystore
         run: |
           echo "${{ secrets.SIGNING_KEY }}" | base64 --decode > android/app/upload-keystore.jks
