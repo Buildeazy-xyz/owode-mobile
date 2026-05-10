@@ -25,10 +25,10 @@ jobs:
       - name: Prebuild
         run: npx expo prebuild --platform android --clean
 
-      - name: Build AAB
+      - name: Build UNSIGNED AAB
         run: |
           cd android
-          ./gradlew bundleRelease
+          ./gradlew bundleRelease -x validateSigningRelease
 
       - name: Sign AAB
         uses: r0adkll/sign-android-release@v1
