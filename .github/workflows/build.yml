@@ -25,17 +25,21 @@ jobs:
       - name: Prebuild
         run: npx expo prebuild --platform android --clean
 
-      - name: Remove signing config
+      - name: Decode Keystore
         run: |
-          sed -i 's/signingConfig signingConfigs.release/\/\/ signingConfig signingConfigs.release/g' android/app/build.gradle
+          echo "${{ secrets.SIGNING_KEY }}" | base64 --decode > android/app/upload-keystore.jks
 
-      - name: Build UNSIGNED AAB
+      - name: Build Signed AAB
         run: |
           cd android
-          ./gradlew bundleRelease
+          ./gradlew bundleRelease \
+            -Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/android/app/upload-keystore.jks \
+            -Pandroid.injected.signing.store.password=${{ secrets.KEY_STORE_PASSWORD }} \
+            -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} \
+            -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }}
 
-      - name: Upload Unsigned AAB
+      - name: Upload AAB
         uses: actions/upload-artifact@v4
         with:
-          name: owode-release-unsigned
+          name: owode-release
           path: android/app/build/outputs/bundle/release/app-release.aab
