@@ -25,23 +25,17 @@ jobs:
       - name: Prebuild
         run: npx expo prebuild --platform android --clean
 
+      - name: Remove signing config
+        run: |
+          sed -i 's/signingConfig signingConfigs.release/\/\/ signingConfig signingConfigs.release/g' android/app/build.gradle
+
       - name: Build UNSIGNED AAB
         run: |
           cd android
-          ./gradlew bundleRelease -x validateSigningRelease
+          ./gradlew bundleRelease
 
-      - name: Sign AAB
-        uses: r0adkll/sign-android-release@v1
-        id: sign_app
-        with:
-          releaseDirectory: android/app/build/outputs/bundle/release
-          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
-          alias: ${{ secrets.KEY_ALIAS }}
-          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
-
-      - name: Upload Signed AAB
+      - name: Upload Unsigned AAB
         uses: actions/upload-artifact@v4
         with:
-          name: owode-release-signed
-          path: ${{ steps.sign_app.outputs.signedReleaseFile }}
+          name: owode-release-unsigned
+          path: android/app/build/outputs/bundle/release/app-release.aab
