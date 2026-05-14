@@ -3,25 +3,28 @@ import {
   View, Text, StyleSheet, TouchableOpacity,
   Alert, ActivityIndicator, Dimensions
 } from 'react-native'
-import { CameraView, CameraType, useCameraPermissions } from 'expo-camera'
+import { CameraView, useCameraPermissions } from 'expo-camera'
 import { LinearGradient } from 'expo-linear-gradient'
 import * as ImageManipulator from 'expo-image-manipulator'
-import axios from 'axios'
-import AsyncStorage from '@react-native-async-storage/async-storage'
+import { LinearGradient as LG } from 'expo-linear-gradient'
+import { kycAPI } from '../utils/api'
+import { useAuth } from '../context/AuthContext'
 
 const { width, height } = Dimensions.get('window')
-const BASE_URL = 'https://owodeplatform-production.up.railway.app/api'
-  
-  export default function FaceVerificationScreen({ navigation }: any) {
+
+export default function FaceVerificationScreen({ navigation }: any) {
+  const { user, refreshUser } = useAuth()
   const [permission, requestPermission] = useCameraPermissions()
   const [step, setStep] = useState<'intro' | 'camera' | 'processing' | 'success' | 'failed'>('intro')
   const [instruction, setInstruction] = useState('Position your face in the oval')
-  const [countdown, setCountdown] = useState(3)
   const [attempts, setAttempts] = useState(0)
+  const [errorMessage, setErrorMessage] = useState('')
   const cameraRef = useRef<any>(null)
+  const isCapturing = useRef(false)
 
   useEffect(() => {
     if (step === 'camera') {
+      isCapturing.current = false
       startLivenessInstructions()
     }
   }, [step])
@@ -35,7 +38,6 @@ const BASE_URL = 'https://owodeplatform-production.up.railway.app/api'
       'Smile naturally',
       'Hold still...'
     ]
-
     let i = 0
     const interval = setInterval(() => {
       if (i < instructions.length) {
@@ -43,17 +45,18 @@ const BASE_URL = 'https://owodeplatform-production.up.railway.app/api'
         i++
       } else {
         clearInterval(interval)
-        captureAndVerify()
+        if (!isCapturing.current) {
+          isCapturing.current = true
+          captureAndVerify()
+        }
       }
     }, 1500)
   }
 
   const captureAndVerify = async () => {
     if (!cameraRef.current) return
-
     try {
       setStep('processing')
-      setInstruction('Analyzing...')
 
       // Capture photo
       const photo = await cameraRef.current.takePictureAsync({
@@ -71,29 +74,34 @@ const BASE_URL = 'https://owodeplatform-production.up.railway.app/api'
 
       const selfieBase64 = compressed.base64 || photo.base64
 
-      // Get token
-      const token = await AsyncStorage.getItem('owode_token')
-
-      // Send to backend for verification
-      const response = await axios.post(
-        `${BASE_URL}/face/verify`,
-        { selfieBase64: `data:image/jpeg;base64,${selfieBase64}` },
-        { headers: { Authorization: `Bearer ${token}` } }
+      // Send to backend — real YouVerify integration
+      const response = await kycAPI.submitFace(
+        `data:image/jpeg;base64,${selfieBase64}`,
+        user?.bvn,
+        user?.nin
       )
 
-      if (response.data.success) {
+      if (response.data.success && response.data.data?.verified) {
+        // Update user in context
+        if (user) {
+          refreshUser({ ...user, isVerified: true })
+        }
         setStep('success')
       } else {
+        setErrorMessage(response.data.message || 'Verification failed')
+        setAttempts(prev => prev + 1)
         setStep('failed')
       }
     } catch (error: any) {
       console.error('Face verification error:', error.response?.data || error.message)
+      const msg = error.response?.data?.message || 'Something went wrong'
+      setErrorMessage(msg)
       setAttempts(prev => prev + 1)
 
       if (attempts >= 2) {
         Alert.alert(
           'Verification Failed',
-          'We could not verify your face after multiple attempts. Please ensure:\n\n• Good lighting\n• Face clearly visible\n• No glasses or hats\n\nContact support if this persists.',
+          'We could not verify your face after multiple attempts.\n\nPlease ensure:\n• Good lighting\n• Face clearly visible\n• No glasses or hats\n\nContact support if this persists.',
           [{ text: 'OK', onPress: () => navigation.goBack() }]
         )
       } else {
@@ -111,7 +119,7 @@ const BASE_URL = 'https://owodeplatform-production.up.railway.app/api'
           <Text style={styles.permissionIcon}>📷</Text>
           <Text style={styles.permissionTitle}>Camera Access Required</Text>
           <Text style={styles.permissionDesc}>
-            OWODE needs camera access to verify your identity against your government ID photo
+            OWODE needs camera access to verify your identity
           </Text>
           <TouchableOpacity style={styles.permissionBtn} onPress={requestPermission}>
             <Text style={styles.permissionBtnText}>Allow Camera Access</Text>
@@ -137,8 +145,23 @@ const BASE_URL = 'https://owodeplatform-production.up.railway.app/api'
           </View>
           <Text style={styles.introTitle}>Face Verification</Text>
           <Text style={styles.introSubtitle}>
-            We will compare your face with your government ID photo to verify your identity
+            We use YouVerify to match your face with your BVN/NIN records to verify your identity
           </Text>
+
+          {/* KYC status warning */}
+          {!user?.bvn && !user?.nin && (
+            <View style={styles.warningCard}>
+              <Text style={styles.warningText}>
+                ⚠️ You need to submit your BVN or NIN first before face verification!
+              </Text>
+              <TouchableOpacity
+                style={styles.warningBtn}
+                onPress={() => navigation.navigate('Profile')}
+              >
+                <Text style={styles.warningBtnText}>Submit BVN/NIN →</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
           <View style={styles.tipsCard}>
             <Text style={styles.tipsTitle}>For best results:</Text>
@@ -153,7 +176,11 @@ const BASE_URL = 'https://owodeplatform-production.up.railway.app/api'
             ))}
           </View>
 
-          <TouchableOpacity style={styles.startBtn} onPress={() => setStep('camera')}>
+          <TouchableOpacity
+            style={[styles.startBtn, (!user?.bvn && !user?.nin) && styles.startBtnDisabled]}
+            onPress={() => setStep('camera')}
+            disabled={!user?.bvn && !user?.nin}
+          >
             <Text style={styles.startBtnText}>📷 Start Verification</Text>
           </TouchableOpacity>
         </View>
@@ -169,7 +196,6 @@ const BASE_URL = 'https://owodeplatform-production.up.railway.app/api'
           style={styles.camera}
           facing="front"
         >
-          {/* Dark overlay with oval cutout */}
           <View style={styles.overlay}>
             <View style={styles.overlayTop} />
             <View style={styles.overlayMiddle}>
@@ -180,16 +206,21 @@ const BASE_URL = 'https://owodeplatform-production.up.railway.app/api'
             <View style={styles.overlayBottom} />
           </View>
 
-          {/* Instructions */}
           <View style={styles.instructionBox}>
             <Text style={styles.instructionText}>{instruction}</Text>
           </View>
 
-          {/* Corner markers */}
           <View style={[styles.corner, styles.topLeft]} />
           <View style={[styles.corner, styles.topRight]} />
           <View style={[styles.corner, styles.bottomLeft]} />
           <View style={[styles.corner, styles.bottomRight]} />
+
+          <TouchableOpacity
+            style={styles.cancelCameraBtn}
+            onPress={() => setStep('intro')}
+          >
+            <Text style={styles.cancelCameraText}>✕ Cancel</Text>
+          </TouchableOpacity>
         </CameraView>
       </View>
     )
@@ -202,11 +233,12 @@ const BASE_URL = 'https://owodeplatform-production.up.railway.app/api'
           <ActivityIndicator size="large" color="#f5a623" />
           <Text style={styles.processingTitle}>Verifying Identity</Text>
           <Text style={styles.processingDesc}>
-            Comparing your face with government records...
+            Comparing your face with government records via YouVerify...
           </Text>
           <View style={styles.processingSteps}>
             <Text style={styles.processingStep}>✅ Liveness detected</Text>
             <Text style={styles.processingStep}>⏳ Matching with ID photo...</Text>
+            <Text style={styles.processingStep}>⏳ Confirming identity...</Text>
           </View>
         </View>
       </LinearGradient>
@@ -222,7 +254,7 @@ const BASE_URL = 'https://owodeplatform-production.up.railway.app/api'
           </View>
           <Text style={styles.resultTitle}>Identity Verified!</Text>
           <Text style={styles.resultDesc}>
-            Your face has been successfully matched with your government ID. Your account is now fully verified!
+            Your face has been successfully matched with your government ID via YouVerify. Your account is now fully verified!
           </Text>
           <View style={styles.benefitsCard}>
             <Text style={styles.benefitsTitle}>You can now:</Text>
@@ -230,7 +262,10 @@ const BASE_URL = 'https://owodeplatform-production.up.railway.app/api'
             <Text style={styles.benefitItem}>✅ Make larger transfers</Text>
             <Text style={styles.benefitItem}>✅ Access all platform features</Text>
           </View>
-          <TouchableOpacity style={styles.doneBtn} onPress={() => navigation.navigate('Dashboard')}>
+          <TouchableOpacity
+            style={styles.doneBtn}
+            onPress={() => navigation.navigate('Dashboard')}
+          >
             <Text style={styles.doneBtnText}>Continue to Dashboard →</Text>
           </TouchableOpacity>
         </View>
@@ -247,7 +282,7 @@ const BASE_URL = 'https://owodeplatform-production.up.railway.app/api'
           </View>
           <Text style={styles.resultTitle}>Verification Failed</Text>
           <Text style={styles.resultDesc}>
-            We could not match your face with your government ID. Please try again.
+            {errorMessage || 'We could not match your face with your government ID.'}
           </Text>
           <View style={styles.retryCard}>
             <Text style={styles.retryTitle}>Common reasons:</Text>
@@ -256,9 +291,16 @@ const BASE_URL = 'https://owodeplatform-production.up.railway.app/api'
             <Text style={styles.retryItem}>• Glasses or face coverings</Text>
             <Text style={styles.retryItem}>• Camera angle too steep</Text>
           </View>
-          <TouchableOpacity style={styles.retryBtn} onPress={() => setStep('intro')}>
-            <Text style={styles.retryBtnText}>🔄 Try Again ({2 - attempts} attempts left)</Text>
-          </TouchableOpacity>
+          {attempts < 3 && (
+            <TouchableOpacity
+              style={styles.retryBtn}
+              onPress={() => setStep('intro')}
+            >
+              <Text style={styles.retryBtnText}>
+                🔄 Try Again ({3 - attempts} attempts left)
+              </Text>
+            </TouchableOpacity>
+          )}
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Text style={styles.cancelText}>Cancel</Text>
           </TouchableOpacity>
@@ -288,11 +330,16 @@ const styles = StyleSheet.create({
   faceIconCircle: { width: 120, height: 120, borderRadius: 60, backgroundColor: 'rgba(245,166,35,0.2)', borderWidth: 3, borderColor: '#f5a623', justifyContent: 'center', alignItems: 'center', marginBottom: 24 },
   faceIcon: { fontSize: 56 },
   introTitle: { fontSize: 28, fontWeight: 'bold', color: '#fff', marginBottom: 8 },
-  introSubtitle: { fontSize: 14, color: 'rgba(255,255,255,0.7)', textAlign: 'center', lineHeight: 22, marginBottom: 32 },
-  tipsCard: { backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 16, padding: 20, width: '100%', marginBottom: 32 },
+  introSubtitle: { fontSize: 14, color: 'rgba(255,255,255,0.7)', textAlign: 'center', lineHeight: 22, marginBottom: 20 },
+  warningCard: { backgroundColor: 'rgba(245,166,35,0.2)', borderRadius: 16, padding: 16, width: '100%', marginBottom: 16, borderWidth: 1, borderColor: '#f5a623' },
+  warningText: { color: '#f5a623', fontSize: 13, marginBottom: 8 },
+  warningBtn: { backgroundColor: '#f5a623', borderRadius: 10, padding: 10, alignItems: 'center' },
+  warningBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 13 },
+  tipsCard: { backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 16, padding: 20, width: '100%', marginBottom: 24 },
   tipsTitle: { color: 'rgba(255,255,255,0.6)', fontSize: 12, marginBottom: 12 },
   tipItem: { color: '#fff', fontSize: 14, marginBottom: 8 },
-  startBtn: { backgroundColor: '#f5a623', borderRadius: 16, padding: 18, width: '100%', alignItems: 'center', shadowColor: '#f5a623', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 12, elevation: 8 },
+  startBtn: { backgroundColor: '#f5a623', borderRadius: 16, padding: 18, width: '100%', alignItems: 'center' },
+  startBtnDisabled: { backgroundColor: '#888' },
   startBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 18 },
   cameraContainer: { flex: 1, backgroundColor: '#000' },
   camera: { flex: 1 },
@@ -300,10 +347,12 @@ const styles = StyleSheet.create({
   overlayTop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' },
   overlayMiddle: { flexDirection: 'row', height: OVAL_HEIGHT },
   overlaySide: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' },
-  ovalCutout: { width: OVAL_WIDTH, height: OVAL_HEIGHT, borderRadius: OVAL_WIDTH / 2, borderWidth: 3, borderColor: '#f5a623', overflow: 'hidden' },
+  ovalCutout: { width: OVAL_WIDTH, height: OVAL_HEIGHT, borderRadius: OVAL_WIDTH / 2, borderWidth: 3, borderColor: '#f5a623' },
   overlayBottom: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' },
   instructionBox: { position: 'absolute', bottom: 120, left: 0, right: 0, alignItems: 'center' },
   instructionText: { color: '#fff', fontSize: 18, fontWeight: 'bold', textAlign: 'center', backgroundColor: 'rgba(0,0,0,0.6)', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20 },
+  cancelCameraBtn: { position: 'absolute', top: 60, right: 24 },
+  cancelCameraText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
   corner: { position: 'absolute', width: 20, height: 20, borderColor: '#f5a623', borderWidth: 3 },
   topLeft: { top: height * 0.2, left: width * 0.17, borderBottomWidth: 0, borderRightWidth: 0 },
   topRight: { top: height * 0.2, right: width * 0.17, borderBottomWidth: 0, borderLeftWidth: 0 },

@@ -11,6 +11,8 @@ interface User {
   isVerified: boolean
   hasTransactionPin: boolean
   trustScore: number
+    bvn?: string
+  nin?: string
   wallet: {
     id: string
     balance: number
