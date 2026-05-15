@@ -15,14 +15,6 @@ api.interceptors.request.use(async (config) => {
   return config
 })
 
-export const kycAPI = {
-  submitBVN: (bvn: string) => api.post('/kyc/bvn', { bvn }),
-  submitNIN: (nin: string) => api.post('/kyc/nin', { nin }),
-  submitFace: (image: string, bvn?: string, nin?: string) =>
-    api.post('/kyc/face', { image, bvn, nin }),
-  getStatus: () => api.get('/kyc/status')
-}
-
 export const authAPI = {
   register: (data: { fullName: string; phone: string; email?: string; password: string }) =>
     api.post('/users/register', data),
@@ -64,6 +56,8 @@ export const guaranteedAjoAPI = {
 export const kycAPI = {
   submitBVN: (bvn: string) => api.post('/kyc/bvn', { bvn }),
   submitNIN: (nin: string) => api.post('/kyc/nin', { nin }),
+  submitFace: (image: string, bvn?: string, nin?: string) =>
+    api.post('/kyc/face', { image, bvn, nin }),
   getStatus: () => api.get('/kyc/status')
 }
 
