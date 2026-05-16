@@ -2,6 +2,7 @@ import * as Notifications from 'expo-notifications'
 import * as Device from 'expo-device'
 import { Platform } from 'react-native'
 import { announcePayment } from './speech'
+import api from './api'
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -49,6 +50,15 @@ export const registerForPushNotifications = async (): Promise<string | null> => 
     })
 
     console.log('Expo Push Token:', token.data)
+
+    // Save token to backend
+    try {
+      await api.post('/users/push-token', { pushToken: token.data })
+      console.log('Push token saved to backend!')
+    } catch (error) {
+      console.log('Could not save push token:', error)
+    }
+
     return token.data
   } catch (error) {
     console.log('Push notification setup error:', error)
