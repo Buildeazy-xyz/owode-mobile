@@ -16,10 +16,14 @@ api.interceptors.request.use(async (config) => {
 })
 
 export const authAPI = {
-  register: (data: { fullName: string; phone: string; email?: string; password: string }) =>
+  register: (data: { fullName: string; phone: string; email?: string; password: string; dateOfBirth?: string }) =>
     api.post('/users/register', data),
   login: (data: { phone: string; password: string }) =>
     api.post('/users/login', data),
+  sendOTP: (phone: string) =>
+    api.post('/users/send-otp', { phone }),
+  verifyOTP: (phone: string, otp: string) =>
+    api.post('/users/verify-otp', { phone, otp }),
   setTransactionPin: (transactionPin: string) =>
     api.post('/users/transaction-pin/set', { transactionPin }),
   setAppPin: (appPin: string) =>
@@ -37,22 +41,7 @@ export const walletAPI = {
   transfer: (recipientPhone: string, amount: number, description: string, transactionPin: string) =>
     api.post('/wallet/transfer', { recipientPhone, amount, description, transactionPin })
 }
-export const authAPI = {
-  register: (data: { fullName: string; phone: string; email?: string; password: string; dateOfBirth?: string }) =>
-    api.post('/users/register', data),
-  login: (data: { phone: string; password: string }) =>
-    api.post('/users/login', data),
-  sendOTP: (phone: string) =>
-    api.post('/users/send-otp', { phone }),
-  verifyOTP: (phone: string, otp: string) =>
-    api.post('/users/verify-otp', { phone, otp }),
-  setTransactionPin: (transactionPin: string) =>
-    api.post('/users/transaction-pin/set', { transactionPin }),
-  setAppPin: (appPin: string) =>
-    api.post('/users/app-pin/set', { appPin }),
-  verifyAppPin: (appPin: string) =>
-    api.post('/users/app-pin/verify', { appPin })
-}
+
 export const ajoAPI = {
   getAllGroups: () => api.get('/ajo/groups'),
   getGroup: (id: string) => api.get(`/ajo/groups/${id}`),
