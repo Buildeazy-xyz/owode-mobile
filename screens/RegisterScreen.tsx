@@ -1,11 +1,12 @@
 import React, { useState } from 'react'
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView
+  ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, Image, Dimensions
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useAuth } from '../context/AuthContext'
-import { Image } from 'react-native'
+
+const { width } = Dimensions.get('window')
 
 export default function RegisterScreen({ navigation }: any) {
   const { register } = useAuth()
@@ -35,7 +36,6 @@ export default function RegisterScreen({ navigation }: any) {
     try {
       setLoading(true)
       await register({ fullName, phone, email, password })
-      // Navigate to Set App PIN after registration
       navigation.navigate('SetAppPin', { fromRegister: true })
     } catch (error: any) {
       Alert.alert('Registration Failed', error.response?.data?.message || 'Something went wrong')
@@ -50,11 +50,15 @@ export default function RegisterScreen({ navigation }: any) {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.header}>
-             <Image 
-                  source={require('../assets/owode-logo.png')}
-                  style={styles.logoImage}
-                  resizeMode="contain"
-                />
+        {/* Logo Card */}
+        <View style={styles.logoCard}>
+          <Image
+            source={require('../assets/owode-logo.png')}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
+        </View>
+        <Text style={styles.tagline}>ALÀJÒ-ÀGBÁYÉ: THE GLOBAL THRIFT COLLECTOR</Text>
       </LinearGradient>
 
       <ScrollView style={styles.form} showsVerticalScrollIndicator={false}>
@@ -103,10 +107,7 @@ export default function RegisterScreen({ navigation }: any) {
             onChangeText={setPassword}
             secureTextEntry={!showPassword}
           />
-          <TouchableOpacity
-            style={styles.eyeBtn}
-            onPress={() => setShowPassword(!showPassword)}
-          >
+          <TouchableOpacity style={styles.eyeBtn} onPress={() => setShowPassword(!showPassword)}>
             <Text style={styles.eyeIcon}>{showPassword ? '👁️' : '🙈'}</Text>
           </TouchableOpacity>
         </View>
@@ -121,15 +122,11 @@ export default function RegisterScreen({ navigation }: any) {
             onChangeText={setConfirmPassword}
             secureTextEntry={!showConfirmPassword}
           />
-          <TouchableOpacity
-            style={styles.eyeBtn}
-            onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-          >
+          <TouchableOpacity style={styles.eyeBtn} onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
             <Text style={styles.eyeIcon}>{showConfirmPassword ? '👁️' : '🙈'}</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Security Info */}
         <View style={styles.securityInfo}>
           <Text style={styles.securityInfoTitle}>🔐 After registration you will:</Text>
           <Text style={styles.securityInfoItem}>1. Set a 6-digit App Lock PIN</Text>
@@ -137,15 +134,8 @@ export default function RegisterScreen({ navigation }: any) {
           <Text style={styles.securityInfoItem}>3. Login to your account</Text>
         </View>
 
-        <TouchableOpacity
-          style={styles.button}
-          onPress={handleRegister}
-          disabled={loading}
-        >
-          {loading
-            ? <ActivityIndicator color="#fff" />
-            : <Text style={styles.buttonText}>Create Account →</Text>
-          }
+        <TouchableOpacity style={styles.button} onPress={handleRegister} disabled={loading}>
+          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Create Account →</Text>}
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => navigation.navigate('Login')}>
@@ -162,9 +152,22 @@ export default function RegisterScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0d47a1' },
-  header: { paddingTop: 60, paddingBottom: 30, alignItems: 'center' },
-  logoImage: { width: 280, height: 100, marginBottom: 10 },
-  tagline: { fontSize: 13, color: '#f5a623', marginTop: 4, letterSpacing: 3 },
+  header: { paddingTop: 60, paddingBottom: 20, alignItems: 'center' },
+  logoCard: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 16,
+    width: width * 0.72,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 10,
+    marginBottom: 12
+  },
+  logoImage: { width: width * 0.60, height: 70 },
+  tagline: { fontSize: 9, color: '#f5a623', letterSpacing: 1, textAlign: 'center', paddingHorizontal: 20 },
   form: { backgroundColor: '#fff', borderTopLeftRadius: 30, borderTopRightRadius: 30, padding: 30 },
   title: { fontSize: 24, fontWeight: 'bold', color: '#0d47a1', marginBottom: 4 },
   subtitle: { fontSize: 14, color: '#888', marginBottom: 24 },

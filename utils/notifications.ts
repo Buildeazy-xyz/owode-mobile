@@ -1,9 +1,7 @@
 import * as Notifications from 'expo-notifications'
-import * as Device from 'expo-device'
 import { Platform } from 'react-native'
 import { announcePayment } from './speech'
 import api from './api'
-
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -16,10 +14,7 @@ Notifications.setNotificationHandler({
 
 export const registerForPushNotifications = async (): Promise<string | null> => {
   try {
-    if (!Device.isDevice) {
-      console.log('Push notifications require physical device')
-      return null
-    }
+ 
 
     const { status: existingStatus } = await Notifications.getPermissionsAsync()
     let finalStatus = existingStatus

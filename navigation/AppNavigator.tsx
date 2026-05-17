@@ -27,30 +27,30 @@ export default function AppNavigator() {
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {user ? (
-          <>
-            <Stack.Screen name="Dashboard" component={DashboardScreen} />
-            <Stack.Screen name="Wallet" component={WalletScreen} />
-            <Stack.Screen name="Ajo" component={AjoScreen} />
-            <Stack.Screen name="TrustScore" component={TrustScoreScreen} />
-            <Stack.Screen name="Profile" component={ProfileScreen} />
-            <Stack.Screen name="Transfer" component={TransferScreen} />
-            <Stack.Screen name="Receipt" component={ReceiptScreen} />
-            <Stack.Screen name="SetAppPin" component={SetAppPinScreen} />
-            <Stack.Screen name="SetTransactionPin" component={SetTransactionPinScreen} />
-            <Stack.Screen name="BiometricSetup" component={BiometricSetupScreen} />
-            <Stack.Screen name="FaceVerification" component={FaceVerificationScreen} />
-            <Stack.Screen name="GroupHistory" component={GroupHistoryScreen} />
-            <Stack.Screen name="Savings" component={SavingsScreen} />
-            <Stack.Screen name="SetAppPin" component={SetAppPinScreen} />
-            <Stack.Screen name="SetTransactionPin" component={SetTransactionPinScreen} />
-                      </>
-        ) : (
-          <>
-            <Stack.Screen name="Login" component={LoginScreen} />
-            <Stack.Screen name="Register" component={RegisterScreen} />
-          </>
-        )}
+       {user ? (
+  <>
+    <Stack.Screen name="Dashboard" component={DashboardScreen} />
+    <Stack.Screen name="Wallet" component={WalletScreen} />
+    <Stack.Screen name="Ajo" component={AjoScreen} />
+    <Stack.Screen name="TrustScore" component={TrustScoreScreen} />
+    <Stack.Screen name="Profile" component={ProfileScreen} />
+    <Stack.Screen name="Transfer" component={TransferScreen} />
+    <Stack.Screen name="Receipt" component={ReceiptScreen} />
+    <Stack.Screen name="SetAppPin" component={SetAppPinScreen} />
+    <Stack.Screen name="SetTransactionPin" component={SetTransactionPinScreen} />
+    <Stack.Screen name="BiometricSetup" component={BiometricSetupScreen} />
+    <Stack.Screen name="FaceVerification" component={FaceVerificationScreen} />
+    <Stack.Screen name="GroupHistory" component={GroupHistoryScreen} />
+    <Stack.Screen name="Savings" component={SavingsScreen} />
+  </>
+) : (
+  <>
+    <Stack.Screen name="Login" component={LoginScreen} />
+    <Stack.Screen name="Register" component={RegisterScreen} />
+    <Stack.Screen name="SetAppPin" component={SetAppPinScreen} />
+    <Stack.Screen name="SetTransactionPin" component={SetTransactionPinScreen} />
+  </>
+)}
       </Stack.Navigator>
     </NavigationContainer>
   )

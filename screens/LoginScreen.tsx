@@ -1,11 +1,12 @@
 import React, { useState } from 'react'
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  ActivityIndicator, Alert, KeyboardAvoidingView, Platform
+  ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Image, Dimensions
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useAuth } from '../context/AuthContext'
-import { Image } from 'react-native'
+
+const { width } = Dimensions.get('window')
 
 export default function LoginScreen({ navigation }: any) {
   const { login } = useAuth()
@@ -35,12 +36,15 @@ export default function LoginScreen({ navigation }: any) {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.header}>
-
-        <Image 
-          source={require('../assets/owode-logo.png')}
-          style={styles.logoImage}
-          resizeMode="contain"
-        />
+        {/* Logo Card */}
+        <View style={styles.logoCard}>
+          <Image
+            source={require('../assets/owode-logo.png')}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
+        </View>
+        <Text style={styles.tagline}>ALÀJÒ-ÀGBÁYÉ: THE GLOBAL THRIFT COLLECTOR</Text>
       </LinearGradient>
 
       <View style={styles.form}>
@@ -68,36 +72,19 @@ export default function LoginScreen({ navigation }: any) {
             onChangeText={setPassword}
             secureTextEntry={!showPassword}
           />
-          <TouchableOpacity
-            style={styles.eyeBtn}
-            onPress={() => setShowPassword(!showPassword)}
-          >
+          <TouchableOpacity style={styles.eyeBtn} onPress={() => setShowPassword(!showPassword)}>
             <Text style={styles.eyeIcon}>{showPassword ? '👁️' : '🙈'}</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Security badges */}
         <View style={styles.securityBadges}>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>🔒 Encrypted</Text>
-          </View>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>🛡️ Secure</Text>
-          </View>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>🏦 Bank-grade</Text>
-          </View>
+          <View style={styles.badge}><Text style={styles.badgeText}>🔒 Encrypted</Text></View>
+          <View style={styles.badge}><Text style={styles.badgeText}>🛡️ Secure</Text></View>
+          <View style={styles.badge}><Text style={styles.badgeText}>🏦 Bank-grade</Text></View>
         </View>
 
-        <TouchableOpacity
-          style={styles.button}
-          onPress={handleLogin}
-          disabled={loading}
-        >
-          {loading
-            ? <ActivityIndicator color="#fff" />
-            : <Text style={styles.buttonText}>Login →</Text>
-          }
+        <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
+          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Login →</Text>}
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => navigation.navigate('Register')}>
@@ -112,9 +99,22 @@ export default function LoginScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0d47a1' },
-  logoImage: { width: 280, height: 100, marginBottom: 10 },
-  header: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 40 },
-  tagline: { fontSize: 14, color: '#f5a623', marginTop: 4, letterSpacing: 3 },
+  header: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 40, paddingBottom: 20 },
+  logoCard: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 16,
+    width: width * 0.72,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 10,
+    marginBottom: 12
+  },
+  logoImage: { width: width * 0.60, height: 70 },
+  tagline: { fontSize: 9, color: '#f5a623', letterSpacing: 1, textAlign: 'center', paddingHorizontal: 20 },
   form: { flex: 2, backgroundColor: '#fff', borderTopLeftRadius: 30, borderTopRightRadius: 30, padding: 30 },
   title: { fontSize: 24, fontWeight: 'bold', color: '#0d47a1', marginBottom: 4 },
   subtitle: { fontSize: 14, color: '#888', marginBottom: 24 },
