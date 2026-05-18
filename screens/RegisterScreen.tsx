@@ -10,7 +10,7 @@ import * as ImageManipulator from 'expo-image-manipulator'
 import { authAPI, kycAPI } from '../utils/api'
 import { useAuth } from '../context/AuthContext'
 import PinKeypad from '../components/PinKeypad'
-
+import AsyncStorage from '@react-native-async-storage/async-storage'
 const { width, height } = Dimensions.get('window')
 const TOTAL_STEPS = 9
 
@@ -138,42 +138,54 @@ export default function RegisterScreen({ navigation }: any) {
   }
 
   const handleRegister = async () => {
-    if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match')
-      return
-    }
-    const passwordRegex = /^(?=.*[a-zA-Z])(?=.*[0-9]).{6,}$/
-    if (!passwordRegex.test(password)) {
-      Alert.alert('Error', 'Password must be at least 6 characters with letters and numbers')
-      return
-    }
-    try {
-      setLoading(true)
-      const fullName = `${firstName} ${lastName}`
-      const dateOfBirth = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
-      const response = await authAPI.register({
-        fullName,
-        phone,
-        password,
-        dateOfBirth,
-        country: selectedCountry.name
-      })
-      setRegisteredPhone(phone)
-      setRegisteredPassword(password)
-
-      if (idNumber) {
-        try {
-          if (idType === 'bvn') await kycAPI.submitBVN(idNumber)
-          else await kycAPI.submitNIN(idNumber)
-        } catch (e) { console.log('KYC error:', e) }
-      }
-      goNext()
-    } catch (error: any) {
-      Alert.alert('Registration Failed', error.response?.data?.message || 'Something went wrong')
-    } finally {
-      setLoading(false)
-    }
+  if (password !== confirmPassword) {
+    Alert.alert('Error', 'Passwords do not match')
+    return
   }
+  const passwordRegex = /^(?=.*[a-zA-Z])(?=.*[0-9]).{6,}$/
+  if (!passwordRegex.test(password)) {
+    Alert.alert('Error', 'Password must be at least 6 characters with letters and numbers')
+    return
+  }
+  try {
+    setLoading(true)
+    const fullName = `${firstName} ${lastName}`
+    const dateOfBirth = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+    const fullPhone = '0' + phone
+
+    const response = await authAPI.register({
+      fullName,
+      phone: fullPhone,
+      password,
+      dateOfBirth,
+      country: selectedCountry.name
+    })
+
+    const { token } = response.data.data
+
+    // ✅ Save token to AsyncStorage immediately so next steps work!
+    await AsyncStorage.setItem('owode_token', token)
+
+    setRegisteredPhone(fullPhone)
+    setRegisteredPassword(password)
+
+    // Submit BVN/NIN if provided
+    if (idNumber) {
+      try {
+        if (idType === 'bvn') await kycAPI.submitBVN(idNumber)
+        else await kycAPI.submitNIN(idNumber)
+      } catch (e) {
+        console.log('KYC error:', e)
+      }
+    }
+
+    goNext()
+  } catch (error: any) {
+    Alert.alert('Registration Failed', error.response?.data?.message || 'Something went wrong')
+  } finally {
+    setLoading(false)
+  }
+}
 
   const handleSetAppPin = async (pin: string) => {
     try {
