@@ -106,20 +106,18 @@ export default function RegisterScreen({ navigation }: any) {
   }
 
   const handleSendOTP = async () => {
-    try {
-      setLoading(true)
-      const fullPhone = selectedCountry.dial === '+234'
-        ? phone
-        : selectedCountry.dial.replace('+', '') + phone
-      await authAPI.sendOTP(fullPhone.startsWith('0') ? fullPhone : phone)
-      startResendTimer()
-      Alert.alert('OTP Sent! 📱', `A 6-digit code has been sent to ${selectedCountry.dial} ${phone}`)
-    } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.message || 'Could not send OTP')
-    } finally {
-      setLoading(false)
-    }
+  try {
+    setLoading(true)
+    const fullPhone = '0' + phone // add leading zero back for backend
+    await authAPI.sendOTP(fullPhone, selectedCountry.dial)
+    startResendTimer()
+    Alert.alert('OTP Sent! 📱', `A 6-digit code has been sent to ${selectedCountry.dial}${phone}`)
+  } catch (error: any) {
+    Alert.alert('Error', error.response?.data?.message || 'Could not send OTP')
+  } finally {
+    setLoading(false)
   }
+}
 
   const handleVerifyOTP = async () => {
     if (otp.length !== 6) {
@@ -562,16 +560,20 @@ export default function RegisterScreen({ navigation }: any) {
             <View style={styles.dialCode}>
               <Text style={styles.dialCodeText}>{selectedCountry.flag} {selectedCountry.dial}</Text>
             </View>
-            <TextInput
-              style={[styles.input, { flex: 1, marginBottom: 0 }]}
-              placeholder={selectedCountry.digits === 11 ? '08012345678' : '0712345678'}
-              placeholderTextColor="#aaa"
-              value={phone}
-              onChangeText={setPhone}
-              keyboardType="phone-pad"
-              maxLength={selectedCountry.digits}
-              autoFocus
-            />
+          <TextInput
+  style={[styles.input, { flex: 1, marginBottom: 0 }]}
+  placeholder={selectedCountry.code === 'NG' ? '8012345678' : '712345678'}
+  placeholderTextColor="#aaa"
+  value={phone}
+  onChangeText={v => {
+    // Remove all leading zeros automatically
+    const cleaned = v.replace(/[^0-9]/g, '').replace(/^0+/, '')
+    setPhone(cleaned)
+  }}
+  keyboardType="phone-pad"
+  maxLength={selectedCountry.digits - 1}
+  autoFocus
+/>
           </View>
           <Text style={styles.phoneHint}>
             {selectedCountry.digits}-digit number for {selectedCountry.name}
