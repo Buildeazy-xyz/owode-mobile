@@ -302,7 +302,8 @@ export default function ProfileScreen({ navigation }: any) {
               onPress: () => Linking.openURL('https://owode.xyz')
             },
             {
-              icon: '🔒', bg: '#fce4ec',
+              { icon: '🎁', bg: '#e8f5e9', label: 'Refer a Friend', sub: 'Invite friends and earn rewards', onPress: () => navigation.navigate('Referral') },
+            { icon: '🔒', bg: '#fce4ec',
               label: 'Privacy Policy',
               sub: 'How we protect your data',
               onPress: () => Linking.openURL('https://owode.xyz')

@@ -17,6 +17,7 @@ import GroupHistoryScreen from '../screens/GroupHistoryScreen'
 import BiometricSetupScreen from '../screens/BiometricSetupScreen'
 import FaceVerificationScreen from '../screens/FaceVerificationScreen'
 import SavingsScreen from '../screens/SavingsScreen'
+import ReferralScreen from '../screens/ReferralScreen'
 import KYCVerificationScreen from '../screens/KYCVerificationScreen'
 
 const Stack = createNativeStackNavigator()
@@ -43,6 +44,7 @@ export default function AppNavigator() {
     <Stack.Screen name="FaceVerification" component={FaceVerificationScreen} />
     <Stack.Screen name="GroupHistory" component={GroupHistoryScreen} />
     <Stack.Screen name="Savings" component={SavingsScreen} />
+            <Stack.Screen name="Referral" component={ReferralScreen} />
             <Stack.Screen name="KYCVerification" component={KYCVerificationScreen} />
   </>
 ) : (

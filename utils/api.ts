@@ -21,6 +21,7 @@ export const authAPI = {
   login: (data: { phone: string; password: string }) =>
     api.post('/users/login', data),
  getMe: () => api.get('/users/me'),
+  getReferral: () => api.get('/users/referral'),
   updateEmail: (email: string) => api.put('/users/update-email', { email }),
   sendOTP: (phone: string, dialCode?: string) =>
   api.post('/users/send-otp', { phone, dialCode }),
