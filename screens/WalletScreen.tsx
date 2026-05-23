@@ -1,19 +1,25 @@
+cat > ~/Documents/owode/owode-mobile/screens/WalletScreen.tsx << 'EOF'
 import React, { useState, useEffect, useRef } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  ScrollView, RefreshControl, Alert
+  ScrollView, RefreshControl, Alert, TextInput,
+  Modal, Dimensions, Image
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { walletAPI } from '../utils/api'
 import { announcePayment } from '../utils/speech'
 import { showPaymentNotification } from '../utils/notifications'
 
+const { width } = Dimensions.get('window')
 
 export default function WalletScreen({ navigation }: any) {
   const [wallet, setWallet] = useState<any>(null)
-  
   const [refreshing, setRefreshing] = useState(false)
   const [filter, setFilter] = useState<'ALL' | 'CREDIT' | 'DEBIT'>('ALL')
+  const [search, setSearch] = useState('')
+  const [showSearch, setShowSearch] = useState(false)
+  const [selectedTx, setSelectedTx] = useState<any>(null)
+  const [balanceVisible, setBalanceVisible] = useState(true)
   const announcedRef = useRef(false)
   const lastTxRef = useRef<string | null>(null)
 
@@ -31,7 +37,6 @@ export default function WalletScreen({ navigation }: any) {
         })
         announcedRef.current = true
       }
-      // In loadWallet, after detecting new transaction:
       if (latestTx && latestTx.id !== lastTxRef.current) {
         lastTxRef.current = latestTx.id
         await showPaymentNotification({
@@ -43,11 +48,10 @@ export default function WalletScreen({ navigation }: any) {
             : undefined
         })
       }
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Could not load wallet')
     }
   }
-  
 
   useEffect(() => { loadWallet() }, [])
 
@@ -57,158 +61,419 @@ export default function WalletScreen({ navigation }: any) {
     setRefreshing(false)
   }
 
-
   const filteredTransactions = wallet?.transactions?.filter((tx: any) => {
-    if (filter === 'ALL') return true
-    return tx.type === filter
+    const matchFilter = filter === 'ALL' || tx.type === filter
+    const matchSearch = !search ||
+      tx.description?.toLowerCase().includes(search.toLowerCase()) ||
+      tx.reference?.toLowerCase().includes(search.toLowerCase())
+    return matchFilter && matchSearch
   })
 
-  return (
-    <ScrollView
-      style={styles.container}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-    >
-      <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.back}>← Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>My Wallet</Text>
+  const totalCredit = wallet?.transactions
+    ?.filter((tx: any) => tx.type === 'CREDIT')
+    ?.reduce((sum: number, tx: any) => sum + tx.amount, 0) || 0
 
-        <View style={styles.balanceCard}>
-          <Text style={styles.balanceLabel}>Available Balance</Text>
-          <Text style={styles.balanceAmount}>₦{wallet?.balance?.toLocaleString() || '0'}</Text>
-          <View style={styles.balanceRow}>
-            <View style={styles.balanceStat}>
-              <Text style={styles.balanceStatLabel}>Total Saved</Text>
-              <Text style={styles.balanceStatValue}>₦{wallet?.totalSaved?.toLocaleString() || '0'}</Text>
+  const totalDebit = wallet?.transactions
+    ?.filter((tx: any) => tx.type === 'DEBIT')
+    ?.reduce((sum: number, tx: any) => sum + tx.amount, 0) || 0
+
+  const getTxIcon = (description: string) => {
+    if (description?.toLowerCase().includes('ajo')) return '🤝'
+    if (description?.toLowerCase().includes('transfer')) return '💸'
+    if (description?.toLowerCase().includes('savings')) return '🐷'
+    if (description?.toLowerCase().includes('welcome')) return '🎉'
+    if (description?.toLowerCase().includes('withdrawal')) return '🏦'
+    return '💳'
+  }
+
+  return (
+    <View style={styles.container}>
+      <ScrollView
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.header}>
+          <View style={styles.headerTop}>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Text style={styles.back}>← Back</Text>
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>My Wallet</Text>
+            <TouchableOpacity onPress={() => setShowSearch(!showSearch)}>
+              <Text style={styles.searchIcon}>🔍</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Balance Card */}
+          <View style={styles.balanceCard}>
+            <View style={styles.balanceTop}>
+              <Text style={styles.balanceLabel}>Available Balance</Text>
+              <TouchableOpacity onPress={() => setBalanceVisible(!balanceVisible)}>
+                <Text style={styles.eyeIcon}>{balanceVisible ? '👁️' : '🙈'}</Text>
+              </TouchableOpacity>
             </View>
-            <View style={styles.balanceDivider} />
-            <View style={styles.balanceStat}>
-              <Text style={styles.balanceStatLabel}>Total Sent</Text>
-              <Text style={styles.balanceStatValue}>₦{wallet?.totalPayout?.toLocaleString() || '0'}</Text>
+            <Text style={styles.balanceAmount}>
+              {balanceVisible ? `₦${(wallet?.balance || 0).toLocaleString()}` : '₦ ••••••'}
+            </Text>
+
+            {/* Stats Row */}
+            <View style={styles.statsRow}>
+              <View style={styles.statItem}>
+                <Text style={styles.statLabel}>💰 Money In</Text>
+                <Text style={styles.statValue}>₦{totalCredit.toLocaleString()}</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Text style={styles.statLabel}>💸 Money Out</Text>
+                <Text style={styles.statValue}>₦{totalDebit.toLocaleString()}</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Text style={styles.statLabel}>🏦 Total Saved</Text>
+                <Text style={styles.statValue}>₦{(wallet?.totalSaved || 0).toLocaleString()}</Text>
+              </View>
             </View>
           </View>
-        </View>
-      </LinearGradient>
+        </LinearGradient>
 
-      {/* How to fund wallet info */}
-      <View style={styles.infoCard}>
-        <Text style={styles.infoIcon}>💡</Text>
-        <View style={styles.infoText}>
-          <Text style={styles.infoTitle}>How to fund your wallet</Text>
-          <Text style={styles.infoDesc}>Transfer money to your OWODE virtual account number. It will reflect here instantly once Providus integration is live.</Text>
-        </View>
-      </View>
-
-      {/* Quick Actions */}
-      <View style={styles.actionsRow}>
-        <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('Transfer')}>
-          <Text style={styles.actionBtnIcon}>💸</Text>
-          <Text style={styles.actionBtnText}>Send Money</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.actionBtn} onPress={() => Alert.alert('Coming Soon', 'Bank withdrawal will be available after Providus integration!')}>
-          <Text style={styles.actionBtnIcon}>🏦</Text>
-          <Text style={styles.actionBtnText}>Withdraw</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('Ajo')}>
-          <Text style={styles.actionBtnIcon}>🤝</Text>
-          <Text style={styles.actionBtnText}>Ajo Groups</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Transaction History */}
-      <View style={styles.historyHeader}>
-        <Text style={styles.historyTitle}>Transaction History</Text>
-        <View style={styles.filterRow}>
-          {(['ALL', 'CREDIT', 'DEBIT'] as const).map(f => (
-            <TouchableOpacity
-              key={f}
-              style={[styles.filterBtn, filter === f && styles.filterBtnActive]}
-              onPress={() => setFilter(f)}
-            >
-              <Text style={[styles.filterBtnText, filter === f && styles.filterBtnTextActive]}>{f}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-
-      {filteredTransactions?.length === 0 ? (
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyIcon}>📭</Text>
-          <Text style={styles.emptyText}>No transactions yet</Text>
-          <Text style={styles.emptySubText}>Your transaction history will appear here</Text>
-        </View>
-      ) : (
-        filteredTransactions?.map((tx: any) => (
+        {/* Quick Actions */}
+        <View style={styles.actionsRow}>
           <TouchableOpacity
-            key={tx.id}
-            style={styles.txCard}
-            onPress={() => navigation.navigate('Receipt', { transaction: tx })}
+            style={styles.actionBtn}
+            onPress={() => navigation.navigate('Transfer')}
           >
-            <View style={[styles.txIconCircle, { backgroundColor: tx.type === 'CREDIT' ? '#e8f5e9' : '#ffebee' }]}>
-              <Text style={styles.txIcon}>{tx.type === 'CREDIT' ? '⬆️' : '⬇️'}</Text>
+            <View style={[styles.actionIconBg, { backgroundColor: '#e3f2fd' }]}>
+              <Text style={styles.actionIcon}>💸</Text>
             </View>
-            <View style={styles.txMiddle}>
-              <Text style={styles.txDesc} numberOfLines={1}>{tx.description}</Text>
-              <Text style={styles.txDate}>{new Date(tx.createdAt).toLocaleString()}</Text>
-              <Text style={[styles.txStatus, { color: tx.status === 'SUCCESS' ? '#22c55e' : '#f5a623' }]}>
-                {tx.status}
-              </Text>
-            </View>
-            <View style={styles.txRight}>
-              <Text style={[styles.txAmount, { color: tx.type === 'CREDIT' ? '#22c55e' : '#ef4444' }]}>
-                {tx.type === 'CREDIT' ? '+' : '-'}₦{tx.amount.toLocaleString()}
-              </Text>
-              <Text style={styles.txBalance}>Bal: ₦{tx.balance.toLocaleString()}</Text>
-            </View>
+            <Text style={styles.actionText}>Send</Text>
           </TouchableOpacity>
-        ))
-      )}
-    </ScrollView>
+          <TouchableOpacity
+            style={styles.actionBtn}
+            onPress={() => Alert.alert('Coming Soon 🏦', 'Bank deposit will be available after Providus Bank integration!')}
+          >
+            <View style={[styles.actionIconBg, { backgroundColor: '#e8f5e9' }]}>
+              <Text style={styles.actionIcon}>⬇️</Text>
+            </View>
+            <Text style={styles.actionText}>Deposit</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionBtn}
+            onPress={() => Alert.alert('Coming Soon 🏦', 'Bank withdrawal will be available after Providus Bank integration!')}
+          >
+            <View style={[styles.actionIconBg, { backgroundColor: '#fff3e0' }]}>
+              <Text style={styles.actionIcon}>🏦</Text>
+            </View>
+            <Text style={styles.actionText}>Withdraw</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionBtn}
+            onPress={() => navigation.navigate('Ajo')}
+          >
+            <View style={[styles.actionIconBg, { backgroundColor: '#f3e5f5' }]}>
+              <Text style={styles.actionIcon}>🤝</Text>
+            </View>
+            <Text style={styles.actionText}>Ajo</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Info Card */}
+        <View style={styles.infoCard}>
+          <Text style={styles.infoIcon}>💡</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.infoTitle}>How to fund your wallet</Text>
+            <Text style={styles.infoDesc}>
+              Bank deposit via Providus Bank coming soon! You'll be able to fund your wallet instantly.
+            </Text>
+          </View>
+        </View>
+
+        {/* Search Bar */}
+        {showSearch && (
+          <View style={styles.searchContainer}>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search transactions..."
+              placeholderTextColor="#aaa"
+              value={search}
+              onChangeText={setSearch}
+              autoFocus
+            />
+            {search.length > 0 && (
+              <TouchableOpacity onPress={() => setSearch('')} style={styles.clearSearch}>
+                <Text style={styles.clearSearchText}>✕</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+
+        {/* Transaction History */}
+        <View style={styles.historySection}>
+          <View style={styles.historyHeader}>
+            <Text style={styles.historyTitle}>Transaction History</Text>
+            <Text style={styles.historyCount}>
+              {filteredTransactions?.length || 0} transactions
+            </Text>
+          </View>
+
+          {/* Filter Tabs */}
+          <View style={styles.filterRow}>
+            {[
+              { key: 'ALL', label: '📊 All', count: wallet?.transactions?.length || 0 },
+              { key: 'CREDIT', label: '⬆️ In', count: wallet?.transactions?.filter((t: any) => t.type === 'CREDIT').length || 0 },
+              { key: 'DEBIT', label: '⬇️ Out', count: wallet?.transactions?.filter((t: any) => t.type === 'DEBIT').length || 0 },
+            ].map(f => (
+              <TouchableOpacity
+                key={f.key}
+                style={[styles.filterBtn, filter === f.key && styles.filterBtnActive]}
+                onPress={() => setFilter(f.key as any)}
+              >
+                <Text style={[styles.filterBtnText, filter === f.key && styles.filterBtnTextActive]}>
+                  {f.label}
+                </Text>
+                <View style={[styles.filterCount, filter === f.key && styles.filterCountActive]}>
+                  <Text style={[styles.filterCountText, filter === f.key && styles.filterCountTextActive]}>
+                    {f.count}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Transaction List */}
+          {!filteredTransactions?.length ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyIcon}>📭</Text>
+              <Text style={styles.emptyText}>No transactions found</Text>
+              <Text style={styles.emptySubText}>
+                {search ? 'Try a different search term' : 'Your transactions will appear here'}
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.txList}>
+              {filteredTransactions.map((tx: any, index: number) => {
+                const isFirst = index === 0
+                const prevTx = filteredTransactions[index - 1]
+                const txDate = new Date(tx.createdAt).toLocaleDateString('en-NG', {
+                  day: 'numeric', month: 'short', year: 'numeric'
+                })
+                const prevDate = prevTx ? new Date(prevTx.createdAt).toLocaleDateString('en-NG', {
+                  day: 'numeric', month: 'short', year: 'numeric'
+                }) : null
+                const showDate = isFirst || txDate !== prevDate
+
+                return (
+                  <View key={tx.id}>
+                    {showDate && (
+                      <View style={styles.dateHeader}>
+                        <View style={styles.dateLine} />
+                        <Text style={styles.dateText}>{txDate}</Text>
+                        <View style={styles.dateLine} />
+                      </View>
+                    )}
+                    <TouchableOpacity
+                      style={styles.txCard}
+                      onPress={() => setSelectedTx(tx)}
+                      activeOpacity={0.7}
+                    >
+                      <View style={[
+                        styles.txIconCircle,
+                        { backgroundColor: tx.type === 'CREDIT' ? '#e8f5e9' : '#ffebee' }
+                      ]}>
+                        <Text style={styles.txIcon}>{getTxIcon(tx.description)}</Text>
+                      </View>
+                      <View style={styles.txMiddle}>
+                        <Text style={styles.txDesc} numberOfLines={1}>{tx.description}</Text>
+                        <Text style={styles.txTime}>
+                          {new Date(tx.createdAt).toLocaleTimeString('en-NG', {
+                            hour: '2-digit', minute: '2-digit'
+                          })}
+                        </Text>
+                        <View style={[
+                          styles.txStatusBadge,
+                          { backgroundColor: tx.status === 'SUCCESS' ? '#e8f5e9' : '#fff3e0' }
+                        ]}>
+                          <Text style={[
+                            styles.txStatusText,
+                            { color: tx.status === 'SUCCESS' ? '#22c55e' : '#f5a623' }
+                          ]}>
+                            {tx.status === 'SUCCESS' ? '✅ Success' : '⏳ Pending'}
+                          </Text>
+                        </View>
+                      </View>
+                      <View style={styles.txRight}>
+                        <Text style={[
+                          styles.txAmount,
+                          { color: tx.type === 'CREDIT' ? '#22c55e' : '#ef4444' }
+                        ]}>
+                          {tx.type === 'CREDIT' ? '+' : '-'}₦{tx.amount.toLocaleString()}
+                        </Text>
+                        <Text style={styles.txBalance}>
+                          Bal: ₦{tx.balance.toLocaleString()}
+                        </Text>
+                        <Text style={styles.txArrow}>›</Text>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+                )
+              })}
+            </View>
+          )}
+        </View>
+
+        <View style={{ height: 40 }} />
+      </ScrollView>
+
+      {/* Transaction Detail Modal */}
+      <Modal visible={!!selectedTx} transparent animationType="slide" onRequestClose={() => setSelectedTx(null)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            {/* Modal Header */}
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Transaction Details</Text>
+              <TouchableOpacity onPress={() => setSelectedTx(null)}>
+                <Text style={styles.modalClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            {selectedTx && (
+              <>
+                {/* Amount */}
+                <LinearGradient
+                  colors={selectedTx.type === 'CREDIT' ? ['#e8f5e9', '#c8e6c9'] : ['#ffebee', '#ffcdd2']}
+                  style={styles.modalAmountCard}
+                >
+                  <Text style={styles.modalAmountIcon}>
+                    {getTxIcon(selectedTx.description)}
+                  </Text>
+                  <Text style={[
+                    styles.modalAmount,
+                    { color: selectedTx.type === 'CREDIT' ? '#22c55e' : '#ef4444' }
+                  ]}>
+                    {selectedTx.type === 'CREDIT' ? '+' : '-'}₦{selectedTx.amount.toLocaleString()}
+                  </Text>
+                  <View style={[
+                    styles.modalStatusBadge,
+                    { backgroundColor: selectedTx.status === 'SUCCESS' ? '#22c55e' : '#f5a623' }
+                  ]}>
+                    <Text style={styles.modalStatusText}>
+                      {selectedTx.status === 'SUCCESS' ? '✅ Successful' : '⏳ Pending'}
+                    </Text>
+                  </View>
+                </LinearGradient>
+
+                {/* Details */}
+                <View style={styles.modalDetails}>
+                  {[
+                    { label: 'Type', value: selectedTx.type === 'CREDIT' ? '⬆️ Money In' : '⬇️ Money Out' },
+                    { label: 'Description', value: selectedTx.description },
+                    { label: 'Balance After', value: `₦${selectedTx.balance?.toLocaleString()}` },
+                    { label: 'Reference', value: selectedTx.reference },
+                    { label: 'Date', value: new Date(selectedTx.createdAt).toLocaleDateString('en-NG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) },
+                    { label: 'Time', value: new Date(selectedTx.createdAt).toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) },
+                  ].map((item, i) => (
+                    <View key={item.label}>
+                      <View style={styles.modalDetailRow}>
+                        <Text style={styles.modalDetailLabel}>{item.label}</Text>
+                        <Text style={styles.modalDetailValue} numberOfLines={2}>{item.value}</Text>
+                      </View>
+                      {i < 5 && <View style={styles.modalDivider} />}
+                    </View>
+                  ))}
+                </View>
+
+                <TouchableOpacity
+                  style={styles.modalCloseBtn}
+                  onPress={() => setSelectedTx(null)}
+                >
+                  <Text style={styles.modalCloseBtnText}>Close</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
-  header: { padding: 24, paddingTop: 60, paddingBottom: 30 },
-  back: { color: '#f5a623', fontSize: 16, marginBottom: 16 },
-  headerTitle: { color: '#fff', fontSize: 20, fontWeight: 'bold', marginBottom: 20 },
-  balanceCard: { backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 20, padding: 24 },
-  balanceLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 14 },
-  balanceAmount: { color: '#fff', fontSize: 40, fontWeight: 'bold', marginVertical: 8 },
-  balanceRow: { flexDirection: 'row', justifyContent: 'space-around', marginTop: 8 },
-  balanceStat: { alignItems: 'center' },
-  balanceStatLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 12 },
-  balanceStatValue: { color: '#fff', fontSize: 16, fontWeight: 'bold', marginTop: 4 },
-  balanceDivider: { width: 1, backgroundColor: 'rgba(255,255,255,0.3)' },
-  infoCard: { backgroundColor: '#e3f2fd', margin: 16, borderRadius: 16, padding: 16, flexDirection: 'row', alignItems: 'flex-start' },
-  infoIcon: { fontSize: 24, marginRight: 12 },
-  infoText: { flex: 1 },
-  infoTitle: { fontSize: 14, fontWeight: 'bold', color: '#0d47a1', marginBottom: 4 },
-  infoDesc: { fontSize: 12, color: '#555', lineHeight: 18 },
-  actionsRow: { flexDirection: 'row', marginHorizontal: 16, gap: 12, marginBottom: 8 },
-  actionBtn: { flex: 1, backgroundColor: '#fff', borderRadius: 16, padding: 16, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
-  actionBtnIcon: { fontSize: 28, marginBottom: 8 },
-  actionBtnText: { fontSize: 12, color: '#0d47a1', fontWeight: '600', textAlign: 'center' },
-  historyHeader: { marginHorizontal: 16, marginTop: 16, marginBottom: 12 },
-  historyTitle: { fontSize: 18, fontWeight: 'bold', color: '#0d47a1', marginBottom: 12 },
-  filterRow: { flexDirection: 'row', gap: 8 },
-  filterBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: '#fff' },
+  header: { padding: 24, paddingTop: 56, paddingBottom: 28 },
+  headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  back: { color: '#f5a623', fontSize: 16, fontWeight: '600' },
+  headerTitle: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  searchIcon: { fontSize: 20 },
+  balanceCard: { backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 20, padding: 20 },
+  balanceTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
+  balanceLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 13 },
+  eyeIcon: { fontSize: 18 },
+  balanceAmount: { color: '#fff', fontSize: 38, fontWeight: 'bold', marginBottom: 16 },
+  statsRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  statItem: { flex: 1, alignItems: 'center' },
+  statLabel: { color: 'rgba(255,255,255,0.6)', fontSize: 11, marginBottom: 4 },
+  statValue: { color: '#fff', fontSize: 13, fontWeight: 'bold' },
+  statDivider: { width: 1, backgroundColor: 'rgba(255,255,255,0.2)' },
+  actionsRow: { flexDirection: 'row', marginHorizontal: 16, marginTop: 16, gap: 10 },
+  actionBtn: { flex: 1, backgroundColor: '#fff', borderRadius: 16, padding: 12, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
+  actionIconBg: { width: 44, height: 44, borderRadius: 14, justifyContent: 'center', alignItems: 'center', marginBottom: 6 },
+  actionIcon: { fontSize: 22 },
+  actionText: { fontSize: 11, color: '#0d47a1', fontWeight: '600' },
+  infoCard: { backgroundColor: '#e3f2fd', marginHorizontal: 16, marginTop: 12, borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  infoIcon: { fontSize: 20 },
+  infoTitle: { fontSize: 13, fontWeight: 'bold', color: '#0d47a1', marginBottom: 2 },
+  infoDesc: { fontSize: 11, color: '#555', lineHeight: 16 },
+  searchContainer: { marginHorizontal: 16, marginTop: 12, flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 14, paddingHorizontal: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
+  searchInput: { flex: 1, paddingVertical: 14, fontSize: 15, color: '#333' },
+  clearSearch: { padding: 8 },
+  clearSearchText: { color: '#888', fontSize: 16 },
+  historySection: { marginTop: 16, paddingHorizontal: 16 },
+  historyHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  historyTitle: { fontSize: 18, fontWeight: 'bold', color: '#0d47a1' },
+  historyCount: { fontSize: 12, color: '#888' },
+  filterRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
+  filterBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: '#fff', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 1 },
   filterBtnActive: { backgroundColor: '#0d47a1' },
   filterBtnText: { fontSize: 13, color: '#888', fontWeight: '600' },
   filterBtnTextActive: { color: '#fff' },
-  emptyState: { alignItems: 'center', padding: 40 },
-  emptyIcon: { fontSize: 40, marginBottom: 12 },
-  emptyText: { fontSize: 16, fontWeight: 'bold', color: '#333' },
-  emptySubText: { fontSize: 14, color: '#888', marginTop: 4, textAlign: 'center' },
-  txCard: { backgroundColor: '#fff', marginHorizontal: 16, marginBottom: 8, borderRadius: 12, padding: 16, flexDirection: 'row', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 1 },
-  txIconCircle: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
-  txIcon: { fontSize: 20 },
+  filterCount: { backgroundColor: '#f0f0f0', borderRadius: 10, paddingHorizontal: 6, paddingVertical: 2 },
+  filterCountActive: { backgroundColor: 'rgba(255,255,255,0.2)' },
+  filterCountText: { fontSize: 10, color: '#888', fontWeight: 'bold' },
+  filterCountTextActive: { color: '#fff' },
+  emptyState: { alignItems: 'center', padding: 48 },
+  emptyIcon: { fontSize: 48, marginBottom: 12 },
+  emptyText: { fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 4 },
+  emptySubText: { fontSize: 13, color: '#888', textAlign: 'center' },
+  txList: { gap: 8 },
+  dateHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginVertical: 8 },
+  dateLine: { flex: 1, height: 1, backgroundColor: '#e0e0e0' },
+  dateText: { fontSize: 11, color: '#888', fontWeight: '600' },
+  txCard: { backgroundColor: '#fff', borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 1 },
+  txIconCircle: { width: 46, height: 46, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
+  txIcon: { fontSize: 22 },
   txMiddle: { flex: 1 },
-  txDesc: { fontSize: 14, color: '#333', fontWeight: '600' },
-  txDate: { fontSize: 11, color: '#888', marginTop: 2 },
-  txStatus: { fontSize: 11, fontWeight: '600', marginTop: 2 },
-  txRight: { alignItems: 'flex-end' },
+  txDesc: { fontSize: 14, color: '#1a1a1a', fontWeight: '600', marginBottom: 2 },
+  txTime: { fontSize: 11, color: '#aaa', marginBottom: 4 },
+  txStatusBadge: { alignSelf: 'flex-start', borderRadius: 8, paddingHorizontal: 6, paddingVertical: 2 },
+  txStatusText: { fontSize: 10, fontWeight: '600' },
+  txRight: { alignItems: 'flex-end', gap: 2 },
   txAmount: { fontSize: 15, fontWeight: 'bold' },
-  txBalance: { fontSize: 11, color: '#888', marginTop: 2 }
+  txBalance: { fontSize: 10, color: '#aaa' },
+  txArrow: { fontSize: 18, color: '#ccc', marginTop: 2 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  modalContent: { backgroundColor: '#fff', borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, maxHeight: '85%' },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#0d47a1' },
+  modalClose: { fontSize: 20, color: '#888', padding: 4 },
+  modalAmountCard: { borderRadius: 20, padding: 24, alignItems: 'center', marginBottom: 20 },
+  modalAmountIcon: { fontSize: 40, marginBottom: 8 },
+  modalAmount: { fontSize: 36, fontWeight: 'bold', marginBottom: 10 },
+  modalStatusBadge: { borderRadius: 20, paddingHorizontal: 16, paddingVertical: 6 },
+  modalStatusText: { color: '#fff', fontWeight: 'bold', fontSize: 13 },
+  modalDetails: { backgroundColor: '#f9f9f9', borderRadius: 16, overflow: 'hidden', marginBottom: 20 },
+  modalDetailRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 14 },
+  modalDetailLabel: { fontSize: 13, color: '#888' },
+  modalDetailValue: { fontSize: 13, fontWeight: '600', color: '#333', maxWidth: '60%', textAlign: 'right' },
+  modalDivider: { height: 1, backgroundColor: '#f0f0f0' },
+  modalCloseBtn: { backgroundColor: '#0d47a1', borderRadius: 14, padding: 16, alignItems: 'center' },
+  modalCloseBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
 })
