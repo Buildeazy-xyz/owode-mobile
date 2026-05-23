@@ -20,7 +20,8 @@ export const authAPI = {
     api.post('/users/register', data),
   login: (data: { phone: string; password: string }) =>
     api.post('/users/login', data),
- sendOTP: (phone: string, dialCode?: string) =>
+ getMe: () => api.get('/users/me'),
+  sendOTP: (phone: string, dialCode?: string) =>
   api.post('/users/send-otp', { phone, dialCode }),
   verifyOTP: (phone: string, otp: string) =>
     api.post('/users/verify-otp', { phone, otp }),

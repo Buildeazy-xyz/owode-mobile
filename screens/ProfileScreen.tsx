@@ -1,63 +1,46 @@
 import React, { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, TextInput, ActivityIndicator } from 'react-native'
+import {
+  View, Text, StyleSheet, TouchableOpacity, Alert,
+  ScrollView, ActivityIndicator, Image, Dimensions, Linking
+} from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
 import { useAuth } from '../context/AuthContext'
-import { kycAPI } from '../utils/api'
+import { authAPI } from '../utils/api'
 import { isBiometricEnabled, getBiometricType } from '../utils/biometrics'
-export default function ProfileScreen({ navigation }: any) {
-  const { user, logout } = useAuth()
-  const [kycStatus, setKycStatus] = useState<any>(null)
-  const [bvn, setBvn] = useState('')
-  const [nin, setNin] = useState('')
-  const [loading, setLoading] = useState(false)
 
-  const loadKYC = async () => {
+const { width } = Dimensions.get('window')
+
+export default function ProfileScreen({ navigation }: any) {
+  const { user, logout, refreshUser } = useAuth()
+  const [freshUser, setFreshUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [bioEnabled, setBioEnabled] = useState(false)
+  const [bioInfo, setBioInfo] = useState<any>(null)
+
+  useEffect(() => {
+    loadFreshData()
+    checkBio()
+  }, [])
+
+  const loadFreshData = async () => {
     try {
-      const response = await kycAPI.getStatus()
-      setKycStatus(response.data.data)
+      const response = await authAPI.getMe()
+      const data = response.data.data
+      setFreshUser(data)
+      refreshUser({ ...user, ...data })
     } catch (error) {
-      console.log('KYC status not loaded')
+      console.log('Could not load fresh user data')
+      setFreshUser(user)
+    } finally {
+      setLoading(false)
     }
   }
 
-  useEffect(() => { loadKYC() }, [])
-const [bioEnabled, setBioEnabled] = useState(false)
-const [bioInfo, setBioInfo] = useState<any>(null)
-
-useEffect(() => {
   const checkBio = async () => {
     const enabled = await isBiometricEnabled()
     const info = await getBiometricType()
     setBioEnabled(enabled)
     setBioInfo(info)
-  }
-  checkBio()
-}, [])
-  const handleSubmitBVN = async () => {
-    if (!bvn || bvn.length !== 11) { Alert.alert('Error', 'BVN must be exactly 11 digits'); return }
-    try {
-      setLoading(true)
-      await kycAPI.submitBVN(bvn)
-      Alert.alert('Success', 'BVN submitted successfully!')
-      await loadKYC()
-    } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.message || 'Something went wrong')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleSubmitNIN = async () => {
-    if (!nin || nin.length !== 11) { Alert.alert('Error', 'NIN must be exactly 11 digits'); return }
-    try {
-      setLoading(true)
-      await kycAPI.submitNIN(nin)
-      Alert.alert('Success', 'NIN submitted successfully!')
-      await loadKYC()
-    } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.message || 'Something went wrong')
-    } finally {
-      setLoading(false)
-    }
   }
 
   const handleLogout = () => {
@@ -67,158 +50,333 @@ useEffect(() => {
     ])
   }
 
+  const currentUser = freshUser || user
+  const trustColor = currentUser?.trustScore >= 65 ? '#22c55e' : currentUser?.trustScore >= 35 ? '#f5a623' : '#ef4444'
+  const trustLabel = currentUser?.trustScore >= 65 ? 'Excellent' : currentUser?.trustScore >= 35 ? 'Good' : 'Low'
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f5f5' }}>
+        <ActivityIndicator size="large" color="#0d47a1" />
+      </View>
+    )
+  }
+
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      {/* Header */}
+      <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Text style={styles.back}>← Back</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Profile</Text>
-        <View />
-      </View>
-
-      <View style={styles.profileCard}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{user?.fullName?.charAt(0)}</Text>
+        <View style={styles.logoCard}>
+          <Image source={require('../assets/owode-logo.png')} style={styles.logoImage} resizeMode="contain" />
         </View>
-        <Text style={styles.name}>{user?.fullName}</Text>
-        <Text style={styles.phone}>{user?.phone}</Text>
-        <View style={[styles.badge, { backgroundColor: user?.isVerified ? '#22c55e' : '#f5a623' }]}>
-          <Text style={styles.badgeText}>{user?.isVerified ? '✅ Verified' : '⏳ Unverified'}</Text>
+        <View style={styles.avatarContainer}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{currentUser?.fullName?.charAt(0)}</Text>
+          </View>
+          <Text style={styles.name}>{currentUser?.fullName}</Text>
+          <Text style={styles.phone}>{currentUser?.phone}</Text>
+          <View style={styles.badgeRow}>
+            <View style={[styles.badge, { borderColor: currentUser?.isVerified ? '#22c55e' : '#f5a623' }]}>
+              <Text style={[styles.badgeText, { color: currentUser?.isVerified ? '#22c55e' : '#f5a623' }]}>
+                {currentUser?.isVerified ? '✅ Verified' : '⏳ Unverified'}
+              </Text>
+            </View>
+            <View style={[styles.badge, { borderColor: '#f5a623' }]}>
+              <Text style={[styles.badgeText, { color: '#f5a623' }]}>{currentUser?.role}</Text>
+            </View>
+          </View>
         </View>
+      </LinearGradient>
+
+      {/* Stats */}
+      <View style={styles.statsRow}>
+        {[
+          { label: 'Balance', value: `₦${(currentUser?.wallet?.balance || 0).toLocaleString()}`, icon: '💰', color: '#0d47a1' },
+          { label: 'Total Saved', value: `₦${(currentUser?.wallet?.totalSaved || 0).toLocaleString()}`, icon: '🏦', color: '#22c55e' },
+          { label: 'Total Payout', value: `₦${(currentUser?.wallet?.totalPayout || 0).toLocaleString()}`, icon: '💸', color: '#f5a623' },
+        ].map(stat => (
+          <View key={stat.label} style={styles.statCard}>
+            <Text style={styles.statIcon}>{stat.icon}</Text>
+            <Text style={[styles.statValue, { color: stat.color }]}>{stat.value}</Text>
+            <Text style={styles.statLabel}>{stat.label}</Text>
+          </View>
+        ))}
       </View>
 
-     {/* Security Section */}
-<View style={styles.section}>
-  <Text style={styles.sectionTitle}>🔐 Security</Text>
-  
-  <View style={styles.menuCard}>
-    <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('SetTransactionPin')}>
-      <Text style={styles.menuIcon}>💳</Text>
-      
-      <View style={styles.menuText}>
-        <Text style={styles.menuLabel}>Transaction PIN</Text>
-        <Text style={styles.menuSub}>{user?.hasTransactionPin ? 'PIN is set ✅' : 'Not set — tap to set'}</Text>
-
-      </View>
-              <Text style={styles.menuSub}>
-          {bioEnabled ? `${bioInfo?.label} is active ✅` : 'Not set up — tap to enable'}
-        </Text>
-      <Text style={styles.menuArrow}>→</Text>
-    </TouchableOpacity>
-    <View style={styles.menuDivider} />
-    <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('SetAppPin')}>
-      <Text style={styles.menuIcon}>🔒</Text>
-      <View style={styles.menuText}>
-        <Text style={styles.menuLabel}>App Lock PIN</Text>
-        <Text style={styles.menuSub}>6-digit PIN when reopening app</Text>
-      </View>
-      <Text style={styles.menuArrow}>→</Text>
-    </TouchableOpacity>
-    <View style={styles.menuDivider} />
-    <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('BiometricSetup')}>
-      <Text style={styles.menuIcon}>👆</Text>
-      <View style={styles.menuText}>
-        <Text style={styles.menuLabel}>Fingerprint / Face ID</Text>
-        <Text style={styles.menuSub}>Use biometrics for faster access</Text>
-      </View>
-      <Text style={styles.menuArrow}>→</Text>
-    </TouchableOpacity>
-    <View style={styles.menuDivider} />
-    <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('FaceVerification')}>
-      <Text style={styles.menuIcon}>😊</Text>
-      <View style={styles.menuText}>
-        <Text style={styles.menuLabel}>Face Verification</Text>
-        <Text style={styles.menuSub}>{user?.isVerified ? 'Verified ✅' : 'Verify your identity with your face'}</Text>
-      </View>
-      <Text style={styles.menuArrow}>→</Text>
-    </TouchableOpacity>
-  </View>
-</View>
-
-      {/* KYC Status */}
+      {/* Trust Score */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>📋 KYC Status</Text>
-        <View style={styles.kycCard}>
-          <View style={styles.kycRow}>
-            <Text style={styles.kycLabel}>BVN</Text>
-            <Text style={[styles.kycStatus, { color: kycStatus?.hasBVN ? '#22c55e' : '#ef4444' }]}>
-              {kycStatus?.hasBVN ? '✅ Submitted' : '❌ Not Submitted'}
+        <View style={styles.card}>
+          <View style={styles.trustHeader}>
+            <Text style={styles.cardTitle}>⭐ Trust Score</Text>
+            <Text style={[styles.trustLabel, { color: trustColor }]}>
+              {Math.round(currentUser?.trustScore || 0)}/100 — {trustLabel}
             </Text>
           </View>
-          <View style={styles.kycRow}>
-            <Text style={styles.kycLabel}>NIN</Text>
-            <Text style={[styles.kycStatus, { color: kycStatus?.hasNIN ? '#22c55e' : '#ef4444' }]}>
-              {kycStatus?.hasNIN ? '✅ Submitted' : '❌ Not Submitted'}
-            </Text>
+          <View style={styles.trustBar}>
+            <View style={[styles.trustFill, {
+              width: `${Math.min(currentUser?.trustScore || 0, 100)}%`,
+              backgroundColor: trustColor
+            }]} />
           </View>
-          <View style={styles.kycRow}>
-            <Text style={styles.kycLabel}>Status</Text>
-            <Text style={[styles.kycStatus, {
-              color: kycStatus?.status === 'VERIFIED' ? '#22c55e' : kycStatus?.status === 'PENDING' ? '#f5a623' : '#ef4444'
-            }]}>{kycStatus?.status || 'UNVERIFIED'}</Text>
+          <Text style={styles.trustHint}>Complete KYC and maintain good payment history to increase your score</Text>
+        </View>
+      </View>
+
+      {/* KYC */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>📋 Identity Verification (KYC)</Text>
+        <View style={styles.card}>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('KYCVerification')}
+          >
+            <View style={[styles.menuIconBg, { backgroundColor: '#e3f2fd' }]}>
+              <Text style={styles.menuIconText}>🪪</Text>
+            </View>
+            <View style={styles.menuText}>
+              <Text style={styles.menuLabel}>BVN Verification</Text>
+              <Text style={styles.menuSub}>
+                {currentUser?.hasBVN ? '✅ BVN submitted and verified' : '❌ Not submitted — tap to verify'}
+              </Text>
+            </View>
+            <Text style={styles.menuArrow}>→</Text>
+          </TouchableOpacity>
+          <View style={styles.divider} />
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('KYCVerification')}
+          >
+            <View style={[styles.menuIconBg, { backgroundColor: '#f3e5f5' }]}>
+              <Text style={styles.menuIconText}>🪪</Text>
+            </View>
+            <View style={styles.menuText}>
+              <Text style={styles.menuLabel}>NIN Verification</Text>
+              <Text style={styles.menuSub}>
+                {currentUser?.hasNIN ? '✅ NIN submitted and verified' : '❌ Not submitted — tap to verify'}
+              </Text>
+            </View>
+            <Text style={styles.menuArrow}>→</Text>
+          </TouchableOpacity>
+          <View style={styles.divider} />
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('FaceVerification')}
+          >
+            <View style={[styles.menuIconBg, { backgroundColor: '#e8f5e9' }]}>
+              <Text style={styles.menuIconText}>😊</Text>
+            </View>
+            <View style={styles.menuText}>
+              <Text style={styles.menuLabel}>Face Verification</Text>
+              <Text style={styles.menuSub}>
+                {currentUser?.isVerified ? '✅ Identity fully verified' : '❌ Not verified — tap to verify'}
+              </Text>
+            </View>
+            <Text style={styles.menuArrow}>→</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Security */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>🔐 Security</Text>
+        <View style={styles.card}>
+          {[
+            {
+              icon: '💳',
+              bg: '#e3f2fd',
+              label: currentUser?.hasTransactionPin ? 'Change Transaction PIN' : 'Set Transaction PIN',
+              sub: currentUser?.hasTransactionPin ? '4-digit PIN for all transactions ✅' : 'Not set — tap to set now',
+              onPress: () => navigation.navigate('SetTransactionPin')
+            },
+            {
+              icon: '🔒',
+              bg: '#fff3e0',
+              label: 'Change App Lock PIN',
+              sub: '6-digit PIN to lock your app',
+              onPress: () => navigation.navigate('SetAppPin')
+            },
+            {
+              icon: bioInfo?.icon || '👆',
+              bg: '#e8f5e9',
+              label: bioEnabled ? `Change ${bioInfo?.label || 'Biometrics'}` : `Set Up ${bioInfo?.label || 'Biometrics'}`,
+              sub: bioEnabled ? `${bioInfo?.label} is active ✅` : 'Use biometrics for faster login',
+              onPress: () => navigation.navigate('BiometricSetup')
+            },
+          ].map((item, i) => (
+            <View key={item.label}>
+              <TouchableOpacity style={styles.menuItem} onPress={item.onPress}>
+                <View style={[styles.menuIconBg, { backgroundColor: item.bg }]}>
+                  <Text style={styles.menuIconText}>{item.icon}</Text>
+                </View>
+                <View style={styles.menuText}>
+                  <Text style={styles.menuLabel}>{item.label}</Text>
+                  <Text style={styles.menuSub}>{item.sub}</Text>
+                </View>
+                <Text style={styles.menuArrow}>→</Text>
+              </TouchableOpacity>
+              {i < 2 && <View style={styles.divider} />}
+            </View>
+          ))}
+        </View>
+      </View>
+
+      {/* Account Info */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>👤 Account Details</Text>
+        <View style={styles.card}>
+          {[
+            { label: 'Full Name', value: currentUser?.fullName },
+            { label: 'Phone Number', value: currentUser?.phone },
+            { label: 'Email', value: currentUser?.email || 'Not provided' },
+            { label: 'Country', value: currentUser?.country || 'Nigeria' },
+            { label: 'Account Type', value: currentUser?.role },
+            { label: 'Wallet Status', value: currentUser?.wallet?.isLocked ? '🔒 Locked' : '🔓 Active' },
+          ].map((item, i) => (
+            <View key={item.label}>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>{item.label}</Text>
+                <Text style={styles.infoValue}>{item.value}</Text>
+              </View>
+              {i < 5 && <View style={styles.divider} />}
+            </View>
+          ))}
+        </View>
+      </View>
+
+      {/* Support */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>💬 Help & Support</Text>
+        <View style={styles.card}>
+          {[
+            {
+              icon: '📧',
+              bg: '#e3f2fd',
+              label: 'Email Support',
+              sub: 'support@owodealajo.com',
+              onPress: () => Linking.openURL('mailto:support@owodealajo.com?subject=OWODE Support Request')
+            },
+            {
+              icon: '💬',
+              bg: '#e8f5e9',
+              label: 'WhatsApp Support',
+              sub: 'Chat with us on WhatsApp',
+              onPress: () => Linking.openURL('https://wa.me/2348012345678?text=Hello OWODE Support, I need help with my account')
+            },
+            {
+              icon: '🌐',
+              bg: '#fff3e0',
+              label: 'Visit Website',
+              sub: 'owodealajo.com',
+              onPress: () => Linking.openURL('https://owode.xyz')
+            },
+            {
+              icon: '📋',
+              bg: '#f3e5f5',
+              label: 'Terms & Conditions',
+              sub: 'Read our terms of service',
+              onPress: () => Linking.openURL('https://owode.xyz/terms')
+            },
+            {
+              icon: '🔒',
+              bg: '#fce4ec',
+              label: 'Privacy Policy',
+              sub: 'How we protect your data',
+              onPress: () => Linking.openURL('https://owode.xyz/privacy')
+            },
+          ].map((item, i) => (
+            <View key={item.label}>
+              <TouchableOpacity style={styles.menuItem} onPress={item.onPress}>
+                <View style={[styles.menuIconBg, { backgroundColor: item.bg }]}>
+                  <Text style={styles.menuIconText}>{item.icon}</Text>
+                </View>
+                <View style={styles.menuText}>
+                  <Text style={styles.menuLabel}>{item.label}</Text>
+                  <Text style={styles.menuSub}>{item.sub}</Text>
+                </View>
+                <Text style={styles.menuArrow}>→</Text>
+              </TouchableOpacity>
+              {i < 4 && <View style={styles.divider} />}
+            </View>
+          ))}
+        </View>
+      </View>
+
+      {/* App Info */}
+      <View style={styles.section}>
+        <View style={styles.card}>
+          <View style={styles.appInfoRow}>
+            <View style={styles.logoCardSmall}>
+              <Image source={require('../assets/owode-logo.png')} style={styles.logoImageSmall} resizeMode="contain" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.appInfoTitle}>OWODE Alajo</Text>
+              <Text style={styles.appInfoSub}>Version 1.0.0</Text>
+              <Text style={styles.appInfoSub}>OWODE Digital Services Limited</Text>
+            </View>
           </View>
         </View>
       </View>
 
-      {/* Submit BVN */}
-      {!kycStatus?.hasBVN && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Submit BVN</Text>
-          <TextInput style={styles.input} placeholder="Enter 11-digit BVN" value={bvn} onChangeText={setBvn} keyboardType="numeric" maxLength={11} />
-          <TouchableOpacity style={styles.submitBtn} onPress={handleSubmitBVN} disabled={loading}>
-            {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitBtnText}>Submit BVN</Text>}
-          </TouchableOpacity>
-        </View>
-      )}
+      {/* Logout */}
+      <View style={styles.section}>
+        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+          <Text style={styles.logoutText}>🚪 Logout</Text>
+        </TouchableOpacity>
+      </View>
 
-      {/* Submit NIN */}
-      {!kycStatus?.hasNIN && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Submit NIN</Text>
-          <TextInput style={styles.input} placeholder="Enter 11-digit NIN" value={nin} onChangeText={setNin} keyboardType="numeric" maxLength={11} />
-          <TouchableOpacity style={styles.submitBtn} onPress={handleSubmitNIN} disabled={loading}>
-            {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitBtnText}>Submit NIN</Text>}
-          </TouchableOpacity>
-        </View>
-      )}
-
-      <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-        <Text style={styles.logoutText}>Logout</Text>
-      </TouchableOpacity>
+      <View style={{ height: 40 }} />
     </ScrollView>
   )
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
-  header: { backgroundColor: '#0d47a1', padding: 24, paddingTop: 60, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  back: { color: '#f5a623', fontSize: 16 },
-  headerTitle: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-  profileCard: { backgroundColor: '#fff', margin: 16, borderRadius: 20, padding: 24, alignItems: 'center' },
-  avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#0d47a1', justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
-  avatarText: { color: '#fff', fontSize: 32, fontWeight: 'bold' },
-  name: { fontSize: 20, fontWeight: 'bold', color: '#1a1a2e' },
-  phone: { fontSize: 14, color: '#888', marginTop: 4 },
-  badge: { marginTop: 12, paddingHorizontal: 16, paddingVertical: 6, borderRadius: 20 },
-  badgeText: { color: '#fff', fontWeight: 'bold', fontSize: 12 },
-  section: { margin: 16, marginTop: 0 },
-  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#0d47a1', marginBottom: 12 },
-  menuCard: { backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden' },
-  menuItem: { flexDirection: 'row', alignItems: 'center', padding: 16 },
-  menuIcon: { fontSize: 24, marginRight: 12 },
+  header: { paddingBottom: 32 },
+  backBtn: { paddingTop: 56, paddingHorizontal: 20, paddingBottom: 8 },
+  back: { color: '#f5a623', fontSize: 16, fontWeight: '600' },
+  logoCard: { alignSelf: 'center', backgroundColor: '#fff', borderRadius: 14, padding: 8, marginBottom: 16 },
+  logoImage: { width: width * 0.38, height: 38 },
+  avatarContainer: { alignItems: 'center', paddingHorizontal: 20 },
+  avatar: { width: 88, height: 88, borderRadius: 44, backgroundColor: '#f5a623', justifyContent: 'center', alignItems: 'center', marginBottom: 12, borderWidth: 3, borderColor: 'rgba(255,255,255,0.3)' },
+  avatarText: { color: '#fff', fontSize: 36, fontWeight: 'bold' },
+  name: { fontSize: 22, fontWeight: 'bold', color: '#fff', marginBottom: 4 },
+  phone: { fontSize: 14, color: 'rgba(255,255,255,0.7)', marginBottom: 12 },
+  badgeRow: { flexDirection: 'row', gap: 8 },
+  badge: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20, borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.1)' },
+  badgeText: { fontWeight: 'bold', fontSize: 12 },
+  statsRow: { flexDirection: 'row', margin: 16, gap: 8 },
+  statCard: { flex: 1, backgroundColor: '#fff', borderRadius: 16, padding: 12, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
+  statIcon: { fontSize: 20, marginBottom: 4 },
+  statValue: { fontSize: 12, fontWeight: 'bold', textAlign: 'center' },
+  statLabel: { fontSize: 10, color: '#888', marginTop: 2 },
+  section: { marginHorizontal: 16, marginBottom: 16 },
+  sectionTitle: { fontSize: 15, fontWeight: 'bold', color: '#0d47a1', marginBottom: 10 },
+  card: { backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
+  cardTitle: { fontSize: 14, fontWeight: '600', color: '#333' },
+  trustHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, paddingBottom: 8 },
+  trustLabel: { fontSize: 12, fontWeight: 'bold' },
+  trustBar: { height: 6, backgroundColor: '#f0f0f0', marginHorizontal: 16, borderRadius: 3, overflow: 'hidden', marginBottom: 8 },
+  trustFill: { height: 6, borderRadius: 3 },
+  trustHint: { fontSize: 11, color: '#aaa', lineHeight: 16, paddingHorizontal: 16, paddingBottom: 16 },
+  divider: { height: 1, backgroundColor: '#f5f5f5', marginLeft: 64 },
+  menuItem: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 },
+  menuIconBg: { width: 40, height: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+  menuIconText: { fontSize: 20 },
   menuText: { flex: 1 },
-  menuLabel: { fontSize: 15, fontWeight: '600', color: '#333' },
+  menuLabel: { fontSize: 14, fontWeight: '600', color: '#1a1a1a' },
   menuSub: { fontSize: 12, color: '#888', marginTop: 2 },
-  menuArrow: { color: '#888', fontSize: 18 },
-  menuDivider: { height: 1, backgroundColor: '#f5f5f5', marginLeft: 52 },
-  kycCard: { backgroundColor: '#fff', borderRadius: 16, padding: 16 },
-  kycRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#f5f5f5' },
-  kycLabel: { fontSize: 14, color: '#333', fontWeight: '600' },
-  kycStatus: { fontSize: 14, fontWeight: '600' },
-  input: { backgroundColor: '#fff', borderRadius: 12, padding: 16, fontSize: 16, marginBottom: 12, color: '#333' },
-  submitBtn: { backgroundColor: '#0d47a1', borderRadius: 12, padding: 16, alignItems: 'center' },
-  submitBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-  logoutBtn: { margin: 16, backgroundColor: '#ef4444', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 40 },
-  logoutText: { color: '#fff', fontSize: 16, fontWeight: 'bold' }
+  menuArrow: { color: '#ccc', fontSize: 18 },
+  infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 14 },
+  infoLabel: { fontSize: 13, color: '#888' },
+  infoValue: { fontSize: 13, fontWeight: '600', color: '#333', maxWidth: '55%', textAlign: 'right' },
+  appInfoRow: { flexDirection: 'row', alignItems: 'center', padding: 16, gap: 12 },
+  logoCardSmall: { backgroundColor: '#f5f5f5', borderRadius: 10, padding: 8 },
+  logoImageSmall: { width: 80, height: 30 },
+  appInfoTitle: { fontSize: 14, fontWeight: 'bold', color: '#333' },
+  appInfoSub: { fontSize: 12, color: '#888', marginTop: 2 },
+  logoutBtn: { backgroundColor: '#fff', borderRadius: 16, padding: 18, alignItems: 'center', borderWidth: 1.5, borderColor: '#ef4444' },
+  logoutText: { color: '#ef4444', fontSize: 16, fontWeight: 'bold' },
 })
