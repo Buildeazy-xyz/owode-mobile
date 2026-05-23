@@ -32,25 +32,30 @@ export default function DashboardScreen({ navigation }: any) {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [balanceVisible, setBalanceVisible] = useState(true)
   const lastTxRef = useRef<string | null>(null)
+  const initialLoadDone = useRef(false)
 
   const loadWallet = async () => {
     try {
       const response = await walletAPI.getBalance()
       const data = response.data.data
       setWallet(data)
+
       const latestTx = data?.transactions?.[0]
-      if (latestTx && latestTx.id !== lastTxRef.current && latestTx.type === 'CREDIT') {
-        lastTxRef.current = latestTx.id
-        const senderName = latestTx.description?.includes('from')
-          ? latestTx.description.split('from')[1]?.split('—')[0]?.trim()
-          : 'OWODE'
-        announcePayment({ type: 'CREDIT', amount: latestTx.amount, sender: senderName })
-        // Add to notification center
-        addNotification({
-          title: '💰 Payment Received!',
-          body: `₦${latestTx.amount.toLocaleString()} received${senderName ? ` from ${senderName}` : ''}`,
-          type: 'CREDIT'
-        })
+
+      if (latestTx) {
+        if (!initialLoadDone.current) {
+          // First load — just save the ID, don't notify
+          lastTxRef.current = latestTx.id
+          initialLoadDone.current = true
+        } else if (latestTx.id !== lastTxRef.current && latestTx.type === 'CREDIT') {
+          // Genuinely new transaction — notify!
+          lastTxRef.current = latestTx.id
+          addNotification({
+            title: '💰 Payment Received!',
+            body: `₦${latestTx.amount.toLocaleString()} received in OWODE`,
+            type: 'CREDIT'
+          })
+        }
       }
     } catch {
       Alert.alert('Error', 'Could not load wallet')
@@ -68,7 +73,7 @@ export default function DashboardScreen({ navigation }: any) {
       read: false,
       createdAt: new Date().toISOString()
     }
-    const updated = [newNotif, ...existing].slice(0, 50) // Keep max 50
+    const updated = [newNotif, ...existing].slice(0, 50)
     await AsyncStorage.setItem('owode_notifications', JSON.stringify(updated))
     setNotifications(updated)
   }
@@ -127,15 +132,23 @@ export default function DashboardScreen({ navigation }: any) {
     checkBiometricSetup()
     loadNotifications()
 
-    // Add welcome notification if first time
+    // Welcome notification only once
     const addWelcome = async () => {
       const welcomed = await AsyncStorage.getItem('owode_welcomed')
       if (!welcomed) {
-        await addNotification({
+        const stored = await AsyncStorage.getItem('owode_notifications')
+        const existing: Notification[] = stored ? JSON.parse(stored) : []
+        const newNotif: Notification = {
+          id: Date.now().toString(),
           title: '🎉 Welcome to OWODE!',
-          body: 'Nigeria\'s first guaranteed digital Ajo savings platform. Start saving today!',
-          type: 'INFO'
-        })
+          body: "Nigeria's first guaranteed digital Ajo savings platform. Start saving today!",
+          type: 'INFO',
+          read: false,
+          createdAt: new Date().toISOString()
+        }
+        const updated = [newNotif, ...existing].slice(0, 50)
+        await AsyncStorage.setItem('owode_notifications', JSON.stringify(updated))
+        setNotifications(updated)
         await AsyncStorage.setItem('owode_welcomed', 'true')
       }
     }
@@ -180,13 +193,10 @@ export default function DashboardScreen({ navigation }: any) {
         {/* Header */}
         <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.header}>
           <View style={styles.headerRow}>
-            <View style={styles.headerLeft}>
-              <View style={styles.logoCard}>
-                <Image source={require('../assets/owode-logo.png')} style={styles.logoImage} resizeMode="contain" />
-              </View>
+            <View style={styles.logoCard}>
+              <Image source={require('../assets/owode-logo.png')} style={styles.logoImage} resizeMode="contain" />
             </View>
             <View style={styles.headerRight}>
-              {/* Notification Bell */}
               <TouchableOpacity
                 style={styles.notifBtn}
                 onPress={() => { setShowNotifications(true); markAllRead() }}
@@ -198,7 +208,6 @@ export default function DashboardScreen({ navigation }: any) {
                   </View>
                 )}
               </TouchableOpacity>
-              {/* Avatar */}
               <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
                 <View style={styles.avatar}>
                   <Text style={styles.avatarText}>{user?.fullName?.charAt(0)}</Text>
@@ -207,13 +216,15 @@ export default function DashboardScreen({ navigation }: any) {
             </View>
           </View>
 
-          {/* Greeting */}
           <View style={styles.greetingRow}>
             <View>
               <Text style={styles.greeting}>Good day 👋</Text>
               <Text style={styles.name}>{user?.fullName?.split(' ')[0]}</Text>
             </View>
-            <View style={[styles.verifiedBadge, { backgroundColor: user?.isVerified ? '#22c55e22' : '#f5a62322', borderColor: user?.isVerified ? '#22c55e' : '#f5a623' }]}>
+            <View style={[styles.verifiedBadge, {
+              backgroundColor: user?.isVerified ? '#22c55e22' : '#f5a62322',
+              borderColor: user?.isVerified ? '#22c55e' : '#f5a623'
+            }]}>
               <Text style={[styles.verifiedBadgeText, { color: user?.isVerified ? '#22c55e' : '#f5a623' }]}>
                 {user?.isVerified ? '✅ Verified' : '⏳ Unverified'}
               </Text>
@@ -262,14 +273,14 @@ export default function DashboardScreen({ navigation }: any) {
 
         {/* Trust Score */}
         <TouchableOpacity style={styles.trustCard} onPress={() => navigation.navigate('TrustScore')}>
-          <View style={styles.trustLeft}>
+          <View>
             <Text style={styles.trustLabel}>Trust Score</Text>
             <Text style={styles.trustScore}>{Math.round(user?.trustScore || 50)}/100</Text>
           </View>
           <View style={styles.trustRight}>
             <View style={styles.trustBarContainer}>
               <View style={[styles.trustBarFill, {
-                width: `${Math.min(user?.trustScore || 50, 100)}%`,
+                width: `${Math.min(user?.trustScore || 50, 100)}%` as any,
                 backgroundColor: (user?.trustScore || 50) >= 65 ? '#22c55e' : (user?.trustScore || 50) >= 35 ? '#f5a623' : '#ef4444'
               }]} />
             </View>
@@ -324,7 +335,9 @@ export default function DashboardScreen({ navigation }: any) {
               </View>
               <View style={styles.txMiddle}>
                 <Text style={styles.txDesc} numberOfLines={1}>{tx.description}</Text>
-                <Text style={styles.txDate}>{new Date(tx.createdAt).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' })}</Text>
+                <Text style={styles.txDate}>
+                  {new Date(tx.createdAt).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' })}
+                </Text>
               </View>
               <Text style={[styles.txAmount, { color: tx.type === 'CREDIT' ? '#22c55e' : '#ef4444' }]}>
                 {tx.type === 'CREDIT' ? '+' : '-'}₦{tx.amount.toLocaleString()}
@@ -351,7 +364,6 @@ export default function DashboardScreen({ navigation }: any) {
       >
         <View style={styles.notifModalOverlay}>
           <View style={styles.notifModal}>
-            {/* Notif Header */}
             <View style={styles.notifModalHeader}>
               <View>
                 <Text style={styles.notifModalTitle}>🔔 Notifications</Text>
@@ -369,13 +381,12 @@ export default function DashboardScreen({ navigation }: any) {
               </View>
             </View>
 
-            {/* Notif List */}
             <ScrollView showsVerticalScrollIndicator={false}>
               {notifications.length === 0 ? (
                 <View style={styles.notifEmpty}>
                   <Text style={styles.notifEmptyIcon}>🔔</Text>
                   <Text style={styles.notifEmptyText}>No notifications yet</Text>
-                  <Text style={styles.notifEmptySub}>You'll see payment alerts and updates here</Text>
+                  <Text style={styles.notifEmptySub}>Payment alerts and updates will appear here</Text>
                 </View>
               ) : (
                 notifications.map(notif => (
@@ -416,10 +427,9 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
   header: { padding: 24, paddingTop: 56, paddingBottom: 28 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  headerLeft: {},
-  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   logoCard: { backgroundColor: '#fff', borderRadius: 10, padding: 6 },
   logoImage: { width: width * 0.28, height: 28 },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   notifBtn: { width: 42, height: 42, borderRadius: 21, backgroundColor: 'rgba(255,255,255,0.15)', justifyContent: 'center', alignItems: 'center' },
   notifIcon: { fontSize: 20 },
   notifBadge: { position: 'absolute', top: -2, right: -2, backgroundColor: '#ef4444', borderRadius: 10, minWidth: 18, height: 18, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4, borderWidth: 2, borderColor: '#0d47a1' },
@@ -448,7 +458,6 @@ const styles = StyleSheet.create({
   verifyBannerDesc: { fontSize: 11, color: '#888', marginTop: 2 },
   verifyBannerArrow: { color: '#f5a623', fontSize: 18 },
   trustCard: { backgroundColor: '#fff', marginHorizontal: 16, marginTop: 12, borderRadius: 16, padding: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
-  trustLeft: {},
   trustLabel: { fontSize: 11, color: '#888', marginBottom: 2 },
   trustScore: { fontSize: 20, fontWeight: 'bold', color: '#0d47a1' },
   trustRight: { flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1, justifyContent: 'flex-end' },
@@ -459,10 +468,10 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 17, fontWeight: 'bold', color: '#0d47a1', marginHorizontal: 16, marginTop: 20, marginBottom: 12 },
   recentHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginRight: 16 },
   seeAll: { color: '#f5a623', fontSize: 13, fontWeight: '600' },
-  actionsGrid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: 16, gap: 10 },
-  actionCard: { width: (width - 48) / 3, backgroundColor: '#fff', borderRadius: 16, padding: 14, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
-  actionIconBg: { width: 48, height: 48, borderRadius: 14, justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
-  actionIcon: { fontSize: 26 },
+  actionsGrid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: 16, gap: 8 },
+  actionCard: { width: (width - 48) / 3 - 6, backgroundColor: '#fff', borderRadius: 16, padding: 12, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
+  actionIconBg: { width: 46, height: 46, borderRadius: 14, justifyContent: 'center', alignItems: 'center', marginBottom: 6 },
+  actionIcon: { fontSize: 24 },
   actionLabel: { fontSize: 11, color: '#0d47a1', fontWeight: '600', textAlign: 'center' },
   emptyState: { backgroundColor: '#fff', margin: 16, borderRadius: 16, padding: 32, alignItems: 'center' },
   emptyIcon: { fontSize: 40, marginBottom: 10 },
@@ -477,7 +486,6 @@ const styles = StyleSheet.create({
   txAmount: { fontSize: 14, fontWeight: 'bold' },
   viewAllBtn: { marginHorizontal: 16, marginTop: 4, backgroundColor: '#fff', borderRadius: 12, padding: 14, alignItems: 'center', borderWidth: 1, borderColor: '#e0e0e0' },
   viewAllText: { color: '#0d47a1', fontWeight: '600', fontSize: 14 },
-  // Notification Modal
   notifModalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   notifModal: { backgroundColor: '#fff', borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: '85%', paddingTop: 8 },
   notifModalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
