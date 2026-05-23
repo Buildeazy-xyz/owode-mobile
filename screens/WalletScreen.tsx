@@ -135,46 +135,45 @@ export default function WalletScreen({ navigation }: any) {
           </View>
         </LinearGradient>
 
-        {/* Quick Actions */}
-        <View style={styles.actionsRow}>
-          <TouchableOpacity
-            style={styles.actionBtn}
-            onPress={() => navigation.navigate('Transfer')}
-          >
-            <View style={[styles.actionIconBg, { backgroundColor: '#e3f2fd' }]}>
-              <Text style={styles.actionIcon}>💸</Text>
-            </View>
-            <Text style={styles.actionText}>Send</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.actionBtn}
-            onPress={() => Alert.alert('Coming Soon 🏦', 'Bank deposit will be available after Providus Bank integration!')}
-          >
-            <View style={[styles.actionIconBg, { backgroundColor: '#e8f5e9' }]}>
-              <Text style={styles.actionIcon}>⬇️</Text>
-            </View>
-            <Text style={styles.actionText}>Deposit</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.actionBtn}
-            onPress={() => Alert.alert('Coming Soon 🏦', 'Bank withdrawal will be available after Providus Bank integration!')}
-          >
-            <View style={[styles.actionIconBg, { backgroundColor: '#fff3e0' }]}>
-              <Text style={styles.actionIcon}>🏦</Text>
-            </View>
-            <Text style={styles.actionText}>Withdraw</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.actionBtn}
-            onPress={() => navigation.navigate('Ajo')}
-          >
-            <View style={[styles.actionIconBg, { backgroundColor: '#f3e5f5' }]}>
-              <Text style={styles.actionIcon}>🤝</Text>
-            </View>
-            <Text style={styles.actionText}>Ajo</Text>
-          </TouchableOpacity>
-        </View>
-
+       {/* Quick Actions */}
+          <View style={styles.actionsRow}>
+            <TouchableOpacity
+              style={styles.actionBtn}
+              onPress={() => navigation.navigate('Transfer')}
+            >
+              <View style={[styles.actionIconBg, { backgroundColor: '#e3f2fd' }]}>
+                <Text style={styles.actionIcon}>💸</Text>
+              </View>
+              <Text style={styles.actionText}>Send Money</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionBtn}
+              onPress={() => navigation.navigate('Savings')}
+            >
+              <View style={[styles.actionIconBg, { backgroundColor: '#e8f5e9' }]}>
+                <Text style={styles.actionIcon}>🐷</Text>
+              </View>
+              <Text style={styles.actionText}>Savings</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionBtn}
+              onPress={() => Alert.alert('Coming Soon 🏦', 'Bank withdrawal will be available after Providus Bank integration!')}
+            >
+              <View style={[styles.actionIconBg, { backgroundColor: '#fff3e0' }]}>
+                <Text style={styles.actionIcon}>🏦</Text>
+              </View>
+              <Text style={styles.actionText}>Withdraw</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionBtn}
+              onPress={() => navigation.navigate('Ajo')}
+            >
+              <View style={[styles.actionIconBg, { backgroundColor: '#f3e5f5' }]}>
+                <Text style={styles.actionIcon}>🤝</Text>
+              </View>
+              <Text style={styles.actionText}>Ajo Groups</Text>
+            </TouchableOpacity>
+          </View>
         {/* Info Card */}
         <View style={styles.infoCard}>
           <Text style={styles.infoIcon}>💡</Text>
