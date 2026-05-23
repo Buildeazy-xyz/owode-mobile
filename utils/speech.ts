@@ -1,6 +1,6 @@
 import * as Speech from 'expo-speech'
 
-const OWODE_PRONUNCIATION = 'Owodeh'
+const OWODE_PRONUNCIATION = 'Owode'
 
 export const speakAlert = (message: string) => {
   Speech.speak(message, {
