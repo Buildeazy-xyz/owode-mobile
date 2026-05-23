@@ -1,4 +1,3 @@
-cat > ~/Documents/owode/owode-mobile/screens/WalletScreen.tsx << 'EOF'
 import React, { useState, useEffect, useRef } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity,
