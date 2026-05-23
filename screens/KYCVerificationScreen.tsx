@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  TextInput, ActivityIndicator, Alert, ScrollView, Image, Dimensions
+  TextInput, ActivityIndicator, Alert, ScrollView,
+  Image, Dimensions, KeyboardAvoidingView, Platform
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { kycAPI } from '../utils/api'
@@ -55,162 +56,175 @@ export default function KYCVerificationScreen({ navigation }: any) {
   }
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Header */}
-      <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={styles.back}>← Back</Text>
-        </TouchableOpacity>
-        <View style={styles.logoCard}>
-          <Image source={require('../assets/owode-logo.png')} style={styles.logoImage} resizeMode="contain" />
-        </View>
-        <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Identity Verification</Text>
-          <Text style={styles.headerSub}>Verify your identity to unlock all features</Text>
-        </View>
-      </LinearGradient>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView
+        style={styles.container}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Header */}
+        <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <Text style={styles.back}>← Back</Text>
+          </TouchableOpacity>
+          <View style={styles.logoCard}>
+            <Image source={require('../assets/owode-logo.png')} style={styles.logoImage} resizeMode="contain" />
+          </View>
+          <View style={styles.headerContent}>
+            <Text style={styles.headerTitle}>Identity Verification</Text>
+            <Text style={styles.headerSub}>Verify your identity to unlock all features</Text>
+          </View>
+        </LinearGradient>
 
-      {/* Why verify */}
-      <View style={styles.section}>
-        <View style={styles.whyCard}>
-          <Text style={styles.whyTitle}>Why verify your identity?</Text>
-          <View style={styles.whyRow}>
-            {[
-              { icon: '🛡️', text: 'Join Guaranteed Ajo' },
-              { icon: '💰', text: 'Higher transfer limits' },
-              { icon: '⭐', text: 'Higher trust score' },
-              { icon: '🔓', text: 'Full platform access' },
-            ].map(item => (
-              <View key={item.text} style={styles.whyItem}>
-                <Text style={styles.whyIcon}>{item.icon}</Text>
-                <Text style={styles.whyText}>{item.text}</Text>
-              </View>
+        {/* Why verify */}
+        <View style={styles.section}>
+          <View style={styles.whyCard}>
+            <Text style={styles.whyTitle}>Why verify your identity?</Text>
+            <View style={styles.whyRow}>
+              {[
+                { icon: '🛡️', text: 'Join Guaranteed Ajo' },
+                { icon: '💰', text: 'Higher transfer limits' },
+                { icon: '⭐', text: 'Higher trust score' },
+                { icon: '🔓', text: 'Full platform access' },
+              ].map(item => (
+                <View key={item.text} style={styles.whyItem}>
+                  <Text style={styles.whyIcon}>{item.icon}</Text>
+                  <Text style={styles.whyText}>{item.text}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        </View>
+
+        {/* Tabs */}
+        <View style={styles.section}>
+          <View style={styles.tabs}>
+            {(['bvn', 'nin'] as const).map(tab => (
+              <TouchableOpacity
+                key={tab}
+                style={[styles.tab, activeTab === tab && styles.tabActive]}
+                onPress={() => setActiveTab(tab)}
+              >
+                <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
+                  {tab === 'bvn' ? '🏦 BVN' : '🪪 NIN'}
+                </Text>
+              </TouchableOpacity>
             ))}
           </View>
         </View>
-      </View>
 
-      {/* Tabs */}
-      <View style={styles.section}>
-        <View style={styles.tabs}>
-          {(['bvn', 'nin'] as const).map(tab => (
-            <TouchableOpacity
-              key={tab}
-              style={[styles.tab, activeTab === tab && styles.tabActive]}
-              onPress={() => setActiveTab(tab)}
-            >
-              <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-                {tab === 'bvn' ? '🏦 BVN' : '🪪 NIN'}
+        {/* BVN Form */}
+        {activeTab === 'bvn' && (
+          <View style={styles.section}>
+            <View style={styles.formCard}>
+              <Text style={styles.formTitle}>Bank Verification Number (BVN)</Text>
+              <Text style={styles.formSub}>
+                Your BVN is a unique 11-digit number assigned by the Central Bank of Nigeria
               </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-
-      {/* BVN Form */}
-      {activeTab === 'bvn' && (
-        <View style={styles.section}>
-          <View style={styles.formCard}>
-            <Text style={styles.formTitle}>Bank Verification Number (BVN)</Text>
-            <Text style={styles.formSub}>
-              Your BVN is a unique 11-digit number assigned to you by the Central Bank of Nigeria
-            </Text>
-
-            <View style={styles.infoBox}>
-              <Text style={styles.infoBoxText}>
-                💡 You can find your BVN by dialing *565*0# on your registered phone number
-              </Text>
+              <View style={styles.infoBox}>
+                <Text style={styles.infoBoxText}>
+                  💡 Dial *565*0# on your registered phone to get your BVN
+                </Text>
+              </View>
+              <Text style={styles.inputLabel}>Enter your 11-digit BVN</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="• • • • • • • • • • •"
+                placeholderTextColor="#ccc"
+                value={bvn}
+                onChangeText={setBvn}
+                keyboardType="numeric"
+                maxLength={11}
+              />
+              <View style={styles.progressRow}>
+                {Array.from({ length: 11 }).map((_, i) => (
+                  <View
+                    key={i}
+                    style={[styles.progressDot, i < bvn.length && styles.progressDotFilled]}
+                  />
+                ))}
+              </View>
+              {bvn.length > 0 && bvn.length < 11 && (
+                <Text style={styles.inputHint}>{11 - bvn.length} more digits needed</Text>
+              )}
+              <View style={styles.securityNote}>
+                <Text style={styles.securityNoteText}>
+                  🔒 Your BVN is encrypted with 256-bit security and verified via YouVerify
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={[styles.submitBtn, bvn.length !== 11 && styles.submitBtnDisabled]}
+                onPress={handleSubmitBVN}
+                disabled={bvn.length !== 11 || loading}
+              >
+                {loading
+                  ? <ActivityIndicator color="#fff" />
+                  : <Text style={styles.submitBtnText}>Verify BVN →</Text>
+                }
+              </TouchableOpacity>
             </View>
-
-            <Text style={styles.inputLabel}>Enter your BVN</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="e.g. 12345678901"
-              placeholderTextColor="#aaa"
-              value={bvn}
-              onChangeText={setBvn}
-              keyboardType="numeric"
-              maxLength={11}
-              autoFocus
-            />
-
-            {bvn.length > 0 && bvn.length < 11 && (
-              <Text style={styles.inputHint}>{11 - bvn.length} more digits needed</Text>
-            )}
-
-            <View style={styles.securityNote}>
-              <Text style={styles.securityNoteText}>
-                🔒 Your BVN is encrypted with 256-bit security and used only for identity verification via YouVerify
-              </Text>
-            </View>
-
-            <TouchableOpacity
-              style={[styles.submitBtn, bvn.length !== 11 && styles.submitBtnDisabled]}
-              onPress={handleSubmitBVN}
-              disabled={bvn.length !== 11 || loading}
-            >
-              {loading
-                ? <ActivityIndicator color="#fff" />
-                : <Text style={styles.submitBtnText}>Verify BVN →</Text>
-              }
-            </TouchableOpacity>
           </View>
-        </View>
-      )}
+        )}
 
-      {/* NIN Form */}
-      {activeTab === 'nin' && (
-        <View style={styles.section}>
-          <View style={styles.formCard}>
-            <Text style={styles.formTitle}>National Identification Number (NIN)</Text>
-            <Text style={styles.formSub}>
-              Your NIN is an 11-digit number on your National ID Card or Voter's Card
-            </Text>
-
-            <View style={styles.infoBox}>
-              <Text style={styles.infoBoxText}>
-                💡 You can find your NIN by dialing *346# on your registered phone number
+        {/* NIN Form */}
+        {activeTab === 'nin' && (
+          <View style={styles.section}>
+            <View style={styles.formCard}>
+              <Text style={styles.formTitle}>National Identification Number (NIN)</Text>
+              <Text style={styles.formSub}>
+                Your NIN is an 11-digit number on your National ID Card
               </Text>
+              <View style={styles.infoBox}>
+                <Text style={styles.infoBoxText}>
+                  💡 Dial *346# on your registered phone to get your NIN
+                </Text>
+              </View>
+              <Text style={styles.inputLabel}>Enter your 11-digit NIN</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="• • • • • • • • • • •"
+                placeholderTextColor="#ccc"
+                value={nin}
+                onChangeText={setNin}
+                keyboardType="numeric"
+                maxLength={11}
+              />
+              <View style={styles.progressRow}>
+                {Array.from({ length: 11 }).map((_, i) => (
+                  <View
+                    key={i}
+                    style={[styles.progressDot, i < nin.length && styles.progressDotFilled]}
+                  />
+                ))}
+              </View>
+              {nin.length > 0 && nin.length < 11 && (
+                <Text style={styles.inputHint}>{11 - nin.length} more digits needed</Text>
+              )}
+              <View style={styles.securityNote}>
+                <Text style={styles.securityNoteText}>
+                  🔒 Your NIN is encrypted with 256-bit security and verified via YouVerify
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={[styles.submitBtn, nin.length !== 11 && styles.submitBtnDisabled]}
+                onPress={handleSubmitNIN}
+                disabled={nin.length !== 11 || loading}
+              >
+                {loading
+                  ? <ActivityIndicator color="#fff" />
+                  : <Text style={styles.submitBtnText}>Verify NIN →</Text>
+                }
+              </TouchableOpacity>
             </View>
-
-            <Text style={styles.inputLabel}>Enter your NIN</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="e.g. 12345678901"
-              placeholderTextColor="#aaa"
-              value={nin}
-              onChangeText={setNin}
-              keyboardType="numeric"
-              maxLength={11}
-              autoFocus
-            />
-
-            {nin.length > 0 && nin.length < 11 && (
-              <Text style={styles.inputHint}>{11 - nin.length} more digits needed</Text>
-            )}
-
-            <View style={styles.securityNote}>
-              <Text style={styles.securityNoteText}>
-                🔒 Your NIN is encrypted with 256-bit security and used only for identity verification via YouVerify
-              </Text>
-            </View>
-
-            <TouchableOpacity
-              style={[styles.submitBtn, nin.length !== 11 && styles.submitBtnDisabled]}
-              onPress={handleSubmitNIN}
-              disabled={nin.length !== 11 || loading}
-            >
-              {loading
-                ? <ActivityIndicator color="#fff" />
-                : <Text style={styles.submitBtnText}>Verify NIN →</Text>
-              }
-            </TouchableOpacity>
           </View>
-        </View>
-      )}
+        )}
 
-      <View style={{ height: 40 }} />
-    </ScrollView>
+        <View style={{ height: 60 }} />
+      </ScrollView>
+    </KeyboardAvoidingView>
   )
 }
 
@@ -221,7 +235,7 @@ const styles = StyleSheet.create({
   back: { color: '#f5a623', fontSize: 16, fontWeight: '600' },
   logoCard: { alignSelf: 'center', backgroundColor: '#fff', borderRadius: 14, padding: 8, marginBottom: 16 },
   logoImage: { width: width * 0.38, height: 38 },
-  headerContent: { alignItems: 'center', paddingHorizontal: 24 },
+  headerContent: { alignItems: 'center', paddingHorizontal: 24, paddingBottom: 8 },
   headerTitle: { fontSize: 22, fontWeight: 'bold', color: '#fff', marginBottom: 6 },
   headerSub: { fontSize: 14, color: 'rgba(255,255,255,0.7)', textAlign: 'center' },
   section: { marginHorizontal: 16, marginTop: 16 },
@@ -242,7 +256,10 @@ const styles = StyleSheet.create({
   infoBox: { backgroundColor: '#fff8e1', borderRadius: 12, padding: 12, marginBottom: 16, borderWidth: 1, borderColor: '#ffe082' },
   infoBoxText: { fontSize: 13, color: '#f57c00', lineHeight: 18 },
   inputLabel: { fontSize: 13, fontWeight: '600', color: '#0d47a1', marginBottom: 8 },
-  input: { backgroundColor: '#f5f5f5', borderRadius: 12, padding: 16, fontSize: 20, color: '#333', letterSpacing: 4, textAlign: 'center', borderWidth: 1, borderColor: '#eee', marginBottom: 8 },
+  input: { backgroundColor: '#f5f5f5', borderRadius: 12, padding: 16, fontSize: 22, color: '#333', letterSpacing: 6, textAlign: 'center', borderWidth: 1, borderColor: '#eee', marginBottom: 12 },
+  progressRow: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginBottom: 8 },
+  progressDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#e0e0e0' },
+  progressDotFilled: { backgroundColor: '#0d47a1' },
   inputHint: { fontSize: 12, color: '#f5a623', marginBottom: 8, textAlign: 'center' },
   securityNote: { backgroundColor: '#e8f5e9', borderRadius: 12, padding: 12, marginBottom: 16, borderWidth: 1, borderColor: '#c8e6c9' },
   securityNoteText: { fontSize: 12, color: '#2e7d32', lineHeight: 18 },

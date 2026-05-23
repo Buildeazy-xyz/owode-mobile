@@ -28,8 +28,7 @@ export default function ProfileScreen({ navigation }: any) {
       const data = response.data.data
       setFreshUser(data)
       refreshUser({ ...user, ...data })
-    } catch (error) {
-      console.log('Could not load fresh user data')
+    } catch {
       setFreshUser(user)
     } finally {
       setLoading(false)
@@ -51,8 +50,8 @@ export default function ProfileScreen({ navigation }: any) {
   }
 
   const currentUser = freshUser || user
-  const trustColor = currentUser?.trustScore >= 65 ? '#22c55e' : currentUser?.trustScore >= 35 ? '#f5a623' : '#ef4444'
-  const trustLabel = currentUser?.trustScore >= 65 ? 'Excellent' : currentUser?.trustScore >= 35 ? 'Good' : 'Low'
+  const trustColor = (currentUser?.trustScore || 0) >= 65 ? '#22c55e' : (currentUser?.trustScore || 0) >= 35 ? '#f5a623' : '#ef4444'
+  const trustLabel = (currentUser?.trustScore || 0) >= 65 ? 'Excellent' : (currentUser?.trustScore || 0) >= 35 ? 'Good' : 'Low'
 
   if (loading) {
     return (
@@ -73,9 +72,12 @@ export default function ProfileScreen({ navigation }: any) {
           <Image source={require('../assets/owode-logo.png')} style={styles.logoImage} resizeMode="contain" />
         </View>
         <View style={styles.avatarContainer}>
-          <View style={styles.avatar}>
+          <TouchableOpacity style={styles.avatar}>
             <Text style={styles.avatarText}>{currentUser?.fullName?.charAt(0)}</Text>
-          </View>
+            <View style={styles.avatarEdit}>
+              <Text style={styles.avatarEditText}>📷</Text>
+            </View>
+          </TouchableOpacity>
           <Text style={styles.name}>{currentUser?.fullName}</Text>
           <Text style={styles.phone}>{currentUser?.phone}</Text>
           <View style={styles.badgeRow}>
@@ -111,7 +113,7 @@ export default function ProfileScreen({ navigation }: any) {
         <View style={styles.card}>
           <View style={styles.trustHeader}>
             <Text style={styles.cardTitle}>⭐ Trust Score</Text>
-            <Text style={[styles.trustLabel, { color: trustColor }]}>
+            <Text style={[styles.trustScore, { color: trustColor }]}>
               {Math.round(currentUser?.trustScore || 0)}/100 — {trustLabel}
             </Text>
           </View>
@@ -129,53 +131,40 @@ export default function ProfileScreen({ navigation }: any) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>📋 Identity Verification (KYC)</Text>
         <View style={styles.card}>
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => navigation.navigate('KYCVerification')}
-          >
-            <View style={[styles.menuIconBg, { backgroundColor: '#e3f2fd' }]}>
-              <Text style={styles.menuIconText}>🪪</Text>
+          {[
+            {
+              icon: '🏦', bg: '#e3f2fd',
+              label: 'BVN Verification',
+              sub: currentUser?.hasBVN ? '✅ BVN verified' : '❌ Not submitted — tap to verify',
+              onPress: () => navigation.navigate('KYCVerification')
+            },
+            {
+              icon: '🪪', bg: '#f3e5f5',
+              label: 'NIN Verification',
+              sub: currentUser?.hasNIN ? '✅ NIN verified' : '❌ Not submitted — tap to verify',
+              onPress: () => navigation.navigate('KYCVerification')
+            },
+            {
+              icon: '😊', bg: '#e8f5e9',
+              label: 'Face Verification',
+              sub: currentUser?.isVerified ? '✅ Identity fully verified' : '❌ Not verified — tap to start',
+              onPress: () => navigation.navigate('FaceVerification')
+            },
+          ].map((item, i) => (
+            <View key={item.label}>
+              <TouchableOpacity style={styles.menuItem} onPress={item.onPress}>
+                <View style={[styles.menuIconBg, { backgroundColor: item.bg }]}>
+                  <Text style={styles.menuIconText}>{item.icon}</Text>
+                </View>
+                <View style={styles.menuText}>
+                  <Text style={styles.menuLabel}>{item.label}</Text>
+                  <Text style={styles.menuSub}>{item.sub}</Text>
+                </View>
+                <Text style={styles.menuArrow}>→</Text>
+              </TouchableOpacity>
+              {i < 2 && <View style={styles.divider} />}
             </View>
-            <View style={styles.menuText}>
-              <Text style={styles.menuLabel}>BVN Verification</Text>
-              <Text style={styles.menuSub}>
-                {currentUser?.hasBVN ? '✅ BVN submitted and verified' : '❌ Not submitted — tap to verify'}
-              </Text>
-            </View>
-            <Text style={styles.menuArrow}>→</Text>
-          </TouchableOpacity>
-          <View style={styles.divider} />
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => navigation.navigate('KYCVerification')}
-          >
-            <View style={[styles.menuIconBg, { backgroundColor: '#f3e5f5' }]}>
-              <Text style={styles.menuIconText}>🪪</Text>
-            </View>
-            <View style={styles.menuText}>
-              <Text style={styles.menuLabel}>NIN Verification</Text>
-              <Text style={styles.menuSub}>
-                {currentUser?.hasNIN ? '✅ NIN submitted and verified' : '❌ Not submitted — tap to verify'}
-              </Text>
-            </View>
-            <Text style={styles.menuArrow}>→</Text>
-          </TouchableOpacity>
-          <View style={styles.divider} />
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => navigation.navigate('FaceVerification')}
-          >
-            <View style={[styles.menuIconBg, { backgroundColor: '#e8f5e9' }]}>
-              <Text style={styles.menuIconText}>😊</Text>
-            </View>
-            <View style={styles.menuText}>
-              <Text style={styles.menuLabel}>Face Verification</Text>
-              <Text style={styles.menuSub}>
-                {currentUser?.isVerified ? '✅ Identity fully verified' : '❌ Not verified — tap to verify'}
-              </Text>
-            </View>
-            <Text style={styles.menuArrow}>→</Text>
-          </TouchableOpacity>
+          ))}
         </View>
       </View>
 
@@ -185,22 +174,19 @@ export default function ProfileScreen({ navigation }: any) {
         <View style={styles.card}>
           {[
             {
-              icon: '💳',
-              bg: '#e3f2fd',
+              icon: '💳', bg: '#e3f2fd',
               label: currentUser?.hasTransactionPin ? 'Change Transaction PIN' : 'Set Transaction PIN',
-              sub: currentUser?.hasTransactionPin ? '4-digit PIN for all transactions ✅' : 'Not set — tap to set now',
+              sub: currentUser?.hasTransactionPin ? '4-digit PIN is set ✅' : 'Not set — tap to set now ⚠️',
               onPress: () => navigation.navigate('SetTransactionPin')
             },
             {
-              icon: '🔒',
-              bg: '#fff3e0',
+              icon: '🔒', bg: '#fff3e0',
               label: 'Change App Lock PIN',
               sub: '6-digit PIN to lock your app',
               onPress: () => navigation.navigate('SetAppPin')
             },
             {
-              icon: bioInfo?.icon || '👆',
-              bg: '#e8f5e9',
+              icon: '👆', bg: '#e8f5e9',
               label: bioEnabled ? `Change ${bioInfo?.label || 'Biometrics'}` : `Set Up ${bioInfo?.label || 'Biometrics'}`,
               sub: bioEnabled ? `${bioInfo?.label} is active ✅` : 'Use biometrics for faster login',
               onPress: () => navigation.navigate('BiometricSetup')
@@ -252,39 +238,34 @@ export default function ProfileScreen({ navigation }: any) {
         <View style={styles.card}>
           {[
             {
-              icon: '📧',
-              bg: '#e3f2fd',
+              icon: '💬', bg: '#e8f5e9',
+              label: 'WhatsApp Support',
+              sub: 'Chat with us on WhatsApp',
+              onPress: () => Linking.openURL('https://wa.me/2348020973590?text=Hello OWODE Support, I need help with my account')
+            },
+            {
+              icon: '📧', bg: '#e3f2fd',
               label: 'Email Support',
               sub: 'support@owodealajo.com',
               onPress: () => Linking.openURL('mailto:support@owodealajo.com?subject=OWODE Support Request')
             },
             {
-              icon: '💬',
-              bg: '#e8f5e9',
-              label: 'WhatsApp Support',
-              sub: 'Chat with us on WhatsApp',
-              onPress: () => Linking.openURL('https://wa.me/2348012345678?text=Hello OWODE Support, I need help with my account')
-            },
-            {
-              icon: '🌐',
-              bg: '#fff3e0',
+              icon: '🌐', bg: '#fff3e0',
               label: 'Visit Website',
-              sub: 'owodealajo.com',
+              sub: 'owode.xyz',
               onPress: () => Linking.openURL('https://owode.xyz')
             },
             {
-              icon: '📋',
-              bg: '#f3e5f5',
+              icon: '📋', bg: '#f3e5f5',
               label: 'Terms & Conditions',
               sub: 'Read our terms of service',
-              onPress: () => Linking.openURL('https://owode.xyz/terms')
+              onPress: () => Linking.openURL('https://owode.xyz')
             },
             {
-              icon: '🔒',
-              bg: '#fce4ec',
+              icon: '🔒', bg: '#fce4ec',
               label: 'Privacy Policy',
               sub: 'How we protect your data',
-              onPress: () => Linking.openURL('https://owode.xyz/privacy')
+              onPress: () => Linking.openURL('https://owode.xyz')
             },
           ].map((item, i) => (
             <View key={item.label}>
@@ -315,6 +296,7 @@ export default function ProfileScreen({ navigation }: any) {
               <Text style={styles.appInfoTitle}>OWODE Alajo</Text>
               <Text style={styles.appInfoSub}>Version 1.0.0</Text>
               <Text style={styles.appInfoSub}>OWODE Digital Services Limited</Text>
+              <Text style={styles.appInfoSub}>CAC: RC 8569061</Text>
             </View>
           </View>
         </View>
@@ -342,6 +324,8 @@ const styles = StyleSheet.create({
   avatarContainer: { alignItems: 'center', paddingHorizontal: 20 },
   avatar: { width: 88, height: 88, borderRadius: 44, backgroundColor: '#f5a623', justifyContent: 'center', alignItems: 'center', marginBottom: 12, borderWidth: 3, borderColor: 'rgba(255,255,255,0.3)' },
   avatarText: { color: '#fff', fontSize: 36, fontWeight: 'bold' },
+  avatarEdit: { position: 'absolute', bottom: 0, right: 0, backgroundColor: '#0d47a1', borderRadius: 12, width: 24, height: 24, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#fff' },
+  avatarEditText: { fontSize: 12 },
   name: { fontSize: 22, fontWeight: 'bold', color: '#fff', marginBottom: 4 },
   phone: { fontSize: 14, color: 'rgba(255,255,255,0.7)', marginBottom: 12 },
   badgeRow: { flexDirection: 'row', gap: 8 },
@@ -357,7 +341,7 @@ const styles = StyleSheet.create({
   card: { backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
   cardTitle: { fontSize: 14, fontWeight: '600', color: '#333' },
   trustHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, paddingBottom: 8 },
-  trustLabel: { fontSize: 12, fontWeight: 'bold' },
+  trustScore: { fontSize: 12, fontWeight: 'bold' },
   trustBar: { height: 6, backgroundColor: '#f0f0f0', marginHorizontal: 16, borderRadius: 3, overflow: 'hidden', marginBottom: 8 },
   trustFill: { height: 6, borderRadius: 3 },
   trustHint: { fontSize: 11, color: '#aaa', lineHeight: 16, paddingHorizontal: 16, paddingBottom: 16 },
@@ -376,7 +360,7 @@ const styles = StyleSheet.create({
   logoCardSmall: { backgroundColor: '#f5f5f5', borderRadius: 10, padding: 8 },
   logoImageSmall: { width: 80, height: 30 },
   appInfoTitle: { fontSize: 14, fontWeight: 'bold', color: '#333' },
-  appInfoSub: { fontSize: 12, color: '#888', marginTop: 2 },
+  appInfoSub: { fontSize: 11, color: '#888', marginTop: 2 },
   logoutBtn: { backgroundColor: '#fff', borderRadius: 16, padding: 18, alignItems: 'center', borderWidth: 1.5, borderColor: '#ef4444' },
   logoutText: { color: '#ef4444', fontSize: 16, fontWeight: 'bold' },
 })
