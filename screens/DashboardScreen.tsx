@@ -4,6 +4,7 @@ import {
   RefreshControl, Alert, Modal, Dimensions, Image
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
+import { Ionicons } from '@expo/vector-icons'
 import { useAuth } from '../context/AuthContext'
 import { walletAPI } from '../utils/api'
 import * as Haptics from 'expo-haptics'
@@ -39,19 +40,15 @@ export default function DashboardScreen({ navigation }: any) {
       const response = await walletAPI.getBalance()
       const data = response.data.data
       setWallet(data)
-
       const latestTx = data?.transactions?.[0]
-
       if (latestTx) {
         if (!initialLoadDone.current) {
-          // First load — just save the ID, don't notify
           lastTxRef.current = latestTx.id
           initialLoadDone.current = true
         } else if (latestTx.id !== lastTxRef.current && latestTx.type === 'CREDIT') {
-          // Genuinely new transaction — notify!
           lastTxRef.current = latestTx.id
           addNotification({
-            title: '💰 Payment Received!',
+            title: 'Payment Received',
             body: `₦${latestTx.amount.toLocaleString()} received in OWODE`,
             type: 'CREDIT'
           })
@@ -113,7 +110,7 @@ export default function DashboardScreen({ navigation }: any) {
           `Set up ${info.label} for faster and more secure access to OWODE`,
           [
             { text: 'Not Now', onPress: () => AsyncStorage.setItem('biometric_prompt_dismissed', 'true') },
-            { text: `Enable ${info.icon}`, onPress: () => navigation.navigate('BiometricSetup') }
+            { text: 'Enable', onPress: () => navigation.navigate('BiometricSetup') }
           ]
         )
       }
@@ -131,8 +128,6 @@ export default function DashboardScreen({ navigation }: any) {
     loadWallet()
     checkBiometricSetup()
     loadNotifications()
-
-    // Welcome notification only once
     const addWelcome = async () => {
       const welcomed = await AsyncStorage.getItem('owode_welcomed')
       if (!welcomed) {
@@ -140,7 +135,7 @@ export default function DashboardScreen({ navigation }: any) {
         const existing: Notification[] = stored ? JSON.parse(stored) : []
         const newNotif: Notification = {
           id: Date.now().toString(),
-          title: '🎉 Welcome to OWODE!',
+          title: 'Welcome to OWODE!',
           body: "Nigeria's first guaranteed digital Ajo savings platform. Start saving today!",
           type: 'INFO',
           read: false,
@@ -158,20 +153,20 @@ export default function DashboardScreen({ navigation }: any) {
   const unreadCount = notifications.filter(n => !n.read).length
 
   const actions = [
-    { icon: '💰', label: 'Wallet', screen: 'Wallet', bg: '#e3f2fd' },
-    { icon: '💸', label: 'Send Money', screen: 'Transfer', bg: '#fce4ec' },
-    { icon: '🤝', label: 'Ajo Groups', screen: 'Ajo', bg: '#e8f5e9' },
-    { icon: '🐷', label: 'My Savings', screen: 'Savings', bg: '#fff3e0' },
-    { icon: '⭐', label: 'Trust Score', screen: 'TrustScore', bg: '#f3e5f5' },
-    { icon: '👤', label: 'Profile', screen: 'Profile', bg: '#e0f7fa' },
+    { icon: 'wallet-outline', label: 'Wallet', screen: 'Wallet', bg: '#e3f2fd', color: '#0d47a1' },
+    { icon: 'arrow-up-circle-outline', label: 'Send Money', screen: 'Transfer', bg: '#fce4ec', color: '#e91e63' },
+    { icon: 'people-outline', label: 'Ajo Groups', screen: 'Ajo', bg: '#e8f5e9', color: '#22c55e' },
+    { icon: 'save-outline', label: 'My Savings', screen: 'Savings', bg: '#fff3e0', color: '#f5a623' },
+    { icon: 'star-outline', label: 'Trust Score', screen: 'TrustScore', bg: '#f3e5f5', color: '#9c27b0' },
+    { icon: 'person-outline', label: 'Profile', screen: 'Profile', bg: '#e0f7fa', color: '#00bcd4' },
   ]
 
-  const getNotifIcon = (type: string) => {
+  const getNotifIcon = (type: string): any => {
     switch (type) {
-      case 'CREDIT': return '💰'
-      case 'DEBIT': return '💸'
-      case 'ALERT': return '⚠️'
-      default: return 'ℹ️'
+      case 'CREDIT': return 'arrow-down-circle'
+      case 'DEBIT': return 'arrow-up-circle'
+      case 'ALERT': return 'warning'
+      default: return 'information-circle'
     }
   }
 
@@ -183,6 +178,18 @@ export default function DashboardScreen({ navigation }: any) {
       default: return '#e3f2fd'
     }
   }
+
+  const getNotifIconColor = (type: string) => {
+    switch (type) {
+      case 'CREDIT': return '#22c55e'
+      case 'DEBIT': return '#ef4444'
+      case 'ALERT': return '#f5a623'
+      default: return '#0d47a1'
+    }
+  }
+
+  const trustScore = user?.trustScore || 50
+  const trustColor = trustScore >= 65 ? '#22c55e' : trustScore >= 35 ? '#f5a623' : '#ef4444'
 
   return (
     <View style={styles.container}>
@@ -201,7 +208,7 @@ export default function DashboardScreen({ navigation }: any) {
                 style={styles.notifBtn}
                 onPress={() => { setShowNotifications(true); markAllRead() }}
               >
-                <Text style={styles.notifIcon}>🔔</Text>
+                <Ionicons name="notifications-outline" size={22} color="#fff" />
                 {unreadCount > 0 && (
                   <View style={styles.notifBadge}>
                     <Text style={styles.notifBadgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
@@ -218,15 +225,20 @@ export default function DashboardScreen({ navigation }: any) {
 
           <View style={styles.greetingRow}>
             <View>
-              <Text style={styles.greeting}>Good day 👋</Text>
+              <Text style={styles.greeting}>Good day</Text>
               <Text style={styles.name}>{user?.fullName?.split(' ')[0]}</Text>
             </View>
             <View style={[styles.verifiedBadge, {
               backgroundColor: user?.isVerified ? '#22c55e22' : '#f5a62322',
               borderColor: user?.isVerified ? '#22c55e' : '#f5a623'
             }]}>
+              <Ionicons
+                name={user?.isVerified ? 'checkmark-circle' : 'time-outline'}
+                size={12}
+                color={user?.isVerified ? '#22c55e' : '#f5a623'}
+              />
               <Text style={[styles.verifiedBadgeText, { color: user?.isVerified ? '#22c55e' : '#f5a623' }]}>
-                {user?.isVerified ? '✅ Verified' : '⏳ Unverified'}
+                {user?.isVerified ? ' Verified' : ' Unverified'}
               </Text>
             </View>
           </View>
@@ -236,7 +248,11 @@ export default function DashboardScreen({ navigation }: any) {
             <View style={styles.walletTop}>
               <Text style={styles.walletLabel}>Total Balance</Text>
               <TouchableOpacity onPress={() => setBalanceVisible(!balanceVisible)}>
-                <Text style={styles.eyeBtn}>{balanceVisible ? '👁️' : '🙈'}</Text>
+                <Ionicons
+                  name={balanceVisible ? 'eye-outline' : 'eye-off-outline'}
+                  size={20}
+                  color="rgba(255,255,255,0.7)"
+                />
               </TouchableOpacity>
             </View>
             <Text style={styles.walletBalance}>
@@ -244,12 +260,12 @@ export default function DashboardScreen({ navigation }: any) {
             </Text>
             <View style={styles.walletRow}>
               <View style={styles.walletStat}>
-                <Text style={styles.walletSubLabel}>💰 Total Saved</Text>
+                <Text style={styles.walletSubLabel}>Total Saved</Text>
                 <Text style={styles.walletSubValue}>₦{(wallet?.totalSaved || 0).toLocaleString()}</Text>
               </View>
               <View style={styles.walletDivider} />
               <View style={styles.walletStat}>
-                <Text style={styles.walletSubLabel}>💸 Total Payout</Text>
+                <Text style={styles.walletSubLabel}>Total Payout</Text>
                 <Text style={styles.walletSubValue}>₦{(wallet?.totalPayout || 0).toLocaleString()}</Text>
               </View>
             </View>
@@ -262,12 +278,12 @@ export default function DashboardScreen({ navigation }: any) {
             style={styles.verifyBanner}
             onPress={() => navigation.navigate('KYCVerification')}
           >
-            <Text style={styles.verifyBannerIcon}>⚠️</Text>
+            <Ionicons name="alert-circle-outline" size={22} color="#f5a623" />
             <View style={styles.verifyBannerText}>
               <Text style={styles.verifyBannerTitle}>Complete Your Verification</Text>
               <Text style={styles.verifyBannerDesc}>Submit BVN or NIN to unlock all features</Text>
             </View>
-            <Text style={styles.verifyBannerArrow}>→</Text>
+            <Ionicons name="chevron-forward" size={18} color="#f5a623" />
           </TouchableOpacity>
         )}
 
@@ -275,19 +291,21 @@ export default function DashboardScreen({ navigation }: any) {
         <TouchableOpacity style={styles.trustCard} onPress={() => navigation.navigate('TrustScore')}>
           <View>
             <Text style={styles.trustLabel}>Trust Score</Text>
-            <Text style={styles.trustScore}>{Math.round(user?.trustScore || 50)}/100</Text>
+            <Text style={[styles.trustScore, { color: trustColor }]}>{Math.round(trustScore)}/100</Text>
           </View>
           <View style={styles.trustRight}>
             <View style={styles.trustBarContainer}>
               <View style={[styles.trustBarFill, {
-                width: `${Math.min(user?.trustScore || 50, 100)}%` as any,
-                backgroundColor: (user?.trustScore || 50) >= 65 ? '#22c55e' : (user?.trustScore || 50) >= 35 ? '#f5a623' : '#ef4444'
+                width: `${Math.min(trustScore, 100)}%` as any,
+                backgroundColor: trustColor
               }]} />
             </View>
-            <Text style={styles.trustEmoji}>
-              {(user?.trustScore || 50) >= 80 ? '🌟' : (user?.trustScore || 50) >= 50 ? '😊' : '😐'}
-            </Text>
-            <Text style={styles.trustArrow}>→</Text>
+            <Ionicons
+              name={trustScore >= 80 ? 'star' : trustScore >= 50 ? 'star-half' : 'star-outline'}
+              size={24}
+              color={trustColor}
+            />
+            <Ionicons name="chevron-forward" size={18} color="#ccc" />
           </View>
         </TouchableOpacity>
 
@@ -302,7 +320,7 @@ export default function DashboardScreen({ navigation }: any) {
               activeOpacity={0.7}
             >
               <View style={[styles.actionIconBg, { backgroundColor: action.bg }]}>
-                <Text style={styles.actionIcon}>{action.icon}</Text>
+                <Ionicons name={action.icon as any} size={26} color={action.color} />
               </View>
               <Text style={styles.actionLabel}>{action.label}</Text>
             </TouchableOpacity>
@@ -313,15 +331,15 @@ export default function DashboardScreen({ navigation }: any) {
         <View style={styles.recentHeader}>
           <Text style={styles.sectionTitle}>Recent Transactions</Text>
           <TouchableOpacity onPress={() => navigation.navigate('Wallet')}>
-            <Text style={styles.seeAll}>See All →</Text>
+            <Text style={styles.seeAll}>See All</Text>
           </TouchableOpacity>
         </View>
 
         {!wallet?.transactions?.length ? (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyIcon}>💳</Text>
+            <Ionicons name="card-outline" size={48} color="#ccc" />
             <Text style={styles.emptyText}>No transactions yet</Text>
-            <Text style={styles.emptySubText}>Start saving or make a transfer! 💪</Text>
+            <Text style={styles.emptySubText}>Start saving or make a transfer</Text>
           </View>
         ) : (
           wallet?.transactions?.slice(0, 5).map((tx: any) => (
@@ -330,8 +348,14 @@ export default function DashboardScreen({ navigation }: any) {
               style={styles.txCard}
               onPress={() => navigation.navigate('Wallet')}
             >
-              <View style={[styles.txIconCircle, { backgroundColor: tx.type === 'CREDIT' ? '#e8f5e9' : '#ffebee' }]}>
-                <Text style={styles.txIcon}>{tx.type === 'CREDIT' ? '⬆️' : '⬇️'}</Text>
+              <View style={[styles.txIconCircle, {
+                backgroundColor: tx.type === 'CREDIT' ? '#e8f5e9' : '#ffebee'
+              }]}>
+                <Ionicons
+                  name={tx.type === 'CREDIT' ? 'arrow-down' : 'arrow-up'}
+                  size={20}
+                  color={tx.type === 'CREDIT' ? '#22c55e' : '#ef4444'}
+                />
               </View>
               <View style={styles.txMiddle}>
                 <Text style={styles.txDesc} numberOfLines={1}>{tx.description}</Text>
@@ -348,7 +372,8 @@ export default function DashboardScreen({ navigation }: any) {
 
         {wallet?.transactions?.length > 5 && (
           <TouchableOpacity style={styles.viewAllBtn} onPress={() => navigation.navigate('Wallet')}>
-            <Text style={styles.viewAllText}>View All Transactions →</Text>
+            <Text style={styles.viewAllText}>View All Transactions</Text>
+            <Ionicons name="chevron-forward" size={16} color="#0d47a1" />
           </TouchableOpacity>
         )}
 
@@ -366,7 +391,7 @@ export default function DashboardScreen({ navigation }: any) {
           <View style={styles.notifModal}>
             <View style={styles.notifModalHeader}>
               <View>
-                <Text style={styles.notifModalTitle}>🔔 Notifications</Text>
+                <Text style={styles.notifModalTitle}>Notifications</Text>
                 <Text style={styles.notifModalSub}>{notifications.length} total</Text>
               </View>
               <View style={styles.notifHeaderBtns}>
@@ -376,7 +401,7 @@ export default function DashboardScreen({ navigation }: any) {
                   </TouchableOpacity>
                 )}
                 <TouchableOpacity onPress={() => setShowNotifications(false)} style={styles.closeNotifBtn}>
-                  <Text style={styles.closeNotifText}>✕</Text>
+                  <Ionicons name="close" size={18} color="#888" />
                 </TouchableOpacity>
               </View>
             </View>
@@ -384,7 +409,7 @@ export default function DashboardScreen({ navigation }: any) {
             <ScrollView showsVerticalScrollIndicator={false}>
               {notifications.length === 0 ? (
                 <View style={styles.notifEmpty}>
-                  <Text style={styles.notifEmptyIcon}>🔔</Text>
+                  <Ionicons name="notifications-off-outline" size={56} color="#ccc" />
                   <Text style={styles.notifEmptyText}>No notifications yet</Text>
                   <Text style={styles.notifEmptySub}>Payment alerts and updates will appear here</Text>
                 </View>
@@ -397,7 +422,11 @@ export default function DashboardScreen({ navigation }: any) {
                     activeOpacity={0.7}
                   >
                     <View style={[styles.notifItemIcon, { backgroundColor: getNotifColor(notif.type) }]}>
-                      <Text style={styles.notifItemIconText}>{getNotifIcon(notif.type)}</Text>
+                      <Ionicons
+                        name={getNotifIcon(notif.type)}
+                        size={22}
+                        color={getNotifIconColor(notif.type)}
+                      />
                     </View>
                     <View style={styles.notifItemContent}>
                       <View style={styles.notifItemTop}>
@@ -431,7 +460,6 @@ const styles = StyleSheet.create({
   logoImage: { width: width * 0.28, height: 28 },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   notifBtn: { width: 42, height: 42, borderRadius: 21, backgroundColor: 'rgba(255,255,255,0.15)', justifyContent: 'center', alignItems: 'center' },
-  notifIcon: { fontSize: 20 },
   notifBadge: { position: 'absolute', top: -2, right: -2, backgroundColor: '#ef4444', borderRadius: 10, minWidth: 18, height: 18, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4, borderWidth: 2, borderColor: '#0d47a1' },
   notifBadgeText: { color: '#fff', fontSize: 9, fontWeight: 'bold' },
   avatar: { width: 42, height: 42, borderRadius: 21, backgroundColor: '#f5a623', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: 'rgba(255,255,255,0.3)' },
@@ -439,52 +467,44 @@ const styles = StyleSheet.create({
   greetingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   greeting: { color: 'rgba(255,255,255,0.7)', fontSize: 13 },
   name: { color: '#fff', fontSize: 24, fontWeight: 'bold' },
-  verifiedBadge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20, borderWidth: 1 },
+  verifiedBadge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20, borderWidth: 1 },
   verifiedBadgeText: { fontSize: 11, fontWeight: 'bold' },
   walletCard: { backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 20, padding: 20 },
   walletTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
   walletLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 13 },
-  eyeBtn: { fontSize: 18 },
   walletBalance: { color: '#fff', fontSize: 38, fontWeight: 'bold', marginBottom: 16 },
   walletRow: { flexDirection: 'row', justifyContent: 'space-around' },
   walletStat: { alignItems: 'center' },
   walletSubLabel: { color: 'rgba(255,255,255,0.6)', fontSize: 11, marginBottom: 3 },
   walletSubValue: { color: '#fff', fontSize: 14, fontWeight: 'bold' },
   walletDivider: { width: 1, backgroundColor: 'rgba(255,255,255,0.2)' },
-  verifyBanner: { backgroundColor: '#fff3e0', marginHorizontal: 16, marginTop: 16, borderRadius: 16, padding: 14, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#f5a623' },
-  verifyBannerIcon: { fontSize: 22, marginRight: 10 },
+  verifyBanner: { backgroundColor: '#fff3e0', marginHorizontal: 16, marginTop: 16, borderRadius: 16, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderColor: '#f5a623' },
   verifyBannerText: { flex: 1 },
   verifyBannerTitle: { fontSize: 13, fontWeight: 'bold', color: '#f5a623' },
   verifyBannerDesc: { fontSize: 11, color: '#888', marginTop: 2 },
-  verifyBannerArrow: { color: '#f5a623', fontSize: 18 },
   trustCard: { backgroundColor: '#fff', marginHorizontal: 16, marginTop: 12, borderRadius: 16, padding: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
   trustLabel: { fontSize: 11, color: '#888', marginBottom: 2 },
-  trustScore: { fontSize: 20, fontWeight: 'bold', color: '#0d47a1' },
+  trustScore: { fontSize: 20, fontWeight: 'bold' },
   trustRight: { flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1, justifyContent: 'flex-end' },
   trustBarContainer: { width: 80, height: 6, backgroundColor: '#f0f0f0', borderRadius: 3, overflow: 'hidden' },
   trustBarFill: { height: 6, borderRadius: 3 },
-  trustEmoji: { fontSize: 24 },
-  trustArrow: { color: '#ccc', fontSize: 18 },
   sectionTitle: { fontSize: 17, fontWeight: 'bold', color: '#0d47a1', marginHorizontal: 16, marginTop: 20, marginBottom: 12 },
   recentHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginRight: 16 },
-  seeAll: { color: '#f5a623', fontSize: 13, fontWeight: '600' },
+  seeAll: { color: '#f5a623', fontSize: 13, fontWeight: '600', marginRight: 4 },
   actionsGrid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: 16, gap: 8 },
   actionCard: { width: (width - 48) / 3 - 6, backgroundColor: '#fff', borderRadius: 16, padding: 12, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
-  actionIconBg: { width: 46, height: 46, borderRadius: 14, justifyContent: 'center', alignItems: 'center', marginBottom: 6 },
-  actionIcon: { fontSize: 24 },
+  actionIconBg: { width: 48, height: 48, borderRadius: 14, justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
   actionLabel: { fontSize: 11, color: '#0d47a1', fontWeight: '600', textAlign: 'center' },
-  emptyState: { backgroundColor: '#fff', margin: 16, borderRadius: 16, padding: 32, alignItems: 'center' },
-  emptyIcon: { fontSize: 40, marginBottom: 10 },
+  emptyState: { backgroundColor: '#fff', margin: 16, borderRadius: 16, padding: 32, alignItems: 'center', gap: 8 },
   emptyText: { fontSize: 15, fontWeight: 'bold', color: '#333' },
-  emptySubText: { fontSize: 13, color: '#888', marginTop: 4 },
+  emptySubText: { fontSize: 13, color: '#888' },
   txCard: { backgroundColor: '#fff', marginHorizontal: 16, marginBottom: 8, borderRadius: 12, padding: 14, flexDirection: 'row', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 1 },
   txIconCircle: { width: 42, height: 42, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
-  txIcon: { fontSize: 18 },
   txMiddle: { flex: 1 },
   txDesc: { fontSize: 13, color: '#333', fontWeight: '600' },
   txDate: { fontSize: 11, color: '#888', marginTop: 2 },
   txAmount: { fontSize: 14, fontWeight: 'bold' },
-  viewAllBtn: { marginHorizontal: 16, marginTop: 4, backgroundColor: '#fff', borderRadius: 12, padding: 14, alignItems: 'center', borderWidth: 1, borderColor: '#e0e0e0' },
+  viewAllBtn: { marginHorizontal: 16, marginTop: 4, backgroundColor: '#fff', borderRadius: 12, padding: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, borderWidth: 1, borderColor: '#e0e0e0' },
   viewAllText: { color: '#0d47a1', fontWeight: '600', fontSize: 14 },
   notifModalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   notifModal: { backgroundColor: '#fff', borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: '85%', paddingTop: 8 },
@@ -495,15 +515,12 @@ const styles = StyleSheet.create({
   clearBtn: { backgroundColor: '#ffebee', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 6 },
   clearBtnText: { color: '#ef4444', fontSize: 12, fontWeight: '600' },
   closeNotifBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#f5f5f5', justifyContent: 'center', alignItems: 'center' },
-  closeNotifText: { color: '#888', fontSize: 16 },
-  notifEmpty: { alignItems: 'center', padding: 60 },
-  notifEmptyIcon: { fontSize: 56, marginBottom: 16 },
-  notifEmptyText: { fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 6 },
+  notifEmpty: { alignItems: 'center', padding: 60, gap: 12 },
+  notifEmptyText: { fontSize: 16, fontWeight: 'bold', color: '#333' },
   notifEmptySub: { fontSize: 13, color: '#888', textAlign: 'center' },
   notifItem: { flexDirection: 'row', padding: 16, gap: 12, borderBottomWidth: 1, borderBottomColor: '#f5f5f5' },
   notifItemUnread: { backgroundColor: '#f0f7ff' },
   notifItemIcon: { width: 44, height: 44, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
-  notifItemIconText: { fontSize: 22 },
   notifItemContent: { flex: 1 },
   notifItemTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
   notifItemTitle: { fontSize: 14, fontWeight: 'bold', color: '#1a1a1a', flex: 1 },
