@@ -154,19 +154,19 @@ export default function DashboardScreen({ navigation }: any) {
 
   const actions = [
     { icon: 'wallet-outline', label: 'Wallet', screen: 'Wallet', bg: '#e3f2fd', color: '#0d47a1' },
-    { icon: 'arrow-up-circle-outline', label: 'Send Money', screen: 'Transfer', bg: '#fce4ec', color: '#e91e63' },
+    { icon: 'swap-horizontal-outline', label: 'Send Money', screen: 'Transfer', bg: '#fce4ec', color: '#e91e63' },
     { icon: 'people-outline', label: 'Ajo Groups', screen: 'Ajo', bg: '#e8f5e9', color: '#22c55e' },
     { icon: 'save-outline', label: 'My Savings', screen: 'Savings', bg: '#fff3e0', color: '#f5a623' },
-    { icon: 'star-outline', label: 'Trust Score', screen: 'TrustScore', bg: '#f3e5f5', color: '#9c27b0' },
+    { icon: 'checkmark-circle-outline', label: 'Trust Score', screen: 'TrustScore', bg: '#f3e5f5', color: '#9c27b0' },
     { icon: 'person-outline', label: 'Profile', screen: 'Profile', bg: '#e0f7fa', color: '#00bcd4' },
   ]
 
   const getNotifIcon = (type: string): any => {
     switch (type) {
-      case 'CREDIT': return 'arrow-down-circle'
-      case 'DEBIT': return 'arrow-up-circle'
-      case 'ALERT': return 'warning'
-      default: return 'information-circle'
+      case 'CREDIT': return 'arrow-down-outline'
+      case 'DEBIT': return 'arrow-up-outline'
+      case 'ALERT': return 'warning-outline'
+      default: return 'information-circle-outline'
     }
   }
 
@@ -320,7 +320,7 @@ export default function DashboardScreen({ navigation }: any) {
               activeOpacity={0.7}
             >
               <View style={[styles.actionIconBg, { backgroundColor: action.bg }]}>
-                <Ionicons name={action.icon as any} size={26} color={action.color} />
+                <Ionicons name={action.icon as any} size={22} color={action.color} />
               </View>
               <Text style={styles.actionLabel}>{action.label}</Text>
             </TouchableOpacity>
@@ -491,10 +491,10 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 17, fontWeight: 'bold', color: '#0d47a1', marginHorizontal: 16, marginTop: 20, marginBottom: 12 },
   recentHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginRight: 16 },
   seeAll: { color: '#f5a623', fontSize: 13, fontWeight: '600', marginRight: 4 },
-  actionsGrid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: 16, gap: 8 },
-  actionCard: { width: (width - 48) / 3 - 6, backgroundColor: '#fff', borderRadius: 16, padding: 12, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
-  actionIconBg: { width: 48, height: 48, borderRadius: 14, justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
-  actionLabel: { fontSize: 11, color: '#0d47a1', fontWeight: '600', textAlign: 'center' },
+  actionsGrid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: 16, gap: 10 },
+  actionCard: { width: (width - 52) / 3 - 7, backgroundColor: '#fff', borderRadius: 18, padding: 14, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 1 },
+  actionIconBg: { width: 52, height: 52, borderRadius: 14, justifyContent: 'center', alignItems: 'center', marginBottom: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 3, elevation: 1 },
+  actionLabel: { fontSize: 12, color: '#0d47a1', fontWeight: '600', textAlign: 'center', lineHeight: 16 },
   emptyState: { backgroundColor: '#fff', margin: 16, borderRadius: 16, padding: 32, alignItems: 'center', gap: 8 },
   emptyText: { fontSize: 15, fontWeight: 'bold', color: '#333' },
   emptySubText: { fontSize: 13, color: '#888' },

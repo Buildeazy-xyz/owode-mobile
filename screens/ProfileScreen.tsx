@@ -96,14 +96,14 @@ export default function ProfileScreen({ navigation }: any) {
       onPress: () => navigation.navigate('KYCVerification')
     },
     {
-      icon: 'finger-print-outline' as any, bg: '#f3e5f5', iconColor: '#9c27b0',
+      icon: 'card-outline' as any, bg: '#f3e5f5', iconColor: '#9c27b0',
       label: 'NIN Verification',
       sub: currentUser?.hasNIN ? 'NIN verified' : 'Not submitted — tap to verify',
       done: currentUser?.hasNIN,
       onPress: () => navigation.navigate('KYCVerification')
     },
     {
-      icon: 'scan-outline' as any, bg: '#e8f5e9', iconColor: '#22c55e',
+      icon: 'happy-outline' as any, bg: '#e8f5e9', iconColor: '#22c55e',
       label: 'Face Verification',
       sub: currentUser?.isVerified ? 'Identity fully verified' : 'Not verified — tap to start',
       done: currentUser?.isVerified,
@@ -124,23 +124,17 @@ export default function ProfileScreen({ navigation }: any) {
       sub: '6-digit PIN to lock your app',
       onPress: () => navigation.navigate('SetAppPin')
     },
-    {
-      icon: 'finger-print' as any, bg: '#e8f5e9', iconColor: '#22c55e',
-      label: bioEnabled ? `Change ${bioInfo?.label || 'Biometrics'}` : `Set Up ${bioInfo?.label || 'Biometrics'}`,
-      sub: bioEnabled ? `${bioInfo?.label} is active` : 'Use biometrics for faster login',
-      onPress: () => navigation.navigate('BiometricSetup')
-    },
   ]
 
   const supportItems = [
     {
-      icon: 'logo-whatsapp' as any, bg: '#e8f5e9', iconColor: '#22c55e',
+      icon: 'mic-outline' as any, bg: '#e8f5e9', iconColor: '#22c55e',
       label: 'WhatsApp Support',
       sub: '+234 802 097 3590',
       onPress: () => Linking.openURL('https://wa.me/2348020973590?text=Hello OWODE Support')
     },
     {
-      icon: 'mail-outline' as any, bg: '#e3f2fd', iconColor: '#0d47a1',
+      icon: 'mail-open-outline' as any, bg: '#e3f2fd', iconColor: '#0d47a1',
       label: 'Email Support',
       sub: 'support@owodealajo.com',
       onPress: () => Linking.openURL('mailto:support@owodealajo.com')
@@ -152,13 +146,13 @@ export default function ProfileScreen({ navigation }: any) {
       onPress: () => Linking.openURL('https://owode.xyz')
     },
     {
-      icon: 'gift-outline' as any, bg: '#fce4ec', iconColor: '#e91e63',
+      icon: 'share-social-outline' as any, bg: '#fce4ec', iconColor: '#e91e63',
       label: 'Refer a Friend',
       sub: 'Invite friends and earn rewards',
       onPress: () => navigation.navigate('Referral')
     },
     {
-      icon: 'document-text-outline' as any, bg: '#f3e5f5', iconColor: '#9c27b0',
+      icon: 'document-outline' as any, bg: '#f3e5f5', iconColor: '#9c27b0',
       label: 'Terms & Conditions',
       sub: 'Read our terms of service',
       onPress: () => Linking.openURL('https://owode.xyz')
@@ -211,13 +205,12 @@ export default function ProfileScreen({ navigation }: any) {
       {/* Stats */}
       <View style={styles.statsRow}>
         {[
-          { label: 'Balance', value: `₦${(currentUser?.wallet?.balance || 0).toLocaleString()}`, icon: 'wallet-outline' as any, color: '#0d47a1' },
-          { label: 'Total Saved', value: `₦${(currentUser?.wallet?.totalSaved || 0).toLocaleString()}`, icon: 'save-outline' as any, color: '#22c55e' },
-          { label: 'Total Payout', value: `₦${(currentUser?.wallet?.totalPayout || 0).toLocaleString()}`, icon: 'arrow-up-circle-outline' as any, color: '#f5a623' },
+          { label: 'Balance', value: `₦${(currentUser?.wallet?.balance || 0).toLocaleString()}` },
+          { label: 'Total Saved', value: `₦${(currentUser?.wallet?.totalSaved || 0).toLocaleString()}` },
+          { label: 'Total Payout', value: `₦${(currentUser?.wallet?.totalPayout || 0).toLocaleString()}` },
         ].map(stat => (
           <View key={stat.label} style={styles.statCard}>
-            <Ionicons name={stat.icon} size={22} color={stat.color} />
-            <Text style={[styles.statValue, { color: stat.color }]}>{stat.value}</Text>
+            <Text style={styles.statValue}>{stat.value}</Text>
             <Text style={styles.statLabel}>{stat.label}</Text>
           </View>
         ))}
@@ -432,7 +425,7 @@ const styles = StyleSheet.create({
   badgeText: { fontWeight: 'bold', fontSize: 12 },
   statsRow: { flexDirection: 'row', margin: 16, gap: 8 },
   statCard: { flex: 1, backgroundColor: '#fff', borderRadius: 16, padding: 12, alignItems: 'center', gap: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
-  statValue: { fontSize: 12, fontWeight: 'bold', textAlign: 'center' },
+  statValue: { fontSize: 16, fontWeight: 'bold', textAlign: 'center', color: '#333' },
   statLabel: { fontSize: 10, color: '#888' },
   section: { marginHorizontal: 16, marginBottom: 16 },
   sectionTitle: { fontSize: 15, fontWeight: 'bold', color: '#0d47a1', marginBottom: 10 },
@@ -445,11 +438,11 @@ const styles = StyleSheet.create({
   trustFill: { height: 6, borderRadius: 3 },
   trustHint: { fontSize: 11, color: '#aaa', lineHeight: 16, paddingHorizontal: 16, paddingBottom: 16 },
   divider: { height: 1, backgroundColor: '#f5f5f5', marginLeft: 64 },
-  menuItem: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 },
-  menuIconBg: { width: 40, height: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+  menuItem: { flexDirection: 'row', alignItems: 'center', padding: 16, gap: 14 },
+  menuIconBg: { width: 44, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 3, elevation: 1 },
   menuText: { flex: 1 },
-  menuLabel: { fontSize: 14, fontWeight: '600', color: '#1a1a1a' },
-  menuSub: { fontSize: 12, color: '#888', marginTop: 2 },
+  menuLabel: { fontSize: 15, fontWeight: '600', color: '#1a1a1a' },
+  menuSub: { fontSize: 12, color: '#999', marginTop: 3 },
   infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 14 },
   infoLabel: { fontSize: 13, color: '#888' },
   infoRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
