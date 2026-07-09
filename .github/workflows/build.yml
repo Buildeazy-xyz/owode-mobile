@@ -25,7 +25,7 @@ jobs:
       - name: Prebuild
         run: npx expo prebuild --platform android --clean
 
-     - name: Set version code
+      - name: Set version code
         run: |
           VERSION_CODE=$(node -p "require('./app.json').expo.android.versionCode")
           sed -i "s/versionCode [0-9]*/versionCode $VERSION_CODE/" android/app/build.gradle
