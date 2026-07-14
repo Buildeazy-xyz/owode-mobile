@@ -2,7 +2,14 @@ import * as Speech from 'expo-speech'
 
 const OWODE_PRONUNCIATION = 'Owode'
 
+let lastSpokenAt = 0
+let lastMessage = ''
 export const speakAlert = (message: string) => {
+  const now = Date.now()
+  if (message === lastMessage && now - lastSpokenAt < 6000) return
+  lastSpokenAt = now
+  lastMessage = message
+  Speech.stop()
   Speech.speak(message, {
     language: 'en-NG',
     pitch: 1.0,

@@ -178,7 +178,7 @@ export default function ProfileScreen({ navigation }: any) {
         <View style={styles.avatarContainer}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>{currentUser?.fullName?.charAt(0)}</Text>
-            <View style={styles.avatarEdit}>
+            <TouchableOpacity style={styles.avatarEdit} onPress={() => { /* KYC_PIC_LOCK */ if (!currentUser?.isVerified) { Alert.alert("Verification Required", "Complete BVN/NIN and face verification first. Your profile photo will match your verified identity.") } }}>
               <Ionicons name="camera" size={13} color="#fff" />
             </View>
           </View>
@@ -197,7 +197,7 @@ export default function ProfileScreen({ navigation }: any) {
             </View>
             <View style={[styles.badge, { borderColor: '#f5a623' }]}>
               <Text style={[styles.badgeText, { color: '#f5a623' }]}>{currentUser?.role}</Text>
-            </View>
+            </TouchableOpacity>
           </View>
         </View>
       </LinearGradient>

@@ -77,12 +77,12 @@ export default function WalletScreen({ navigation }: any) {
     ?.reduce((sum: number, tx: any) => sum + tx.amount, 0) || 0
 
   const getTxIcon = (description: string) => {
-    if (description?.toLowerCase().includes('ajo')) return '🤝'
-    if (description?.toLowerCase().includes('transfer')) return '💸'
+    if (description?.toLowerCase().includes('ajo')) return ''
+    if (description?.toLowerCase().includes('transfer')) return ''
     if (description?.toLowerCase().includes('savings')) return '🐷'
-    if (description?.toLowerCase().includes('welcome')) return '🎉'
-    if (description?.toLowerCase().includes('withdrawal')) return '🏦'
-    return '💳'
+    if (description?.toLowerCase().includes('welcome')) return ''
+    if (description?.toLowerCase().includes('withdrawal')) return ''
+    return ''
   }
 
   return (
@@ -118,17 +118,17 @@ export default function WalletScreen({ navigation }: any) {
             {/* Stats Row */}
             <View style={styles.statsRow}>
               <View style={styles.statItem}>
-                <Text style={styles.statLabel}>💰 Money In</Text>
+                <Text style={styles.statLabel}>Money In</Text>
                 <Text style={styles.statValue}>₦{totalCredit.toLocaleString()}</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
-                <Text style={styles.statLabel}>💸 Money Out</Text>
+                <Text style={styles.statLabel}>Money Out</Text>
                 <Text style={styles.statValue}>₦{totalDebit.toLocaleString()}</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
-                <Text style={styles.statLabel}>🏦 Total Saved</Text>
+                <Text style={styles.statLabel}>Total Saved</Text>
                 <Text style={styles.statValue}>₦{(wallet?.totalSaved || 0).toLocaleString()}</Text>
               </View>
             </View>
@@ -142,7 +142,7 @@ export default function WalletScreen({ navigation }: any) {
               onPress={() => navigation.navigate('Transfer')}
             >
               <View style={[styles.actionIconBg, { backgroundColor: '#e3f2fd' }]}>
-                <Text style={styles.actionIcon}>💸</Text>
+                <Text style={styles.actionIcon}></Text>
               </View>
               <Text style={styles.actionText}>Send Money</Text>
             </TouchableOpacity>
@@ -157,10 +157,10 @@ export default function WalletScreen({ navigation }: any) {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionBtn}
-              onPress={() => Alert.alert('Coming Soon 🏦', 'Bank withdrawal will be available after Providus Bank integration!')}
+              onPress={() => Alert.alert('Coming Soon', 'Bank withdrawal will be available after Providus Bank integration!')}
             >
               <View style={[styles.actionIconBg, { backgroundColor: '#fff3e0' }]}>
-                <Text style={styles.actionIcon}>🏦</Text>
+                <Text style={styles.actionIcon}></Text>
               </View>
               <Text style={styles.actionText}>Withdraw</Text>
             </TouchableOpacity>
@@ -169,7 +169,7 @@ export default function WalletScreen({ navigation }: any) {
               onPress={() => navigation.navigate('Ajo')}
             >
               <View style={[styles.actionIconBg, { backgroundColor: '#f3e5f5' }]}>
-                <Text style={styles.actionIcon}>🤝</Text>
+                <Text style={styles.actionIcon}></Text>
               </View>
               <Text style={styles.actionText}>Ajo Groups</Text>
             </TouchableOpacity>
@@ -216,7 +216,7 @@ export default function WalletScreen({ navigation }: any) {
           {/* Filter Tabs */}
           <View style={styles.filterRow}>
             {[
-              { key: 'ALL', label: '📊 All', count: wallet?.transactions?.length || 0 },
+              { key: 'ALL', label: 'All', count: wallet?.transactions?.length || 0 },
               { key: 'CREDIT', label: '⬆️ In', count: wallet?.transactions?.filter((t: any) => t.type === 'CREDIT').length || 0 },
               { key: 'DEBIT', label: '⬇️ Out', count: wallet?.transactions?.filter((t: any) => t.type === 'DEBIT').length || 0 },
             ].map(f => (

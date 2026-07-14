@@ -30,7 +30,7 @@ export default function ReceiptScreen({ route, navigation }: any) {
       <ViewShot ref={receiptRef} options={{ format: 'png', quality: 1 }}>
         <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.header}>
           <View style={[styles.statusCircle, { backgroundColor: isCredit ? '#22c55e' : '#f5a623' }]}>
-            <Text style={styles.statusIcon}>{isCredit ? '✅' : '💸'}</Text>
+            <Text style={styles.statusIcon}>{isCredit ? '✅' : ''}</Text>
           </View>
           <Text style={styles.statusText}>{isCredit ? 'Money Received!' : 'Transfer Successful!'}</Text>
           <Text style={styles.amount}>₦{transaction.amount?.toLocaleString()}</Text>
@@ -62,11 +62,6 @@ export default function ReceiptScreen({ route, navigation }: any) {
           </View>
           <View style={styles.separator} />
 
-          <View style={styles.row}>
-            <Text style={styles.rowLabel}>New Balance</Text>
-            <Text style={styles.rowValue}>₦{transaction.balance?.toLocaleString()}</Text>
-          </View>
-          <View style={styles.separator} />
 
           <View style={styles.row}>
             <Text style={styles.rowLabel}>Description</Text>
@@ -87,7 +82,7 @@ export default function ReceiptScreen({ route, navigation }: any) {
 
           <View style={styles.poweredBy}>
             <View style={styles.poweredByLine} />
-            <Text style={styles.poweredByText}>🔒 Secured by OWODE Digital Services Limited</Text>
+            <Text style={styles.poweredByText}>Secured by OWODE Digital Services Limited</Text>
             <View style={styles.poweredByLine} />
           </View>
         </View>

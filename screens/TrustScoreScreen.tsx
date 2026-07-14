@@ -30,8 +30,8 @@ export default function TrustScoreScreen({ navigation }: any) {
   }
 
   const getScoreEmoji = (score: number) => {
-    if (score >= 80) return '🌟'
-    if (score >= 65) return '😊'
+    if (score >= 80) return ''
+    if (score >= 65) return ''
     if (score >= 50) return '😐'
     if (score >= 35) return '😟'
     return '😰'
@@ -97,7 +97,7 @@ export default function TrustScoreScreen({ navigation }: any) {
               </View>
               <View style={styles.breakdownDivider} />
               <View style={styles.breakdownRow}>
-                <Text style={styles.breakdownIcon}>🤝</Text>
+                <Text style={styles.breakdownIcon}></Text>
                 <View style={styles.breakdownText}>
                   <Text style={styles.breakdownLabel}>Complete Ajo groups</Text>
                   <Text style={styles.breakdownValue}>+5 per group</Text>
@@ -124,7 +124,7 @@ export default function TrustScoreScreen({ navigation }: any) {
               </View>
               <View style={styles.eligibilityRow}>
                 <Text style={styles.eligibilityIcon}>
-                  {trustData.score >= 80 ? '🌟' : trustData.score >= 50 ? '😊' : '⏳'}
+                  {trustData.score >= 80 ? '' : trustData.score >= 50 ? '' : '⏳'}
                 </Text>
                 <Text style={styles.eligibilityText}>
                   {trustData.score >= 80

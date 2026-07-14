@@ -33,7 +33,7 @@ export default function SetTransactionPinScreen({ navigation, route }: any) {
 
       if (fromRegister) {
         Alert.alert(
-          '🎉 Setup Complete!',
+          'Setup Complete!',
           'Your account is fully secured! Welcome to OWODE Alajo!\n\n✅ App Lock PIN set\n✅ Transaction PIN set\n\nYou can now login!',
           [{ text: 'Login Now', onPress: () => navigation.navigate('Login') }]
         )

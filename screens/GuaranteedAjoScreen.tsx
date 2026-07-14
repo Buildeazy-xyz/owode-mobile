@@ -110,7 +110,7 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
       setContributeModal(false)
       setPinStep(false)
       if (data.payoutSent) {
-        Alert.alert('🎉 Payout Sent!', `₦${data.payoutAmount?.toLocaleString()} has been paid out this cycle!`)
+        Alert.alert('Payout Sent!', `₦${data.payoutAmount?.toLocaleString()} has been paid out this cycle!`)
       } else {
         Alert.alert('✅ Contributed!', `${data.paidCount} of ${data.paidCount + data.remainingCount} members have paid.\n\nGuarantee fee: ₦${selectedGroup.guaranteeFee?.toLocaleString()} collected to pool.`)
       }
@@ -221,7 +221,7 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
                   <Text style={styles.joinBtnText}>Join Group</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.contributeBtn} onPress={() => handleContribute(group)}>
-                  <Text style={styles.contributeBtnText}>💸 Contribute</Text>
+                  <Text style={styles.contributeBtnText}>Contribute</Text>
                 </TouchableOpacity>
               </View>
 
@@ -257,7 +257,7 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
         ) : (
           <View style={styles.modalOverlay}>
             <View style={styles.modal}>
-              <Text style={styles.modalTitle}>💸 Confirm Contribution</Text>
+              <Text style={styles.modalTitle}>Confirm Contribution</Text>
               {selectedGroup && (
                 <>
                   <View style={styles.confirmRow}>

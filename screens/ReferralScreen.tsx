@@ -38,7 +38,7 @@ export default function ReferralScreen({ navigation }: any) {
   const handleShare = async () => {
     try {
       await Share.share({
-        message: `🎉 Join me on OWODE Alajo — Nigeria's first guaranteed digital Ajo savings platform!\n\nUse my referral code: ${data?.referralCode}\n\nDownload: https://owode.xyz/join?ref=${data?.referralCode}\n\n💰 Save together, grow together!`,
+        message: `Join me on OWODE Alajo — Nigeria's first guaranteed digital Ajo savings platform!\n\nUse my referral code: ${data?.referralCode}\n\nDownload: https://owode.xyz/join?ref=${data?.referralCode}\n\nSave together, grow together!`,
         title: 'Join OWODE Alajo'
       })
     } catch (error) {
@@ -64,15 +64,15 @@ export default function ReferralScreen({ navigation }: any) {
         <View style={styles.logoCard}>
           <Image source={require('../assets/owode-logo.png')} style={styles.logoImage} resizeMode="contain" />
         </View>
-        <Text style={styles.headerTitle}>Refer & Earn 🎁</Text>
+        <Text style={styles.headerTitle}>Refer & Earn</Text>
         <Text style={styles.headerSub}>Invite friends and earn trust score bonuses!</Text>
       </LinearGradient>
 
       {/* Stats */}
       <View style={styles.statsRow}>
         {[
-          { icon: '👥', label: 'Friends Referred', value: data?.referralCount || 0, color: '#0d47a1' },
-          { icon: '⭐', label: 'Bonus Points', value: `+${(data?.referralCount || 0) * 5}`, color: '#f5a623' },
+          { icon: '', label: 'Friends Referred', value: data?.referralCount || 0, color: '#0d47a1' },
+          { icon: '', label: 'Bonus Points', value: `+${(data?.referralCount || 0) * 5}`, color: '#f5a623' },
           { icon: '🏆', label: 'Your Rank', value: data?.referralCount >= 10 ? 'Gold' : data?.referralCount >= 5 ? 'Silver' : 'Bronze', color: '#22c55e' },
         ].map(stat => (
           <View key={stat.label} style={styles.statCard}>
@@ -111,8 +111,8 @@ export default function ReferralScreen({ navigation }: any) {
         <View style={styles.stepsCard}>
           {[
             { step: '1', icon: '📤', title: 'Share Your Code', desc: 'Send your referral code or link to friends and family' },
-            { step: '2', icon: '📱', title: 'Friend Registers', desc: 'Your friend downloads OWODE and registers with your code' },
-            { step: '3', icon: '⭐', title: 'Both Get Rewarded', desc: 'You get +5 trust score points for every friend you refer!' },
+            { step: '2', icon: '', title: 'Friend Registers', desc: 'Your friend downloads OWODE and registers with your code' },
+            { step: '3', icon: '', title: 'Both Get Rewarded', desc: 'You get +5 trust score points for every friend you refer!' },
           ].map(item => (
             <View key={item.step} style={styles.step}>
               <View style={styles.stepNumber}>
@@ -154,7 +154,7 @@ export default function ReferralScreen({ navigation }: any) {
       {/* Referred Friends */}
       {data?.referredUsers?.length > 0 && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>👥 Friends You Referred ({data.referredUsers.length})</Text>
+          <Text style={styles.sectionTitle}>Friends You Referred ({data.referredUsers.length})</Text>
           <View style={styles.friendsCard}>
             {data.referredUsers.map((friend: any, i: number) => (
               <View key={i} style={[styles.friendRow, i < data.referredUsers.length - 1 && styles.friendDivider]}>
@@ -180,7 +180,7 @@ export default function ReferralScreen({ navigation }: any) {
 
       {data?.referredUsers?.length === 0 && (
         <View style={styles.emptyFriends}>
-          <Text style={styles.emptyFriendsIcon}>👥</Text>
+          <Text style={styles.emptyFriendsIcon}></Text>
           <Text style={styles.emptyFriendsText}>No referrals yet</Text>
           <Text style={styles.emptyFriendsSub}>Share your code and start earning!</Text>
         </View>

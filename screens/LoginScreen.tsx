@@ -48,7 +48,7 @@ export default function LoginScreen({ navigation }: any) {
       </LinearGradient>
 
       <View style={styles.form}>
-        <Text style={styles.title}>Welcome Back! 👋</Text>
+        <Text style={styles.title}>Welcome Back!</Text>
         <Text style={styles.subtitle}>Login to your OWODE account</Text>
 
         <Text style={styles.inputLabel}>Phone Number</Text>
@@ -78,9 +78,9 @@ export default function LoginScreen({ navigation }: any) {
         </View>
 
         <View style={styles.securityBadges}>
-          <View style={styles.badge}><Text style={styles.badgeText}>🔒 Encrypted</Text></View>
+          <View style={styles.badge}><Text style={styles.badgeText}>Encrypted</Text></View>
           <View style={styles.badge}><Text style={styles.badgeText}>🛡️ Secure</Text></View>
-          <View style={styles.badge}><Text style={styles.badgeText}>🏦 Bank-grade</Text></View>
+          <View style={styles.badge}><Text style={styles.badgeText}>Bank-grade</Text></View>
         </View>
 
         <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>

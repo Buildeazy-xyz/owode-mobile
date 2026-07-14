@@ -112,7 +112,7 @@ export default function BiometricSetupScreen({ navigation }: any) {
           {/* Biometric Icon */}
           <Animated.View style={[styles.biometricCircle, { transform: [{ scale: pulseAnim }] }]}>
             <Text style={styles.biometricIcon}>
-              {biometricInfo.hasFaceID ? '😊' : '👆'}
+              {biometricInfo.hasFaceID ? '' : '👆'}
             </Text>
           </Animated.View>
 
@@ -143,9 +143,9 @@ export default function BiometricSetupScreen({ navigation }: any) {
             <Text style={styles.featuresTitle}>What you can do with {biometricInfo.label}:</Text>
             {[
               `🔓 Unlock OWODE app instantly`,
-              `💸 Authorize transfers faster`,
+              `Authorize transfers faster`,
               `🛡️ Extra layer of security`,
-              `⚡ No PIN needed for quick access`
+              `No PIN needed for quick access`
             ].map((f, i) => (
               <Text key={i} style={styles.featureItem}>{f}</Text>
             ))}
@@ -162,7 +162,7 @@ export default function BiometricSetupScreen({ navigation }: any) {
                 <ActivityIndicator color="#fff" />
               ) : (
                 <Text style={styles.enableBtnText}>
-                  {biometricInfo.hasFaceID ? '😊 Enable Face ID' : '👆 Enable Fingerprint'}
+                  {biometricInfo.hasFaceID ? 'Enable Face ID' : '👆 Enable Fingerprint'}
                 </Text>
               )}
             </TouchableOpacity>

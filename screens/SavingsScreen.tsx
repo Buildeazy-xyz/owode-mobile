@@ -3,7 +3,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity,
   ScrollView, Alert, RefreshControl,
   TextInput, ActivityIndicator, Dimensions
-} from 'react-native'
+} , KeyboardAvoidingView, Platform } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { savingsAPI } from '../utils/api'
 import { LineChart, ProgressChart } from 'react-native-chart-kit'
@@ -11,7 +11,7 @@ import { LineChart, ProgressChart } from 'react-native-chart-kit'
 const { width } = Dimensions.get('window')
 
 const GOAL_CATEGORIES = [
-  { icon: '📱', label: 'Gadget' },
+  { icon: '', label: 'Gadget' },
   { icon: '🏠', label: 'House' },
   { icon: '🚗', label: 'Car' },
   { icon: '✈️', label: 'Travel' },
@@ -19,7 +19,7 @@ const GOAL_CATEGORIES = [
   { icon: '💒', label: 'Wedding' },
   { icon: '🏥', label: 'Medical' },
   { icon: '💼', label: 'Business' },
-  { icon: '🎁', label: 'Gift' },
+  { icon: '', label: 'Gift' },
   { icon: '🐷', label: 'General' },
 ]
 
@@ -78,7 +78,7 @@ export default function SavingsScreen({ navigation }: any) {
         autoDebitFreq: autoDebitAmount ? autoDebitFreq : undefined,
         targetDate
       })
-      Alert.alert('🎯 Goal Created!', 'Your savings goal has been created!')
+      Alert.alert('Goal Created!', 'Your savings goal has been created!')
       setScreen('list')
       setTitle(''); setDescription(''); setGoalAmount('')
       setInitialDeposit(''); setTargetDate(''); setAutoDebitAmount('')
@@ -113,7 +113,7 @@ export default function SavingsScreen({ navigation }: any) {
   const handleWithdraw = async (goal: any) => {
     const isEarly = new Date() < new Date(goal.targetDate)
     Alert.alert(
-      isEarly ? '⚠️ Early Withdrawal' : '💰 Withdraw Savings',
+      isEarly ? '⚠️ Early Withdrawal' : 'Withdraw Savings',
       isEarly
         ? `Withdrawing early will deduct a ${goal.penaltyPercent}% penalty.\n\nYou will receive: ₦${(goal.currentAmount * (1 - goal.penaltyPercent / 100)).toLocaleString()}`
         : `Withdraw ₦${goal.currentAmount?.toLocaleString()} to your wallet?`,
@@ -183,14 +183,14 @@ export default function SavingsScreen({ navigation }: any) {
           <TouchableOpacity onPress={() => setScreen('list')}>
             <Text style={styles.back}>← Back</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>🎯 Create Goal</Text>
+          <Text style={styles.headerTitle}>Create Goal</Text>
           <View style={{ width: 50 }} />
         </LinearGradient>
 
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <View style={styles.createContent}>
             <Text style={styles.fieldLabel}>What are you saving for?</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryRow}>
+            <ScrollView automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} style={styles.categoryRow}>
               {GOAL_CATEGORIES.map((cat, i) => (
                 <TouchableOpacity
                   key={i}
@@ -317,7 +317,7 @@ export default function SavingsScreen({ navigation }: any) {
               disabled={saving}
             >
               <LinearGradient colors={['#0d47a1', '#1565c0']} style={styles.createGoalBtnGradient}>
-                {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.createGoalBtnText}>🎯 Create Savings Goal</Text>}
+                {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.createGoalBtnText}>Create Savings Goal</Text>}
               </LinearGradient>
             </TouchableOpacity>
 
@@ -336,11 +336,11 @@ export default function SavingsScreen({ navigation }: any) {
           <TouchableOpacity onPress={() => setScreen('list')}>
             <Text style={styles.back}>← Back</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>💰 Add Money</Text>
+          <Text style={styles.headerTitle}>Add Money</Text>
           <View style={{ width: 50 }} />
         </LinearGradient>
 
-        <ScrollView style={{ flex: 1, padding: 20 }}>
+        <ScrollView automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled" style={{ flex: 1, padding: 20 }}>
           {selectedGoal && (
             <>
               <View style={styles.depositGoalInfo}>
@@ -404,7 +404,7 @@ export default function SavingsScreen({ navigation }: any) {
                 disabled={saving}
               >
                 <LinearGradient colors={['#22c55e', '#16a34a']} style={styles.createGoalBtnGradient}>
-                  {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.createGoalBtnText}>💰 Deposit to Savings</Text>}
+                  {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.createGoalBtnText}>Deposit to Savings</Text>}
                 </LinearGradient>
               </TouchableOpacity>
             </>
@@ -452,8 +452,8 @@ export default function SavingsScreen({ navigation }: any) {
       {/* Tabs */}
       <View style={styles.tabRow}>
         {[
-          { key: 'goals', label: '🎯 My Goals' },
-          { key: 'analytics', label: '📊 Analytics' },
+          { key: 'goals', label: 'My Goals' },
+          { key: 'analytics', label: 'Analytics' },
         ].map(tab => (
           <TouchableOpacity
             key={tab.key}
@@ -470,7 +470,7 @@ export default function SavingsScreen({ navigation }: any) {
       {loading ? (
         <ActivityIndicator size="large" color="#0d47a1" style={{ marginTop: 60 }} />
       ) : (
-        <ScrollView
+        <ScrollView automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled"
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           showsVerticalScrollIndicator={false}
         >
@@ -479,7 +479,7 @@ export default function SavingsScreen({ navigation }: any) {
             <View>
               {goals.length === 0 ? (
                 <View style={styles.emptyState}>
-                  <Text style={styles.emptyIcon}>📊</Text>
+                  <Text style={styles.emptyIcon}></Text>
                   <Text style={styles.emptyText}>No data yet</Text>
                   <Text style={styles.emptySubText}>Create savings goals to see analytics!</Text>
                 </View>
@@ -487,7 +487,7 @@ export default function SavingsScreen({ navigation }: any) {
                 <>
                   {/* Overall Progress Ring */}
                   <View style={styles.analyticsCard}>
-                    <Text style={styles.analyticsTitle}>📊 Overall Savings Progress</Text>
+                    <Text style={styles.analyticsTitle}>Overall Savings Progress</Text>
                     <View style={styles.overallProgressRow}>
                       <View style={styles.overallProgressCircle}>
                         <Text style={styles.overallProgressPercent}>{overallProgress}%</Text>
@@ -518,7 +518,7 @@ export default function SavingsScreen({ navigation }: any) {
                   {/* Savings Growth Chart */}
                   {totalSaved > 0 && (
                     <View style={styles.analyticsCard}>
-                      <Text style={styles.analyticsTitle}>📈 Savings Growth</Text>
+                      <Text style={styles.analyticsTitle}>Savings Growth</Text>
                       <Text style={styles.analyticsSubtitle}>Estimated growth trajectory</Text>
                       <LineChart
                         data={savingsLineData}
@@ -537,7 +537,7 @@ export default function SavingsScreen({ navigation }: any) {
                   {/* Goals Progress Chart */}
                   {activeGoals.length > 0 && (
                     <View style={styles.analyticsCard}>
-                      <Text style={styles.analyticsTitle}>🎯 Goals Progress</Text>
+                      <Text style={styles.analyticsTitle}>Goals Progress</Text>
                       <Text style={styles.analyticsSubtitle}>Progress per active goal</Text>
                       <ProgressChart
                         data={progressData}
@@ -589,7 +589,7 @@ export default function SavingsScreen({ navigation }: any) {
                     <Text style={styles.analyticsTitle}>💡 Savings Insights</Text>
                     {[
                       goals.find(g => g.progress >= 75) && {
-                        icon: '🎉',
+                        icon: '',
                         text: `${goals.find(g => g.progress >= 75)?.title} is almost complete! Keep going!`,
                         color: '#e8f5e9'
                       },
@@ -604,7 +604,7 @@ export default function SavingsScreen({ navigation }: any) {
                         color: '#fff3e0'
                       },
                       activeGoals.length === 0 && {
-                        icon: '🎯',
+                        icon: '',
                         text: 'Create your first savings goal to start your savings journey!',
                         color: '#f3e5f5'
                       },
@@ -629,7 +629,7 @@ export default function SavingsScreen({ navigation }: any) {
                   <Text style={styles.emptyText}>No savings goals yet</Text>
                   <Text style={styles.emptySubText}>Create your first goal and start building your future!</Text>
                   <TouchableOpacity style={styles.createFirstBtn} onPress={() => setScreen('create')}>
-                    <Text style={styles.createFirstBtnText}>🎯 Create First Goal</Text>
+                    <Text style={styles.createFirstBtnText}>Create First Goal</Text>
                   </TouchableOpacity>
                 </View>
               ) : (
@@ -646,7 +646,7 @@ export default function SavingsScreen({ navigation }: any) {
                         <Text style={[styles.statusBadgeText, {
                           color: goal.status === 'COMPLETED' ? '#22c55e' : goal.status === 'WITHDRAWN' ? '#888' : '#0d47a1'
                         }]}>
-                          {goal.status === 'COMPLETED' ? '✅ Done' : goal.status === 'WITHDRAWN' ? '🏦 Withdrawn' : '🔵 Active'}
+                          {goal.status === 'COMPLETED' ? '✅ Done' : goal.status === 'WITHDRAWN' ? 'Withdrawn' : '🔵 Active'}
                         </Text>
                       </View>
                     </View>
@@ -655,7 +655,7 @@ export default function SavingsScreen({ navigation }: any) {
                       {[
                         { label: 'Saved', value: `₦${goal.currentAmount?.toLocaleString()}` },
                         { label: 'Target', value: `₦${goal.goalAmount?.toLocaleString()}` },
-                        { label: 'Days Left', value: goal.daysLeft === 0 ? '🎉' : `${goal.daysLeft}d`, color: goal.daysLeft < 30 ? '#f5a623' : '#0d47a1' },
+                        { label: 'Days Left', value: goal.daysLeft === 0 ? '' : `${goal.daysLeft}d`, color: goal.daysLeft < 30 ? '#f5a623' : '#0d47a1' },
                       ].map(item => (
                         <View key={item.label} style={styles.amountBox}>
                           <Text style={styles.amountBoxLabel}>{item.label}</Text>
@@ -686,7 +686,7 @@ export default function SavingsScreen({ navigation }: any) {
                     )}
 
                     <Text style={styles.targetDate}>
-                      🎯 Target: {new Date(goal.targetDate).toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      Target: {new Date(goal.targetDate).toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' })}
                     </Text>
 
                     {!goal.canWithdrawFree && goal.status === 'ACTIVE' && (
@@ -698,14 +698,14 @@ export default function SavingsScreen({ navigation }: any) {
                     {goal.status === 'ACTIVE' && (
                       <View style={styles.actions}>
                         <TouchableOpacity style={styles.depositBtn} onPress={() => { setSelectedGoal(goal); setScreen('deposit') }}>
-                          <Text style={styles.depositBtnText}>💰 Add Money</Text>
+                          <Text style={styles.depositBtnText}>Add Money</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                           style={[styles.withdrawBtn, !goal.canWithdrawFree && styles.withdrawBtnEarly]}
                           onPress={() => handleWithdraw(goal)}
                         >
                           <Text style={[styles.withdrawBtnText, !goal.canWithdrawFree && { color: '#f5a623' }]}>
-                            {goal.canWithdrawFree ? '🏦 Withdraw' : '⚠️ Early'}
+                            {goal.canWithdrawFree ? 'Withdraw' : '⚠️ Early'}
                           </Text>
                         </TouchableOpacity>
                       </View>
@@ -713,7 +713,7 @@ export default function SavingsScreen({ navigation }: any) {
 
                     {goal.status === 'COMPLETED' && (
                       <TouchableOpacity style={styles.withdrawCompletedBtn} onPress={() => handleWithdraw(goal)}>
-                        <Text style={styles.withdrawCompletedBtnText}>🎉 Goal Reached! Withdraw Now</Text>
+                        <Text style={styles.withdrawCompletedBtnText}>Goal Reached! Withdraw Now</Text>
                       </TouchableOpacity>
                     )}
                   </View>

@@ -97,7 +97,7 @@ export default function AjoScreen({ navigation }: any) {
               const data = response.data.data
               if (data.payoutSent) {
                 announceAjoPayout(data.payoutAmount, groupName)
-                Alert.alert('🎉 Payout!', `₦${data.payoutAmount?.toLocaleString()} paid out this cycle!`)
+                Alert.alert('Payout!', `₦${data.payoutAmount?.toLocaleString()} paid out this cycle!`)
               } else {
                 announceContribution(amount, groupName)
                 Alert.alert('✅ Contributed!', `${data.paidCount} of ${data.paidCount + data.remainingCount} members paid`)
@@ -145,7 +145,7 @@ export default function AjoScreen({ navigation }: any) {
       setContributeModal(false)
       setPinStep(false)
       if (data.payoutSent) {
-        Alert.alert('🎉 Payout Sent!', `₦${data.payoutAmount?.toLocaleString()} paid out!`)
+        Alert.alert('Payout Sent!', `₦${data.payoutAmount?.toLocaleString()} paid out!`)
       } else {
         Alert.alert('✅ Contributed!', `${data.paidCount} of ${data.paidCount + data.remainingCount} members paid.`)
       }
@@ -164,7 +164,7 @@ export default function AjoScreen({ navigation }: any) {
       const isGuaranteed = group.type === 'guaranteed'
       await Share.share({
         message:
-          `${isGuaranteed ? '🛡️' : '🤝'} Join my ${isGuaranteed ? 'Guaranteed ' : ''}Ajo group on OWODE!\n\n` +
+          `${isGuaranteed ? '🛡️' : ''} Join my ${isGuaranteed ? 'Guaranteed ' : ''}Ajo group on OWODE!\n\n` +
           `Group: ${group.name}\n` +
           `Amount: ₦${group.amount?.toLocaleString()} per cycle\n` +
           (isGuaranteed ? `Guarantee fee: ₦${group.guaranteeFee?.toLocaleString()}\n` : '') +
@@ -189,7 +189,7 @@ export default function AjoScreen({ navigation }: any) {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.back}>← Back</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>🤝 Ajo Groups</Text>
+        <Text style={styles.headerTitle}>Ajo Groups</Text>
         <View style={{ width: 40 }} />
       </LinearGradient>
 
@@ -216,7 +216,7 @@ export default function AjoScreen({ navigation }: any) {
       <View style={styles.tabsContainer}>
         {[
           { key: 'all', label: `All (${allGroups.length})` },
-          { key: 'standard', label: `🤝 Standard (${standardGroups.length})` },
+          { key: 'standard', label: `Standard (${standardGroups.length})` },
           { key: 'guaranteed', label: `🛡️ Guaranteed (${guaranteedGroups.length})` }
         ].map(tab => (
           <TouchableOpacity
@@ -249,7 +249,7 @@ export default function AjoScreen({ navigation }: any) {
         >
           {filteredGroups.length === 0 ? (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyIcon}>{search ? '🔍' : '🤝'}</Text>
+              <Text style={styles.emptyIcon}>{search ? '🔍' : ''}</Text>
               <Text style={styles.emptyText}>
                 {search ? `No groups found for "${search}"` : 'No Ajo groups available'}
               </Text>
@@ -333,7 +333,7 @@ export default function AjoScreen({ navigation }: any) {
                             style={[styles.actionBtn, styles.contributeBtn]}
                             onPress={() => handleContributeGuaranteed(group)}
                           >
-                            <Text style={styles.contributeBtnText}>💸 Contribute</Text>
+                            <Text style={styles.contributeBtnText}>Contribute</Text>
                           </TouchableOpacity>
                         </>
                       )}
@@ -359,7 +359,7 @@ export default function AjoScreen({ navigation }: any) {
                     </View>
                     <View style={styles.badgeRow}>
                       <View style={styles.standardBadge}>
-                        <Text style={styles.standardBadgeText}>🤝 Standard</Text>
+                        <Text style={styles.standardBadgeText}>Standard</Text>
                       </View>
                       <View style={[styles.statusBadge, { backgroundColor: isFull ? '#e8f5e9' : '#fff3e0' }]}>
                         <Text style={[styles.statusBadgeText, { color: isFull ? '#22c55e' : '#f5a623' }]}>
@@ -442,7 +442,7 @@ export default function AjoScreen({ navigation }: any) {
                           disabled={!isFull || member?.hasPaid}
                         >
                           <Text style={styles.contributeBtnText}>
-                            {!isFull ? '⏳ Waiting for members' : member?.hasPaid ? '✅ Paid this cycle' : '💸 Contribute Now'}
+                            {!isFull ? '⏳ Waiting for members' : member?.hasPaid ? '✅ Paid this cycle' : 'Contribute Now'}
                           </Text>
                         </TouchableOpacity>
                       </>
@@ -483,7 +483,7 @@ export default function AjoScreen({ navigation }: any) {
         ) : (
           <View style={styles.modalOverlay}>
             <View style={styles.modal}>
-              <Text style={styles.modalTitle}>💸 Confirm Contribution</Text>
+              <Text style={styles.modalTitle}>Confirm Contribution</Text>
               {selectedGroup && (
                 <>
                   <View style={styles.confirmRow}>

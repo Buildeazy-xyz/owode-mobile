@@ -111,7 +111,7 @@ export default function RegisterScreen({ navigation }: any) {
     const fullPhone = '0' + phone // add leading zero back for backend
     await authAPI.sendOTP(fullPhone, selectedCountry.dial)
     startResendTimer()
-    Alert.alert('OTP Sent! 📱', `A 6-digit code has been sent to ${selectedCountry.dial}${phone}`)
+    Alert.alert('OTP Sent!', `A 6-digit code has been sent to ${selectedCountry.dial}${phone}`)
   } catch (error: any) {
     Alert.alert('Error', error.response?.data?.message || 'Could not send OTP')
   } finally {
@@ -217,7 +217,7 @@ export default function RegisterScreen({ navigation }: any) {
       'Slowly turn your head left',
       'Now turn your head right',
       'Look straight again',
-      'Smile naturally 😊',
+      'Smile naturally',
       'Hold still...'
     ]
     let i = 0
@@ -323,7 +323,7 @@ export default function RegisterScreen({ navigation }: any) {
     return (
       <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={{ flex: 1 }}>
         <PinKeypad
-          title="Set Transaction PIN 💰"
+          title="Set Transaction PIN"
           subtitle="Create a 4-digit PIN for all transactions"
           pinLength={4}
           onComplete={handleSetTransactionPin}
@@ -383,7 +383,7 @@ export default function RegisterScreen({ navigation }: any) {
         ) : (
           <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 32 }}>
             <View style={styles.faceIconCircle}>
-              <Text style={styles.faceIcon}>😊</Text>
+              <Text style={styles.faceIcon}></Text>
             </View>
             <Text style={styles.faceTitle}>Face Verification</Text>
             <Text style={styles.faceSubtitle}>
@@ -391,7 +391,7 @@ export default function RegisterScreen({ navigation }: any) {
             </Text>
             <View style={styles.faceTips}>
               <Text style={styles.faceTipsTitle}>For best results:</Text>
-              {['💡 Find a well-lit area', '👓 Remove glasses if possible', '📱 Hold phone at eye level', '😐 Keep neutral expression'].map((tip, i) => (
+              {['💡 Find a well-lit area', '👓 Remove glasses if possible', 'Hold phone at eye level', '😐 Keep neutral expression'].map((tip, i) => (
                 <Text key={i} style={styles.faceTip}>{tip}</Text>
               ))}
             </View>
@@ -428,7 +428,7 @@ export default function RegisterScreen({ navigation }: any) {
       {/* Step 1 - Name */}
       {step === 1 && (
         <ScrollView style={styles.form} contentContainerStyle={styles.formContent}>
-          <Text style={styles.stepHeading}>What's your name? 👋</Text>
+          <Text style={styles.stepHeading}>What's your name?</Text>
           <Text style={styles.stepSubheading}>Enter your full legal name as it appears on your ID</Text>
 
           <Text style={styles.inputLabel}>First Name *</Text>
@@ -522,7 +522,7 @@ export default function RegisterScreen({ navigation }: any) {
           </View>
 
           <View style={styles.infoCard}>
-            <Text style={styles.infoText}>🔒 Your date of birth is kept private and used only for age verification</Text>
+            <Text style={styles.infoText}>Your date of birth is kept private and used only for age verification</Text>
           </View>
 
           <TouchableOpacity
@@ -553,7 +553,7 @@ export default function RegisterScreen({ navigation }: any) {
       {/* Step 3 - Phone + Country */}
       {step === 3 && (
         <ScrollView style={styles.form} contentContainerStyle={styles.formContent}>
-          <Text style={styles.stepHeading}>Phone Number 📱</Text>
+          <Text style={styles.stepHeading}>Phone Number</Text>
           <Text style={styles.stepSubheading}>Select your country and enter your phone number</Text>
 
           <Text style={styles.inputLabel}>Country *</Text>
@@ -737,7 +737,7 @@ export default function RegisterScreen({ navigation }: any) {
                 style={[styles.idTypeBtn, idType === type && styles.idTypeBtnActive]}
                 onPress={() => { setIdType(type); setIdNumber('') }}
               >
-                <Text style={styles.idTypeIcon}>{type === 'bvn' ? '🏦' : '🪪'}</Text>
+                <Text style={styles.idTypeIcon}>{type === 'bvn' ? '' : '🪪'}</Text>
                 <Text style={[styles.idTypeBtnText, idType === type && styles.idTypeBtnTextActive]}>
                   {type.toUpperCase()}
                 </Text>
@@ -764,7 +764,7 @@ export default function RegisterScreen({ navigation }: any) {
 
           <View style={styles.infoCard}>
             <Text style={styles.infoText}>
-              🔒 Your {idType.toUpperCase()} is encrypted with bank-grade security and used only for identity verification via YouVerify
+              Your {idType.toUpperCase()} is encrypted with bank-grade security and used only for identity verification via YouVerify
             </Text>
           </View>
 
@@ -853,7 +853,7 @@ export default function RegisterScreen({ navigation }: any) {
               </View>
               <Text style={styles.strengthText}>
                 {password.length >= 8 && /[A-Z]/.test(password) && /[0-9]/.test(password)
-                  ? '💪 Strong' : password.length >= 6 && /[0-9]/.test(password)
+                  ? 'Strong' : password.length >= 6 && /[0-9]/.test(password)
                   ? '👍 Good' : '⚠️ Weak'}
               </Text>
             </View>
@@ -866,7 +866,7 @@ export default function RegisterScreen({ navigation }: any) {
           >
             {loading
               ? <ActivityIndicator color="#fff" />
-              : <Text style={styles.buttonText}>Create Account 🎉</Text>
+              : <Text style={styles.buttonText}>Create Account</Text>
             }
           </TouchableOpacity>
         </ScrollView>

@@ -219,14 +219,14 @@ export default function TransferScreen({ navigation }: any) {
             onPress={handleContinue}
             disabled={loading || !user?.hasTransactionPin}
           >
-            <Text style={styles.sendButtonText}>Send Money 💸</Text>
+            <Text style={styles.sendButtonText}>Send Money</Text>
             {amount ? (
               <Text style={styles.sendButtonAmount}>₦{Number(amount).toLocaleString()}</Text>
             ) : null}
           </TouchableOpacity>
 
           <Text style={styles.disclaimer}>
-            🔒 Transfers are instant and secured by OWODE's double-entry ledger system
+            Transfers are instant and secured by OWODE's double-entry ledger system
           </Text>
         </ScrollView>
       )}

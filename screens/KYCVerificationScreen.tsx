@@ -86,8 +86,8 @@ export default function KYCVerificationScreen({ navigation }: any) {
             <View style={styles.whyRow}>
               {[
                 { icon: '🛡️', text: 'Join Guaranteed Ajo' },
-                { icon: '💰', text: 'Higher transfer limits' },
-                { icon: '⭐', text: 'Higher trust score' },
+                { icon: '', text: 'Higher transfer limits' },
+                { icon: '', text: 'Higher trust score' },
                 { icon: '🔓', text: 'Full platform access' },
               ].map(item => (
                 <View key={item.text} style={styles.whyItem}>
@@ -109,7 +109,7 @@ export default function KYCVerificationScreen({ navigation }: any) {
                 onPress={() => setActiveTab(tab)}
               >
                 <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-                  {tab === 'bvn' ? '🏦 BVN' : '🪪 NIN'}
+                  {tab === 'bvn' ? 'BVN' : '🪪 NIN'}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -152,7 +152,7 @@ export default function KYCVerificationScreen({ navigation }: any) {
               )}
               <View style={styles.securityNote}>
                 <Text style={styles.securityNoteText}>
-                  🔒 Your BVN is encrypted with 256-bit security and verified via YouVerify
+                  Your BVN is encrypted with 256-bit security and verified via YouVerify
                 </Text>
               </View>
               <TouchableOpacity
@@ -205,7 +205,7 @@ export default function KYCVerificationScreen({ navigation }: any) {
               )}
               <View style={styles.securityNote}>
                 <Text style={styles.securityNoteText}>
-                  🔒 Your NIN is encrypted with 256-bit security and verified via YouVerify
+                  Your NIN is encrypted with 256-bit security and verified via YouVerify
                 </Text>
               </View>
               <TouchableOpacity

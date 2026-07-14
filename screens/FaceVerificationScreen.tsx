@@ -141,7 +141,7 @@ export default function FaceVerificationScreen({ navigation }: any) {
 
         <View style={styles.introContent}>
           <View style={styles.faceIconCircle}>
-            <Text style={styles.faceIcon}>😊</Text>
+            <Text style={styles.faceIcon}></Text>
           </View>
           <Text style={styles.introTitle}>Face Verification</Text>
           <Text style={styles.introSubtitle}>
@@ -168,7 +168,7 @@ export default function FaceVerificationScreen({ navigation }: any) {
             {[
               '💡 Find a well-lit area',
               '👓 Remove glasses if possible',
-              '📱 Hold phone at eye level',
+              'Hold phone at eye level',
               '😐 Keep a neutral expression',
               '🚫 No hats or face coverings'
             ].map((tip, i) => (

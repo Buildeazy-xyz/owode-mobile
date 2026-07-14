@@ -78,7 +78,7 @@ export default function AppLockScreen({ onUnlock }: { onUnlock: () => void }) {
 
       {/* PIN Keypad */}
       <PinKeypad
-        title="App Locked 🔒"
+        title="App Locked"
         subtitle="Enter your 6-digit PIN to unlock"
         pinLength={6}
         onComplete={handlePinComplete}
@@ -92,7 +92,7 @@ export default function AppLockScreen({ onUnlock }: { onUnlock: () => void }) {
             style={styles.biometricBtn}
           >
             <Text style={styles.biometricText}>
-              {biometricInfo?.hasFaceID ? '😊 Use Face ID' : '👆 Use Fingerprint'}
+              {biometricInfo?.hasFaceID ? 'Use Face ID' : '👆 Use Fingerprint'}
             </Text>
           </TouchableOpacity>
         )}
