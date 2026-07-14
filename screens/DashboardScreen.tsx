@@ -193,7 +193,7 @@ export default function DashboardScreen({ navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <ScrollView
+      <ScrollView contentContainerStyle={{ paddingBottom: 110 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />}
         showsVerticalScrollIndicator={false}
       >
@@ -261,12 +261,12 @@ export default function DashboardScreen({ navigation }: any) {
             <View style={styles.walletRow}>
               <View style={styles.walletStat}>
                 <Text style={styles.walletSubLabel}>Total Saved</Text>
-                <Text style={styles.walletSubValue}>₦{(wallet?.totalSaved || 0).toLocaleString()}</Text>
+                <Text style={styles.walletSubValue}>{balanceVisible ? `₦${(wallet?.totalSaved || 0).toLocaleString()}` : '••••'}</Text>
               </View>
               <View style={styles.walletDivider} />
               <View style={styles.walletStat}>
                 <Text style={styles.walletSubLabel}>Total Payout</Text>
-                <Text style={styles.walletSubValue}>₦{(wallet?.totalPayout || 0).toLocaleString()}</Text>
+                <Text style={styles.walletSubValue}>{balanceVisible ? `₦${(wallet?.totalPayout || 0).toLocaleString()}` : '••••'}</Text>
               </View>
             </View>
           </View>

@@ -166,7 +166,7 @@ export default function ProfileScreen({ navigation }: any) {
   ]
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView contentContainerStyle={{ paddingBottom: 110 }} style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Header */}
       <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
@@ -178,9 +178,21 @@ export default function ProfileScreen({ navigation }: any) {
         <View style={styles.avatarContainer}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>{currentUser?.fullName?.charAt(0)}</Text>
-            <TouchableOpacity style={styles.avatarEdit} onPress={() => { /* KYC_PIC_LOCK */ if (!currentUser?.isVerified) { Alert.alert("Verification Required", "Complete BVN/NIN and face verification first. Your profile photo will match your verified identity.") } }}>
+            <TouchableOpacity
+              style={styles.avatarEdit}
+              onPress={() => {
+                if (!currentUser?.isVerified) {
+                  Alert.alert(
+                    'Verification Required',
+                    'Complete BVN/NIN and face verification first. Your profile photo will match your verified identity.'
+                  )
+                } else {
+                  Alert.alert('Coming Soon', 'Profile photo upload will be available in the next update.')
+                }
+              }}
+            >
               <Ionicons name="camera" size={13} color="#fff" />
-            </View>
+            </TouchableOpacity>
           </View>
           <Text style={styles.name}>{currentUser?.fullName}</Text>
           <Text style={styles.phone}>{currentUser?.phone}</Text>
@@ -197,7 +209,7 @@ export default function ProfileScreen({ navigation }: any) {
             </View>
             <View style={[styles.badge, { borderColor: '#f5a623' }]}>
               <Text style={[styles.badgeText, { color: '#f5a623' }]}>{currentUser?.role}</Text>
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
       </LinearGradient>

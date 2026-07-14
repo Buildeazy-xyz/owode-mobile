@@ -5,7 +5,8 @@ import {
   Image, Dimensions, KeyboardAvoidingView, Platform
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
-import { kycAPI } from '../utils/api'
+import { kycAPI, authAPI } from '../utils/api'
+import { Ionicons } from '@expo/vector-icons'
 
 const { width } = Dimensions.get('window')
 
@@ -14,6 +15,14 @@ export default function KYCVerificationScreen({ navigation }: any) {
   const [bvn, setBvn] = useState('')
   const [nin, setNin] = useState('')
   const [loading, setLoading] = useState(false)
+  const [kycStatusState, setKycStatusState] = useState<{hasBVN?: boolean; hasNIN?: boolean}>({})
+
+  React.useEffect(() => {
+    authAPI.getMe().then((r: any) => {
+      const d = r.data?.data
+      if (d) setKycStatusState({ hasBVN: d.hasBVN, hasNIN: d.hasNIN })
+    }).catch(() => {})
+  }, [])
 
   const handleSubmitBVN = async () => {
     if (bvn.length !== 11) {
@@ -26,8 +35,9 @@ export default function KYCVerificationScreen({ navigation }: any) {
       Alert.alert(
         'BVN Submitted ✅',
         response.data.message || 'Your BVN has been submitted for verification!',
-        [{ text: 'OK', onPress: () => navigation.goBack() }]
+        [{ text: 'OK' }]
       )
+      setKycStatusState(st => ({ ...st, hasBVN: true }))
     } catch (error: any) {
       Alert.alert('Error', error.response?.data?.message || 'Something went wrong')
     } finally {
@@ -46,8 +56,9 @@ export default function KYCVerificationScreen({ navigation }: any) {
       Alert.alert(
         'NIN Submitted ✅',
         response.data.message || 'Your NIN has been submitted for verification!',
-        [{ text: 'OK', onPress: () => navigation.goBack() }]
+        [{ text: 'OK' }]
       )
+      setKycStatusState(st => ({ ...st, hasNIN: true }))
     } catch (error: any) {
       Alert.alert('Error', error.response?.data?.message || 'Something went wrong')
     } finally {
@@ -98,6 +109,18 @@ export default function KYCVerificationScreen({ navigation }: any) {
             </View>
           </View>
         </View>
+
+        {(kycStatusState.hasBVN || kycStatusState.hasNIN) && (
+          <View style={{ marginHorizontal: 20, marginBottom: 4, backgroundColor: '#e8f5e9', borderRadius: 12, padding: 14, flexDirection: 'row', alignItems: 'center' }}>
+            <Ionicons name="checkmark-circle" size={22} color="#2e7d32" />
+            <View style={{ marginLeft: 10, flex: 1 }}>
+              <Text style={{ color: '#2e7d32', fontWeight: '700', fontSize: 14 }}>
+                {kycStatusState.hasBVN && kycStatusState.hasNIN ? 'BVN & NIN submitted' : kycStatusState.hasBVN ? 'BVN submitted' : 'NIN submitted'} — under review
+              </Text>
+              <Text style={{ color: '#4b6b4d', fontSize: 12, marginTop: 2 }}>Your details are saved. No need to resubmit.</Text>
+            </View>
+          </View>
+        )}
 
         {/* Tabs */}
         <View style={styles.section}>

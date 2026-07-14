@@ -243,7 +243,7 @@ export default function AjoScreen({ navigation }: any) {
       {loading ? (
         <ActivityIndicator size="large" color="#0d47a1" style={{ marginTop: 60 }} />
       ) : (
-        <ScrollView
+        <ScrollView contentContainerStyle={{ paddingBottom: 110 }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           showsVerticalScrollIndicator={false}
         >

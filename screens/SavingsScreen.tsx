@@ -3,7 +3,8 @@ import {
   View, Text, StyleSheet, TouchableOpacity,
   ScrollView, Alert, RefreshControl,
   TextInput, ActivityIndicator, Dimensions
-} , KeyboardAvoidingView, Platform } from 'react-native'
+, KeyboardAvoidingView, Platform
+} from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { savingsAPI } from '../utils/api'
 import { LineChart, ProgressChart } from 'react-native-chart-kit'
@@ -187,7 +188,7 @@ export default function SavingsScreen({ navigation }: any) {
           <View style={{ width: 50 }} />
         </LinearGradient>
 
-        <ScrollView automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={{ paddingBottom: 110 }} automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <View style={styles.createContent}>
             <Text style={styles.fieldLabel}>What are you saving for?</Text>
             <ScrollView automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} style={styles.categoryRow}>

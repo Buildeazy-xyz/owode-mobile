@@ -87,7 +87,7 @@ export default function WalletScreen({ navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <ScrollView
+      <ScrollView contentContainerStyle={{ paddingBottom: 110 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />}
         showsVerticalScrollIndicator={false}
       >
