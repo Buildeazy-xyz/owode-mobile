@@ -8,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { useAuth } from '../context/AuthContext'
 import { walletAPI } from '../utils/api'
 import * as Haptics from 'expo-haptics'
-import { announcePayment } from '../utils/speech'
+import { announceNewCredit } from '../utils/speech'
 import { isBiometricEnabled, getBiometricType } from '../utils/biometrics'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 

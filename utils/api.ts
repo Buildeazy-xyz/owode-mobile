@@ -27,10 +27,10 @@ export const authAPI = {
   api.post('/users/send-otp', { phone, dialCode }),
   verifyOTP: (phone: string, otp: string) =>
     api.post('/users/verify-otp', { phone, otp }),
-  setTransactionPin: (transactionPin: string) =>
-    api.post('/users/transaction-pin/set', { transactionPin }),
-  setAppPin: (appPin: string) =>
-    api.post('/users/app-pin/set', { appPin }),
+  setTransactionPin: (transactionPin: string, currentPin?: string) =>
+    api.post('/users/transaction-pin/set', { transactionPin, currentPin }),
+  setAppPin: (appPin: string, currentPin?: string) =>
+    api.post('/users/app-pin/set', { appPin, currentPin }),
   verifyAppPin: (appPin: string) =>
     api.post('/users/app-pin/verify', { appPin })
 }

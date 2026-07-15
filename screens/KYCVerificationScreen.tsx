@@ -140,7 +140,14 @@ export default function KYCVerificationScreen({ navigation }: any) {
         </View>
 
         {/* BVN Form */}
-        {activeTab === 'bvn' && (
+        {activeTab === 'bvn' && kycStatusState.hasBVN && (
+          <View style={{ marginHorizontal: 20, backgroundColor: '#fff8e1', borderRadius: 14, padding: 20, alignItems: 'center' }}>
+            <Ionicons name="time-outline" size={34} color="#f5a623" />
+            <Text style={{ fontWeight: '800', fontSize: 16, color: '#333', marginTop: 8 }}>BVN Under Review</Text>
+            <Text style={{ color: '#666', fontSize: 13, textAlign: 'center', marginTop: 6 }}>Your BVN has been submitted and is being verified. You will be notified once it is approved.</Text>
+          </View>
+        )}
+        {activeTab === 'bvn' && !kycStatusState.hasBVN && (
           <View style={styles.section}>
             <View style={styles.formCard}>
               <Text style={styles.formTitle}>Bank Verification Number (BVN)</Text>
@@ -193,7 +200,14 @@ export default function KYCVerificationScreen({ navigation }: any) {
         )}
 
         {/* NIN Form */}
-        {activeTab === 'nin' && (
+        {activeTab === 'nin' && kycStatusState.hasNIN && (
+          <View style={{ marginHorizontal: 20, backgroundColor: '#fff8e1', borderRadius: 14, padding: 20, alignItems: 'center' }}>
+            <Ionicons name="time-outline" size={34} color="#f5a623" />
+            <Text style={{ fontWeight: '800', fontSize: 16, color: '#333', marginTop: 8 }}>NIN Under Review</Text>
+            <Text style={{ color: '#666', fontSize: 13, textAlign: 'center', marginTop: 6 }}>Your NIN has been submitted and is being verified. You will be notified once it is approved.</Text>
+          </View>
+        )}
+        {activeTab === 'nin' && !kycStatusState.hasNIN && (
           <View style={styles.section}>
             <View style={styles.formCard}>
               <Text style={styles.formTitle}>National Identification Number (NIN)</Text>

@@ -6,7 +6,7 @@ import {
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { walletAPI } from '../utils/api'
-import { announcePayment } from '../utils/speech'
+import { announceNewCredit } from '../utils/speech'
 import { showPaymentNotification } from '../utils/notifications'
 
 const { width } = Dimensions.get('window')
@@ -27,14 +27,8 @@ export default function WalletScreen({ navigation }: any) {
       const response = await walletAPI.getBalance()
       setWallet(response.data.data)
       const latestTx = response.data.data?.transactions?.[0]
-      if (latestTx && !announcedRef.current) {
-        announcePayment({
-          type: latestTx.type,
-          amount: latestTx.amount,
-          sender: latestTx.description?.includes('from') ?
-            latestTx.description.split('from')[1]?.split('—')[0]?.trim() : undefined
-        })
-        announcedRef.current = true
+      if (latestTx && latestTx.type === 'CREDIT') {
+        announceNewCredit(latestTx.id)
       }
       if (latestTx && latestTx.id !== lastTxRef.current) {
         lastTxRef.current = latestTx.id
