@@ -23,8 +23,8 @@ export const authAPI = {
  getMe: () => api.get('/users/me'),
   getReferral: () => api.get('/users/referral'),
   updateEmail: (email: string) => api.put('/users/update-email', { email }),
-  sendOTP: (phone: string, dialCode?: string) =>
-  api.post('/users/send-otp', { phone, dialCode }),
+  sendOTP: (phone: string, dialCode?: string, email?: string) =>
+    api.post('/users/send-otp', { phone, dialCode, email }),
   verifyOTP: (phone: string, otp: string) =>
     api.post('/users/verify-otp', { phone, otp }),
   setTransactionPin: (transactionPin: string, currentPin?: string) =>

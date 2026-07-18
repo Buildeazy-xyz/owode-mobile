@@ -155,15 +155,35 @@ export default function SavingsScreen({ navigation }: any) {
     data: activeGoals.slice(0, 4).map(g => Math.min((g.progress || 0) / 100, 1))
   }
 
-  // Savings over time (use contributions if available)
-  const savingsLineData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-    datasets: [{
-      data: [0, totalSaved * 0.1, totalSaved * 0.3, totalSaved * 0.5, totalSaved * 0.8, totalSaved],
-      color: () => '#0d47a1',
-      strokeWidth: 3
-    }]
+  // Savings over time — built from REAL contributions across all goals
+  const allContributions = goals
+    .flatMap((g: any) => (g.contributions || []).map((c: any) => ({ amount: c.amount, date: new Date(c.createdAt) })))
+    .filter((c: any) => c.amount > 0)
+    .sort((a: any, b: any) => a.date.getTime() - b.date.getTime())
+
+  const buildLineData = () => {
+    if (allContributions.length === 0) {
+      return { labels: ['Start'], datasets: [{ data: [0], color: () => '#0d47a1', strokeWidth: 3 }] }
+    }
+    // group by month, cumulative
+    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+    const byMonth: Record<string, number> = {}
+    allContributions.forEach((c: any) => {
+      const key = `${monthNames[c.date.getMonth()]} ${String(c.date.getFullYear()).slice(2)}`
+      byMonth[key] = (byMonth[key] || 0) + c.amount
+    })
+    const keys = Object.keys(byMonth)
+    // cumulative running total
+    let running = 0
+    const cumulative = keys.map(k => { running += byMonth[k]; return running })
+    // cap to last 6 points so the chart stays readable
+    const sliceFrom = Math.max(0, keys.length - 6)
+    return {
+      labels: keys.slice(sliceFrom),
+      datasets: [{ data: cumulative.slice(sliceFrom), color: () => '#0d47a1', strokeWidth: 3 }]
+    }
   }
+  const savingsLineData = buildLineData()
 
   const chartConfig = {
     backgroundColor: '#fff',
@@ -520,7 +540,7 @@ export default function SavingsScreen({ navigation }: any) {
                   {totalSaved > 0 && (
                     <View style={styles.analyticsCard}>
                       <Text style={styles.analyticsTitle}>Savings Growth</Text>
-                      <Text style={styles.analyticsSubtitle}>Estimated growth trajectory</Text>
+                      <Text style={styles.analyticsSubtitle}>Your actual savings over time</Text>
                       <LineChart
                         data={savingsLineData}
                         width={width - 64}

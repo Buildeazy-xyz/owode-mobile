@@ -14,6 +14,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 const { width, height } = Dimensions.get('window')
 const TOTAL_STEPS = 9
 
+// ⚠️ TESTING ONLY — set back to false once Termii SMS is approved
+const SKIP_OTP_FOR_TESTING = true
+
 const COUNTRIES = [
   { name: 'Nigeria', code: 'NG', dial: '+234', flag: '🇳🇬', digits: 11 },
   { name: 'Ghana', code: 'GH', dial: '+233', flag: '🇬🇭', digits: 10 },
@@ -43,6 +46,7 @@ export default function RegisterScreen({ navigation }: any) {
   const [year, setYear] = useState('')
 
   // Step 3
+  const [email, setEmail] = useState('')
   const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[0])
   const [phone, setPhone] = useState('')
   const [showCountryPicker, setShowCountryPicker] = useState(false)
@@ -109,7 +113,7 @@ export default function RegisterScreen({ navigation }: any) {
   try {
     setLoading(true)
     const fullPhone = '0' + phone // add leading zero back for backend
-    await authAPI.sendOTP(fullPhone, selectedCountry.dial)
+    await authAPI.sendOTP(fullPhone, selectedCountry.dial, email.trim() || undefined)
     startResendTimer()
     Alert.alert('OTP Sent!', `A 6-digit code has been sent to ${selectedCountry.dial}${phone}`)
   } catch (error: any) {
@@ -156,6 +160,7 @@ export default function RegisterScreen({ navigation }: any) {
     const response = await authAPI.register({
       fullName,
       phone: fullPhone,
+        email: email.trim() || undefined,
       password,
       dateOfBirth,
       country: selectedCountry.name
@@ -591,21 +596,37 @@ export default function RegisterScreen({ navigation }: any) {
             {selectedCountry.digits}-digit number for {selectedCountry.name}
           </Text>
 
+          <Text style={styles.inputLabel}>Email Address *</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="you@example.com"
+            placeholderTextColor="#aaa"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+
           <View style={styles.infoCard}>
-            <Text style={styles.infoText}>📨 A 6-digit OTP will be sent to this number via SMS</Text>
+            <Text style={styles.infoText}>A 6-digit code will be sent by SMS, with email as backup</Text>
           </View>
 
           <TouchableOpacity
-            style={[styles.button, phone.length < selectedCountry.digits - 1 && styles.buttonDisabled]}
+            style={[styles.button, (phone.length < selectedCountry.digits - 1 || !email.trim()) && styles.buttonDisabled]}
             onPress={async () => {
               if (phone.length < selectedCountry.digits - 1) {
                 Alert.alert('Error', `Enter a valid ${selectedCountry.digits}-digit phone number`)
                 return
               }
+              if (!email.trim() || !email.includes('@') || !email.includes('.')) {
+                Alert.alert('Email Required', 'Please enter a valid email address. Your verification code may be sent here.')
+                return
+              }
               await handleSendOTP()
               if (!loading) goNext()
             }}
-            disabled={phone.length < selectedCountry.digits - 1 || loading}
+            disabled={phone.length < selectedCountry.digits - 1 || !email.trim() || loading}
           >
             {loading
               ? <ActivityIndicator color="#fff" />
@@ -704,9 +725,20 @@ export default function RegisterScreen({ navigation }: any) {
           >
             {loading
               ? <ActivityIndicator color="#fff" />
-              : <Text style={styles.buttonText}>Verify OTP ✓</Text>
+              : <Text style={styles.buttonText}>Verify OTP</Text>
             }
           </TouchableOpacity>
+
+          {SKIP_OTP_FOR_TESTING && (
+            <TouchableOpacity
+              style={{ marginTop: 14, paddingVertical: 12, alignItems: 'center' }}
+              onPress={() => goNext()}
+            >
+              <Text style={{ color: '#f5a623', fontWeight: '700', fontSize: 15 }}>
+                Skip verification (testing) →
+              </Text>
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity
             onPress={handleSendOTP}
