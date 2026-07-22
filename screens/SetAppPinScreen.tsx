@@ -27,7 +27,20 @@ export default function SetAppPinScreen({ navigation, route }: any) {
 
   const resetTo = (s: 'current' | 'new' | 'confirm') => { setStep(s); setKeypadKey(k => k + 1) }
 
-  const handleCurrent = (pin: string) => { setCurrentPin(pin); resetTo('new') }
+  const handleCurrent = async (pin: string) => {
+    // verify the current app pin against backend before allowing change
+    try {
+      setLoading(true)
+      await authAPI.verifyAppPin(pin)
+      setCurrentPin(pin)
+      resetTo('new')
+    } catch (error: any) {
+      Alert.alert('Wrong Current PIN', 'The current app lock PIN you entered is incorrect. Please try again.')
+      resetTo('current')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleNew = (pin: string) => {
     if (hasExistingPin && pin === currentPin) {
@@ -55,11 +68,8 @@ export default function SetAppPinScreen({ navigation, route }: any) {
       }
     } catch (error: any) {
       const msg = error.response?.data?.message || ''
-      if (msg.includes('incorrect')) {
-        Alert.alert('Wrong Current PIN', 'The current app PIN you entered is incorrect. Please start again.')
-        setCurrentPin(''); setNewPin(''); resetTo('current')
-      } else if (msg.includes('CURRENT_PIN_REQUIRED')) {
-        Alert.alert('Verification Needed', 'Please enter your current app PIN first.')
+      if (msg.includes('incorrect') || msg.includes('CURRENT_PIN')) {
+        Alert.alert('Verification Failed', 'Please start again and enter your current PIN.')
         setCurrentPin(''); setNewPin(''); resetTo('current')
       } else {
         Alert.alert('Error', msg || 'Something went wrong. Please try again.')
@@ -101,7 +111,6 @@ export default function SetAppPinScreen({ navigation, route }: any) {
           title={stepInfo.title}
           subtitle={stepInfo.sub}
           pinLength={6}
-          requireConfirm={false}
           onComplete={stepInfo.handler}
         />
       )}

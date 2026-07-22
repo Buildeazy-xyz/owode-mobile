@@ -32,6 +32,7 @@ export default function DashboardScreen({ navigation }: any) {
   const [showNotifications, setShowNotifications] = useState(false)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [balanceVisible, setBalanceVisible] = useState(true)
+  const [hasAppPin, setHasAppPin] = useState(true)
   const lastTxRef = useRef<string | null>(null)
   const initialLoadDone = useRef(false)
 
@@ -191,6 +192,10 @@ export default function DashboardScreen({ navigation }: any) {
   const trustScore = user?.trustScore || 50
   const trustColor = trustScore >= 65 ? '#22c55e' : trustScore >= 35 ? '#f5a623' : '#ef4444'
 
+  useEffect(() => {
+    AsyncStorage.getItem('has_app_pin').then(v => setHasAppPin(!!v))
+  }, [])
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={{ paddingBottom: 110 }}
@@ -284,6 +289,21 @@ export default function DashboardScreen({ navigation }: any) {
               <Text style={styles.verifyBannerDesc}>Submit BVN or NIN to unlock all features</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color="#f5a623" />
+          </TouchableOpacity>
+        )}
+
+        {/* App Lock prompt — shows if no app lock PIN set */}
+        {!hasAppPin && (
+          <TouchableOpacity
+            style={styles.lockPrompt}
+            onPress={() => navigation.navigate('SetAppPin')}
+          >
+            <Ionicons name="lock-closed-outline" size={22} color="#0d47a1" />
+            <View style={styles.verifyBannerText}>
+              <Text style={styles.lockPromptTitle}>Set your App Lock PIN</Text>
+              <Text style={styles.lockPromptDesc}>Add a 6-digit PIN to secure your app</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#0d47a1" />
           </TouchableOpacity>
         )}
 
@@ -453,6 +473,9 @@ export default function DashboardScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
+  lockPrompt: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#eaf2ff', borderColor: '#dbe9ff', borderWidth: 1, borderRadius: 14, padding: 16, marginHorizontal: 16, marginTop: 12 },
+  lockPromptTitle: { fontSize: 15, fontWeight: '700', color: '#0d47a1' },
+  lockPromptDesc: { fontSize: 12.5, color: '#5a6b8a', marginTop: 2 },
   container: { flex: 1, backgroundColor: '#f5f5f5' },
   header: { padding: 24, paddingTop: 56, paddingBottom: 28 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },

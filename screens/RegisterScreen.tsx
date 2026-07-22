@@ -15,7 +15,7 @@ const { width, height } = Dimensions.get('window')
 const TOTAL_STEPS = 9
 
 // ⚠️ TESTING ONLY — set back to false once Termii SMS is approved
-const SKIP_OTP_FOR_TESTING = true
+const SKIP_OTP_FOR_TESTING = false
 
 const COUNTRIES = [
   { name: 'Nigeria', code: 'NG', dial: '+234', flag: '🇳🇬', digits: 11 },
@@ -596,7 +596,7 @@ export default function RegisterScreen({ navigation }: any) {
             {selectedCountry.digits}-digit number for {selectedCountry.name}
           </Text>
 
-          <Text style={styles.inputLabel}>Email Address *</Text>
+          <Text style={styles.inputLabel}>Email Address (optional)</Text>
           <TextInput
             style={styles.input}
             placeholder="you@example.com"
@@ -609,24 +609,24 @@ export default function RegisterScreen({ navigation }: any) {
           />
 
           <View style={styles.infoCard}>
-            <Text style={styles.infoText}>A 6-digit code will be sent by SMS, with email as backup</Text>
+            <Text style={styles.infoText}>A 6-digit code will be sent by SMS. Add email for backup delivery.</Text>
           </View>
 
           <TouchableOpacity
-            style={[styles.button, (phone.length < selectedCountry.digits - 1 || !email.trim()) && styles.buttonDisabled]}
+            style={[styles.button, (phone.length < selectedCountry.digits - 1) && styles.buttonDisabled]}
             onPress={async () => {
               if (phone.length < selectedCountry.digits - 1) {
                 Alert.alert('Error', `Enter a valid ${selectedCountry.digits}-digit phone number`)
                 return
               }
-              if (!email.trim() || !email.includes('@') || !email.includes('.')) {
-                Alert.alert('Email Required', 'Please enter a valid email address. Your verification code may be sent here.')
+              if (email.trim() && (!email.includes('@') || !email.includes('.'))) {
+                Alert.alert('Invalid Email', 'Please enter a valid email address, or leave it blank.')
                 return
               }
               await handleSendOTP()
               if (!loading) goNext()
             }}
-            disabled={phone.length < selectedCountry.digits - 1 || !email.trim() || loading}
+            disabled={phone.length < selectedCountry.digits - 1 || loading}
           >
             {loading
               ? <ActivityIndicator color="#fff" />

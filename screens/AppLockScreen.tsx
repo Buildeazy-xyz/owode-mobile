@@ -71,7 +71,7 @@ export default function AppLockScreen({ onUnlock }: { onUnlock: () => void }) {
         />
         <View style={styles.userBadge}>
           <Text style={styles.userBadgeText}>
-            👤 {user?.fullName?.split(' ')[0]}
+            {user?.fullName?.split(' ')[0]}
           </Text>
         </View>
       </View>
@@ -92,10 +92,23 @@ export default function AppLockScreen({ onUnlock }: { onUnlock: () => void }) {
             style={styles.biometricBtn}
           >
             <Text style={styles.biometricText}>
-              {biometricInfo?.hasFaceID ? 'Use Face ID' : '👆 Use Fingerprint'}
+              {biometricInfo?.hasFaceID ? 'Use Face ID' : 'Use Fingerprint'}
             </Text>
           </TouchableOpacity>
         )}
+        <TouchableOpacity
+          onPress={() => Alert.alert(
+            'Forgot App Lock PIN?',
+            'To reset it, log in again with your account password. After logging in, go to Profile → Security → Change App Lock PIN to set a new one.',
+            [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Log in with password', onPress: logout }
+            ]
+          )}
+          style={styles.forgotBtn}
+        >
+          <Text style={styles.forgotText}>Forgot App Lock PIN?</Text>
+        </TouchableOpacity>
         <TouchableOpacity onPress={logout} style={styles.logoutBtn}>
           <Text style={styles.logoutText}>Login with password instead</Text>
         </TouchableOpacity>
@@ -115,6 +128,8 @@ const styles = StyleSheet.create({
   bottomActions: { position: 'absolute', bottom: 40, left: 0, right: 0, alignItems: 'center', gap: 12 },
   biometricBtn: { backgroundColor: 'rgba(245,166,35,0.25)', borderRadius: 20, paddingHorizontal: 28, paddingVertical: 12, borderWidth: 1, borderColor: 'rgba(245,166,35,0.4)' },
   biometricText: { color: '#f5a623', fontWeight: '700', fontSize: 15 },
+  forgotBtn: { marginBottom: 4 },
+  forgotText: { color: '#f5a623', fontSize: 14, fontWeight: '600' },
   logoutBtn: { marginTop: 4 },
   logoutText: { color: 'rgba(255,255,255,0.4)', fontSize: 13 }
 })
