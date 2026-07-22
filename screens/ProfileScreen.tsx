@@ -142,8 +142,8 @@ export default function ProfileScreen({ navigation }: any) {
     {
       icon: 'globe-outline' as any, bg: '#fff3e0', iconColor: '#f5a623',
       label: 'Visit Website',
-      sub: 'owode.xyz',
-      onPress: () => Linking.openURL('https://owode.xyz')
+      sub: 'owodealajo.com',
+      onPress: () => Linking.openURL('https://owodealajo.com')
     },
     {
       icon: 'share-social-outline' as any, bg: '#fce4ec', iconColor: '#e91e63',
@@ -155,13 +155,13 @@ export default function ProfileScreen({ navigation }: any) {
       icon: 'document-outline' as any, bg: '#f3e5f5', iconColor: '#9c27b0',
       label: 'Terms & Conditions',
       sub: 'Read our terms of service',
-      onPress: () => Linking.openURL('https://owode.xyz')
+      onPress: () => Linking.openURL('https://owodealajo.com')
     },
     {
       icon: 'shield-checkmark-outline' as any, bg: '#e8f5e9', iconColor: '#22c55e',
       label: 'Privacy Policy',
       sub: 'How we protect your data',
-      onPress: () => Linking.openURL('https://owode.xyz')
+      onPress: () => Linking.openURL('https://owodealajo.com')
     },
   ]
 

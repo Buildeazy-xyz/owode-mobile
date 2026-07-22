@@ -6,6 +6,7 @@ import {
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { walletAPI } from '../utils/api'
+import { Ionicons } from '@expo/vector-icons'
 import { announceNewCredit } from '../utils/speech'
 import { showPaymentNotification } from '../utils/notifications'
 
@@ -19,6 +20,7 @@ export default function WalletScreen({ navigation }: any) {
   const [showSearch, setShowSearch] = useState(false)
   const [selectedTx, setSelectedTx] = useState<any>(null)
   const [balanceVisible, setBalanceVisible] = useState(true)
+  const [period, setPeriod] = useState<'WEEK' | 'MONTH' | 'YEAR' | 'ALL'>('MONTH')
   const announcedRef = useRef(false)
   const lastTxRef = useRef<string | null>(null)
 
@@ -54,7 +56,19 @@ export default function WalletScreen({ navigation }: any) {
     setRefreshing(false)
   }
 
-  const filteredTransactions = wallet?.transactions?.filter((tx: any) => {
+  const inPeriod = (tx: any) => {
+    if (period === 'ALL') return true
+    const d = new Date(tx.createdAt)
+    const now = new Date()
+    if (period === 'WEEK') { const w = new Date(now); w.setDate(now.getDate() - 7); return d >= w }
+    if (period === 'MONTH') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
+    if (period === 'YEAR') return d.getFullYear() === now.getFullYear()
+    return true
+  }
+
+  const periodTx = wallet?.transactions?.filter(inPeriod) || []
+
+  const filteredTransactions = periodTx.filter((tx: any) => {
     const matchFilter = filter === 'ALL' || tx.type === filter
     const matchSearch = !search ||
       tx.description?.toLowerCase().includes(search.toLowerCase()) ||
@@ -62,21 +76,22 @@ export default function WalletScreen({ navigation }: any) {
     return matchFilter && matchSearch
   })
 
-  const totalCredit = wallet?.transactions
-    ?.filter((tx: any) => tx.type === 'CREDIT')
-    ?.reduce((sum: number, tx: any) => sum + tx.amount, 0) || 0
+  const totalCredit = periodTx
+    .filter((tx: any) => tx.type === 'CREDIT')
+    .reduce((sum: number, tx: any) => sum + tx.amount, 0)
 
-  const totalDebit = wallet?.transactions
-    ?.filter((tx: any) => tx.type === 'DEBIT')
-    ?.reduce((sum: number, tx: any) => sum + tx.amount, 0) || 0
+  const totalDebit = periodTx
+    .filter((tx: any) => tx.type === 'DEBIT')
+    .reduce((sum: number, tx: any) => sum + tx.amount, 0)
 
   const getTxIcon = (description: string) => {
-    if (description?.toLowerCase().includes('ajo')) return ''
-    if (description?.toLowerCase().includes('transfer')) return ''
-    if (description?.toLowerCase().includes('savings')) return '🐷'
-    if (description?.toLowerCase().includes('welcome')) return ''
-    if (description?.toLowerCase().includes('withdrawal')) return ''
-    return ''
+    const d = description?.toLowerCase() || ''
+    if (d.includes('ajo')) return 'people'
+    if (d.includes('transfer')) return 'swap-horizontal'
+    if (d.includes('savings')) return 'wallet'
+    if (d.includes('welcome')) return 'gift'
+    if (d.includes('withdrawal')) return 'arrow-down-circle'
+    return 'cash'
   }
 
   return (
@@ -109,21 +124,27 @@ export default function WalletScreen({ navigation }: any) {
               {balanceVisible ? `₦${(wallet?.balance || 0).toLocaleString()}` : '₦ ••••••'}
             </Text>
 
+            {/* Period Selector */}
+            <View style={styles.periodRow}>
+              {(['WEEK','MONTH','YEAR','ALL'] as const).map((k) => (
+                <TouchableOpacity key={k} onPress={() => setPeriod(k)} style={[styles.periodPill, period === k && styles.periodPillActive]}>
+                  <Text style={[styles.periodPillText, period === k && styles.periodPillTextActive]}>
+                    {k === 'WEEK' ? 'Week' : k === 'MONTH' ? 'Month' : k === 'YEAR' ? 'Year' : 'All'}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
             {/* Stats Row */}
             <View style={styles.statsRow}>
               <View style={styles.statItem}>
                 <Text style={styles.statLabel}>Money In</Text>
-                <Text style={styles.statValue}>₦{totalCredit.toLocaleString()}</Text>
+                <Text style={[styles.statValue, { color: '#7CFFB2' }]}>{balanceVisible ? `₦${totalCredit.toLocaleString()}` : '••••'}</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
                 <Text style={styles.statLabel}>Money Out</Text>
-                <Text style={styles.statValue}>₦{totalDebit.toLocaleString()}</Text>
-              </View>
-              <View style={styles.statDivider} />
-              <View style={styles.statItem}>
-                <Text style={styles.statLabel}>Total Saved</Text>
-                <Text style={styles.statValue}>₦{(wallet?.totalSaved || 0).toLocaleString()}</Text>
+                <Text style={[styles.statValue, { color: '#FF9E9E' }]}>{balanceVisible ? `₦${totalDebit.toLocaleString()}` : '••••'}</Text>
               </View>
             </View>
           </View>
@@ -136,7 +157,7 @@ export default function WalletScreen({ navigation }: any) {
               onPress={() => navigation.navigate('Transfer')}
             >
               <View style={[styles.actionIconBg, { backgroundColor: '#e3f2fd' }]}>
-                <Text style={styles.actionIcon}></Text>
+                <Ionicons name='paper-plane' size={23} color='#1565c0' />
               </View>
               <Text style={styles.actionText}>Send Money</Text>
             </TouchableOpacity>
@@ -145,7 +166,7 @@ export default function WalletScreen({ navigation }: any) {
               onPress={() => navigation.navigate('Savings')}
             >
               <View style={[styles.actionIconBg, { backgroundColor: '#e8f5e9' }]}>
-                <Text style={styles.actionIcon}>🐷</Text>
+                <Ionicons name='wallet' size={23} color='#2e7d32' />
               </View>
               <Text style={styles.actionText}>Savings</Text>
             </TouchableOpacity>
@@ -154,7 +175,7 @@ export default function WalletScreen({ navigation }: any) {
               onPress={() => Alert.alert('Coming Soon', 'Bank withdrawal will be available after Providus Bank integration!')}
             >
               <View style={[styles.actionIconBg, { backgroundColor: '#fff3e0' }]}>
-                <Text style={styles.actionIcon}></Text>
+                <Ionicons name='cash' size={23} color='#ef6c00' />
               </View>
               <Text style={styles.actionText}>Withdraw</Text>
             </TouchableOpacity>
@@ -163,7 +184,7 @@ export default function WalletScreen({ navigation }: any) {
               onPress={() => navigation.navigate('Ajo')}
             >
               <View style={[styles.actionIconBg, { backgroundColor: '#f3e5f5' }]}>
-                <Text style={styles.actionIcon}></Text>
+                <Ionicons name='people' size={23} color='#7b1fa2' />
               </View>
               <Text style={styles.actionText}>Ajo Groups</Text>
             </TouchableOpacity>
@@ -271,7 +292,7 @@ export default function WalletScreen({ navigation }: any) {
                         styles.txIconCircle,
                         { backgroundColor: tx.type === 'CREDIT' ? '#e8f5e9' : '#ffebee' }
                       ]}>
-                        <Text style={styles.txIcon}>{getTxIcon(tx.description)}</Text>
+                        <Ionicons name={getTxIcon(tx.description) as any} size={20} color={tx.type === 'CREDIT' ? '#2e7d32' : '#c62828'} />
                       </View>
                       <View style={styles.txMiddle}>
                         <Text style={styles.txDesc} numberOfLines={1}>{tx.description}</Text>
@@ -389,6 +410,11 @@ export default function WalletScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
+  periodRow: { flexDirection: 'row', gap: 6, marginTop: 14, marginBottom: 6 },
+  periodPill: { flex: 1, paddingVertical: 7, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center' },
+  periodPillActive: { backgroundColor: '#f5a623' },
+  periodPillText: { color: 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: '600' },
+  periodPillTextActive: { color: '#fff', fontWeight: '700' },
   container: { flex: 1, backgroundColor: '#f5f5f5' },
   header: { padding: 24, paddingTop: 56, paddingBottom: 28 },
   headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },

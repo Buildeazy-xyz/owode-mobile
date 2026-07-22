@@ -7,6 +7,7 @@ import {
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { savingsAPI } from '../utils/api'
+import PinKeypad from '../components/PinKeypad'
 import { LineChart, ProgressChart } from 'react-native-chart-kit'
 
 const { width } = Dimensions.get('window')
@@ -43,6 +44,7 @@ export default function SavingsScreen({ navigation }: any) {
   const [autoDebitFreq, setAutoDebitFreq] = useState('WEEKLY')
   const [selectedCategory, setSelectedCategory] = useState(GOAL_CATEGORIES[9])
   const [depositAmount, setDepositAmount] = useState('')
+  const [pinAction, setPinAction] = useState<null | { type: 'deposit' | 'withdraw'; goal?: any }>(null)
 
   const loadGoals = async () => {
     try {
@@ -97,17 +99,37 @@ export default function SavingsScreen({ navigation }: any) {
       Alert.alert('Error', 'Enter a valid amount')
       return
     }
+    setPinAction({ type: 'deposit' })
+  }
+
+  const executeDeposit = async (transactionPin: string) => {
     try {
       setSaving(true)
-      const response = await savingsAPI.deposit(selectedGoal.id, Number(depositAmount))
-      Alert.alert('✅ Deposited!', response.data.message)
+      const response = await savingsAPI.deposit(selectedGoal.id, Number(depositAmount), transactionPin)
+      setPinAction(null)
+      Alert.alert('Deposited!', response.data.message)
       setScreen('list')
       setDepositAmount('')
       await loadGoals()
     } catch (error: any) {
+      setPinAction(null)
       Alert.alert('Error', error.response?.data?.message || 'Something went wrong')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const executeWithdraw = async (transactionPin: string) => {
+    const goal = pinAction?.goal
+    if (!goal) { setPinAction(null); return }
+    try {
+      const response = await savingsAPI.withdraw(goal.id, transactionPin)
+      setPinAction(null)
+      Alert.alert('Withdrawn!', response.data.message)
+      await loadGoals()
+    } catch (error: any) {
+      setPinAction(null)
+      Alert.alert('Error', error.response?.data?.message || 'Something went wrong')
     }
   }
 
@@ -122,15 +144,8 @@ export default function SavingsScreen({ navigation }: any) {
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Withdraw', style: isEarly ? 'destructive' : 'default',
-          onPress: async () => {
-            try {
-              const response = await savingsAPI.withdraw(goal.id)
-              Alert.alert('✅ Withdrawn!', response.data.message)
-              await loadGoals()
-            } catch (error: any) {
-              Alert.alert('Error', error.response?.data?.message || 'Something went wrong')
-            }
-          }
+          onPress: () => setPinAction({ type: 'withdraw', goal })
+
         }
       ]
     )
@@ -197,6 +212,22 @@ export default function SavingsScreen({ navigation }: any) {
   }
 
   // CREATE SCREEN
+  if (pinAction) {
+    return (
+      <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
+        <PinKeypad
+          title="Enter Transaction PIN"
+          subtitle={pinAction.type === 'deposit' ? 'Confirm your savings deposit' : 'Confirm your withdrawal'}
+          pinLength={4}
+          onComplete={(pin: string) => pinAction.type === 'deposit' ? executeDeposit(pin) : executeWithdraw(pin)}
+        />
+        <TouchableOpacity onPress={() => setPinAction(null)} style={{ marginTop: 16 }}>
+          <Text style={{ color: '#f5a623', fontSize: 15, fontWeight: '600' }}>Cancel</Text>
+        </TouchableOpacity>
+      </LinearGradient>
+    )
+  }
+
   if (screen === 'create') {
     return (
       <View style={styles.container}>

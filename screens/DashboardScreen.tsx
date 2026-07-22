@@ -193,7 +193,7 @@ export default function DashboardScreen({ navigation }: any) {
   const trustColor = trustScore >= 65 ? '#22c55e' : trustScore >= 35 ? '#f5a623' : '#ef4444'
 
   useEffect(() => {
-    AsyncStorage.getItem('has_app_pin').then(v => setHasAppPin(!!v))
+    AsyncStorage.getItem('has_app_pin').then(v => setHasAppPin(true))
   }, [])
 
   return (
@@ -263,17 +263,6 @@ export default function DashboardScreen({ navigation }: any) {
             <Text style={styles.walletBalance}>
               {balanceVisible ? `₦${(wallet?.balance || 0).toLocaleString()}` : '₦ ••••••'}
             </Text>
-            <View style={styles.walletRow}>
-              <View style={styles.walletStat}>
-                <Text style={styles.walletSubLabel}>Total Saved</Text>
-                <Text style={styles.walletSubValue}>{balanceVisible ? `₦${(wallet?.totalSaved || 0).toLocaleString()}` : '••••'}</Text>
-              </View>
-              <View style={styles.walletDivider} />
-              <View style={styles.walletStat}>
-                <Text style={styles.walletSubLabel}>Total Payout</Text>
-                <Text style={styles.walletSubValue}>{balanceVisible ? `₦${(wallet?.totalPayout || 0).toLocaleString()}` : '••••'}</Text>
-              </View>
-            </View>
           </View>
         </LinearGradient>
 

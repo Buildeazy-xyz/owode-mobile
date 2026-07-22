@@ -29,6 +29,8 @@ export const authAPI = {
     api.post('/users/verify-otp', { phone, otp }),
   setTransactionPin: (transactionPin: string, currentPin?: string) =>
     api.post('/users/transaction-pin/set', { transactionPin, currentPin }),
+  resetTransactionPin: (otp: string, newPin: string) =>
+    api.post('/users/transaction-pin/reset', { otp, newPin }),
   setAppPin: (appPin: string, currentPin?: string) =>
     api.post('/users/app-pin/set', { appPin, currentPin }),
   verifyAppPin: (appPin: string) =>
@@ -82,10 +84,10 @@ export const savingsAPI = {
     targetDate: string
     initialDeposit?: number
   }) => api.post('/savings/create', data),
-  deposit: (goalId: string, amount: number) =>
-    api.post('/savings/deposit', { goalId, amount }),
-  withdraw: (goalId: string) =>
-    api.post('/savings/withdraw', { goalId }),
+  deposit: (goalId: string, amount: number, transactionPin: string) =>
+    api.post('/savings/deposit', { goalId, amount, transactionPin }),
+  withdraw: (goalId: string, transactionPin: string) =>
+    api.post('/savings/withdraw', { goalId, transactionPin }),
   getGoals: () => api.get('/savings/goals'),
   getGoal: (id: string) => api.get(`/savings/goals/${id}`)
 }

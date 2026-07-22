@@ -1,40 +1,27 @@
 import * as Speech from 'expo-speech'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
-const OWODE_PRONUNCIATION = 'Owode'
+const OWODE = 'Owode'
 let speaking = false
-
-export const speakAlert = (message: string) => {
+const say = (msg: string) => {
   if (speaking) return
   speaking = true
-  Speech.speak(message, {
-    language: 'en-NG',
-    pitch: 1.0,
-    rate: 0.85,
-    onDone: () => { speaking = false },
-    onError: () => { speaking = false }
-  })
+  Speech.stop()
+  Speech.speak(msg, { language: 'en-NG', pitch: 1.0, rate: 0.85,
+    onDone: () => { speaking = false }, onError: () => { speaking = false } })
 }
-
-// Announce ONLY when this transaction id has never been announced before
-export const announceNewCredit = async (txId: string) => {
+export const announceNewCredit = async (txId?: string) => {
   try {
+    if (!txId) return
     const last = await AsyncStorage.getItem('owode_last_announced_tx')
     if (last === txId) return
+    const firstEver = last === null
     await AsyncStorage.setItem('owode_last_announced_tx', txId)
-    if (last === null) return // first ever load: remember silently, do not replay history
-    speakAlert(`Payment received in ${OWODE_PRONUNCIATION}`)
+    if (firstEver) return
+    say('Payment received in ' + OWODE)
   } catch (e) {}
 }
-
-export const announcePayment = (data: { type: 'CREDIT' | 'DEBIT'; amount: number; sender?: string }) => {
-  try { if (data.type === 'CREDIT') speakAlert(`Payment received in ${OWODE_PRONUNCIATION}`) } catch (e) {}
-}
-
-export const announceAjoPayout = (amount: number, groupName: string) => {
-  try { speakAlert(`Payment received in ${OWODE_PRONUNCIATION}`) } catch (e) {}
-}
-
-export const announceContribution = (amount: number, groupName: string) => {
-  try { speakAlert(`Contribution successful in ${OWODE_PRONUNCIATION}`) } catch (e) {}
-}
+export const speakAlert = (msg: string) => say(msg)
+export const announcePayment = (..._args: any[]) => {}
+export const announceAjoPayout = (..._args: any[]) => { say('Payment received in ' + OWODE) }
+export const announceContribution = (..._args: any[]) => { say('Contribution successful in ' + OWODE) }
