@@ -163,6 +163,17 @@ export default function SettingsScreen({ navigation }: any) {
           />
         </View>
 
+        <Text style={styles.groupTitle}>Support</Text>
+        <View style={styles.card}>
+          <Row
+            icon="help-buoy-outline"
+            label="Help & Support"
+            sub="Chat, call, email and FAQs"
+            onPress={() => navigation.navigate('HelpSupport')}
+            last
+          />
+        </View>
+
         <Text style={styles.groupTitle}>Legal</Text>
         <View style={styles.card}>
           <Row

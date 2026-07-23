@@ -9,6 +9,7 @@ import WalletScreen from '../screens/WalletScreen'
 import AjoScreen from '../screens/AjoScreen'
 import ProfileScreen from '../screens/ProfileScreen'
 import SettingsScreen from '../screens/SettingsScreen'
+import HelpSupportScreen from '../screens/HelpSupportScreen'
 import TransferScreen from '../screens/TransferScreen'
 import ReceiptScreen from '../screens/ReceiptScreen'
 import SetAppPinScreen from '../screens/SetAppPinScreen'
@@ -38,6 +39,7 @@ export default function AppNavigator() {
     <Stack.Screen name="TrustScore" component={TrustScoreScreen} />
     <Stack.Screen name="Profile" component={ProfileScreen} />
     <Stack.Screen name="Settings" component={SettingsScreen} />
+    <Stack.Screen name="HelpSupport" component={HelpSupportScreen} />
     <Stack.Screen name="Transfer" component={TransferScreen} />
     <Stack.Screen name="Receipt" component={ReceiptScreen} />
     <Stack.Screen name="SetAppPin" component={SetAppPinScreen} />
