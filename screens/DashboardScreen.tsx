@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
-  RefreshControl, Alert, Modal, Dimensions, Image
+  RefreshControl, Alert, Modal, Dimensions, Image, Clipboard
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Ionicons } from '@expo/vector-icons'
@@ -23,6 +23,17 @@ interface Notification {
   createdAt: string
 }
 
+const friendlyDate = (iso: string) => {
+  const d = new Date(iso)
+  const now = new Date()
+  const same = (a: Date, b: Date) => a.toDateString() === b.toDateString()
+  const y = new Date(now); y.setDate(now.getDate() - 1)
+  const t = d.toLocaleTimeString('en-NG', { hour: 'numeric', minute: '2-digit' })
+  if (same(d, now)) return `Today, ${t}`
+  if (same(d, y)) return `Yesterday, ${t}`
+  return d.toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
 export default function DashboardScreen({ navigation }: any) {
   const { user } = useAuth()
   const [wallet, setWallet] = useState<any>(null)
@@ -35,6 +46,22 @@ export default function DashboardScreen({ navigation }: any) {
   const [hasAppPin, setHasAppPin] = useState(true)
   const lastTxRef = useRef<string | null>(null)
   const initialLoadDone = useRef(false)
+
+  const [copied, setCopied] = useState(false)
+
+  const copyAccount = () => {
+    Clipboard.setString(user?.phone || '')
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleAddMoney = () => {
+    Alert.alert(
+      'Add Money',
+      'Ask a friend to send money to your OWODE number, or visit an OWODE agent to fund your wallet.',
+      [{ text: 'Got it' }]
+    )
+  }
 
   const loadWallet = async () => {
     try {
@@ -250,6 +277,13 @@ export default function DashboardScreen({ navigation }: any) {
 
           {/* Balance Card */}
           <View style={styles.walletCard}>
+            <TouchableOpacity style={styles.acctRow} onPress={copyAccount} activeOpacity={0.7}>
+              <Text style={styles.acctText} numberOfLines={1}>
+                {user?.phone} · {user?.fullName}
+              </Text>
+              <Ionicons name={copied ? 'checkmark' : 'copy-outline'} size={13} color="rgba(255,255,255,0.75)" />
+            </TouchableOpacity>
+
             <View style={styles.walletTop}>
               <Text style={styles.walletLabel}>Total Balance</Text>
               <TouchableOpacity onPress={() => setBalanceVisible(!balanceVisible)}>
@@ -263,6 +297,18 @@ export default function DashboardScreen({ navigation }: any) {
             <Text style={styles.walletBalance}>
               {balanceVisible ? `₦${(wallet?.balance || 0).toLocaleString()}` : '₦ ••••••'}
             </Text>
+            <Text style={styles.walletUpdated}>Last updated just now</Text>
+
+            <View style={styles.walletActions}>
+              <TouchableOpacity style={styles.walletActionGold} onPress={handleAddMoney}>
+                <Ionicons name="add" size={15} color="#fff" />
+                <Text style={styles.walletActionGoldText}>Add money</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.walletActionGhost} onPress={() => navigation.navigate('Wallet')}>
+                <Ionicons name="time-outline" size={15} color="#fff" />
+                <Text style={styles.walletActionGhostText}>History</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </LinearGradient>
 
@@ -318,6 +364,29 @@ export default function DashboardScreen({ navigation }: any) {
           </View>
         </TouchableOpacity>
 
+        {/* Rewards */}
+        <Text style={styles.sectionTitle}>Rewards</Text>
+        <View style={styles.rewardsRow}>
+          <TouchableOpacity style={styles.rewardCard} onPress={() => navigation.navigate('Referral')}>
+            <View style={[styles.rewardIcon, { backgroundColor: '#fff8e1' }]}>
+              <Ionicons name="gift-outline" size={16} color="#f5a623" />
+            </View>
+            <Text style={styles.rewardLabel}>Referral earnings</Text>
+            <Text style={styles.rewardValue}>
+              {balanceVisible ? `₦${(wallet?.referralEarnings || 0).toLocaleString()}` : '••••'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.rewardCard} onPress={() => navigation.navigate('Savings')}>
+            <View style={[styles.rewardIcon, { backgroundColor: '#e8f5e9' }]}>
+              <Ionicons name="trending-up-outline" size={16} color="#22c55e" />
+            </View>
+            <Text style={styles.rewardLabel}>Total saved</Text>
+            <Text style={styles.rewardValue}>
+              {balanceVisible ? `₦${(wallet?.totalSaved || 0).toLocaleString()}` : '••••'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Quick Actions */}
         <Text style={styles.sectionTitle}>Quick Actions</Text>
         <View style={styles.actionsGrid}>
@@ -368,9 +437,7 @@ export default function DashboardScreen({ navigation }: any) {
               </View>
               <View style={styles.txMiddle}>
                 <Text style={styles.txDesc} numberOfLines={1}>{tx.description}</Text>
-                <Text style={styles.txDate}>
-                  {new Date(tx.createdAt).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' })}
-                </Text>
+                <Text style={styles.txDate}>{friendlyDate(tx.createdAt)}</Text>
               </View>
               <Text style={[styles.txAmount, { color: tx.type === 'CREDIT' ? '#22c55e' : '#ef4444' }]}>
                 {tx.type === 'CREDIT' ? '+' : '-'}₦{tx.amount.toLocaleString()}
@@ -462,6 +529,19 @@ export default function DashboardScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
+  acctRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 },
+  acctText: { color: 'rgba(255,255,255,0.75)', fontSize: 11.5, flexShrink: 1 },
+  walletUpdated: { color: 'rgba(255,255,255,0.55)', fontSize: 11, marginTop: 4 },
+  walletActions: { flexDirection: 'row', gap: 10, marginTop: 14 },
+  walletActionGold: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, backgroundColor: '#f5a623', paddingVertical: 10, borderRadius: 10 },
+  walletActionGoldText: { color: '#fff', fontSize: 12.5, fontWeight: '700' },
+  walletActionGhost: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, backgroundColor: 'rgba(255,255,255,0.14)', paddingVertical: 10, borderRadius: 10 },
+  walletActionGhostText: { color: '#fff', fontSize: 12.5, fontWeight: '700' },
+  rewardsRow: { flexDirection: 'row', gap: 12, marginHorizontal: 16, marginBottom: 4 },
+  rewardCard: { flex: 1, backgroundColor: '#fff', borderRadius: 14, padding: 14, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
+  rewardIcon: { width: 28, height: 28, borderRadius: 9, justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
+  rewardLabel: { fontSize: 11, color: '#7c8aa5' },
+  rewardValue: { fontSize: 15, fontWeight: '700', color: '#1a2b4a', marginTop: 2 },
   lockPrompt: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#eaf2ff', borderColor: '#dbe9ff', borderWidth: 1, borderRadius: 14, padding: 16, marginHorizontal: 16, marginTop: 12 },
   lockPromptTitle: { fontSize: 15, fontWeight: '700', color: '#0d47a1' },
   lockPromptDesc: { fontSize: 12.5, color: '#5a6b8a', marginTop: 2 },
