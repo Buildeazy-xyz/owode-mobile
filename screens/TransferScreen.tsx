@@ -32,7 +32,7 @@ export default function TransferScreen({ navigation }: any) {
               if (success) executeTransfer('BIOMETRIC_AUTH')
             }
           },
-          { text: '🔢 Use PIN', onPress: () => setStep('pin') },
+          { text: 'Use PIN', onPress: () => setStep('pin') },
           { text: 'Cancel', style: 'cancel' }
         ]
       )

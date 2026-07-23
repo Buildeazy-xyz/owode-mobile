@@ -32,9 +32,9 @@ export default function TrustScoreScreen({ navigation }: any) {
   const getScoreEmoji = (score: number) => {
     if (score >= 80) return ''
     if (score >= 65) return ''
-    if (score >= 50) return '😐'
-    if (score >= 35) return '😟'
-    return '😰'
+    if (score >= 50) return ''
+    if (score >= 35) return ''
+    return ''
   }
 
   return (

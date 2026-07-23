@@ -154,7 +154,7 @@ export default function PinKeypad({
 
         <Text style={styles.hint}>
           {isConfirming
-            ? '🔐 Re-enter to confirm your PIN'
+            ? 'Re-enter to confirm your PIN'
             : `Enter ${pinLength} digits`
           }
         </Text>

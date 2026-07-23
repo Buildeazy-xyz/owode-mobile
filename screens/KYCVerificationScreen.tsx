@@ -33,7 +33,7 @@ export default function KYCVerificationScreen({ navigation }: any) {
       setLoading(true)
       const response = await kycAPI.submitBVN(bvn)
       Alert.alert(
-        'BVN Submitted ✅',
+        'BVN Submitted',
         response.data.message || 'Your BVN has been submitted for verification!',
         [{ text: 'OK' }]
       )
@@ -54,7 +54,7 @@ export default function KYCVerificationScreen({ navigation }: any) {
       setLoading(true)
       const response = await kycAPI.submitNIN(nin)
       Alert.alert(
-        'NIN Submitted ✅',
+        'NIN Submitted',
         response.data.message || 'Your NIN has been submitted for verification!',
         [{ text: 'OK' }]
       )
@@ -132,7 +132,7 @@ export default function KYCVerificationScreen({ navigation }: any) {
                 onPress={() => setActiveTab(tab)}
               >
                 <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-                  {tab === 'bvn' ? 'BVN' : '🪪 NIN'}
+                  {tab === 'bvn' ? 'BVN' : 'NIN'}
                 </Text>
               </TouchableOpacity>
             ))}

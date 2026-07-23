@@ -51,7 +51,7 @@ export default function BiometricSetupScreen({ navigation }: any) {
         await AsyncStorage.setItem('biometric_enabled', 'true')
         setIsEnabled(true)
         Alert.alert(
-          '✅ Enabled!',
+          'Enabled!',
           `${biometricInfo?.label} is now enabled for OWODE. You can use it to unlock the app and authorize transactions.`,
           [{ text: 'Great!', onPress: () => navigation.goBack() }]
         )
@@ -82,9 +82,9 @@ export default function BiometricSetupScreen({ navigation }: any) {
   const handleTest = async () => {
     const success = await authenticateWithBiometrics('Test your biometric authentication')
     if (success) {
-      Alert.alert('✅ Success!', 'Biometric authentication is working perfectly!')
+      Alert.alert('Success!', 'Biometric authentication is working perfectly!')
     } else {
-      Alert.alert('❌ Failed', 'Biometric authentication failed. Please try again.')
+      Alert.alert('Failed', 'Biometric authentication failed. Please try again.')
     }
   }
 
@@ -112,7 +112,7 @@ export default function BiometricSetupScreen({ navigation }: any) {
           {/* Biometric Icon */}
           <Animated.View style={[styles.biometricCircle, { transform: [{ scale: pulseAnim }] }]}>
             <Text style={styles.biometricIcon}>
-              {biometricInfo.hasFaceID ? '' : '👆'}
+              {biometricInfo.hasFaceID ? '' : ''}
             </Text>
           </Animated.View>
 
@@ -162,7 +162,7 @@ export default function BiometricSetupScreen({ navigation }: any) {
                 <ActivityIndicator color="#fff" />
               ) : (
                 <Text style={styles.enableBtnText}>
-                  {biometricInfo.hasFaceID ? 'Enable Face ID' : '👆 Enable Fingerprint'}
+                  {biometricInfo.hasFaceID ? 'Enable Face ID' : 'Enable Fingerprint'}
                 </Text>
               )}
             </TouchableOpacity>

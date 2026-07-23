@@ -12,6 +12,16 @@ import { showPaymentNotification } from '../utils/notifications'
 
 const { width } = Dimensions.get('window')
 
+const dayLabel = (iso: string) => {
+  const d = new Date(iso)
+  const now = new Date()
+  const same = (a: Date, b: Date) => a.toDateString() === b.toDateString()
+  const y = new Date(now); y.setDate(now.getDate() - 1)
+  if (same(d, now)) return 'Today'
+  if (same(d, y)) return 'Yesterday'
+  return d.toLocaleDateString('en-NG', { weekday: 'long', day: 'numeric', month: 'long' })
+}
+
 export default function WalletScreen({ navigation }: any) {
   const [wallet, setWallet] = useState<any>(null)
   const [refreshing, setRefreshing] = useState(false)
@@ -104,11 +114,11 @@ export default function WalletScreen({ navigation }: any) {
         <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.header}>
           <View style={styles.headerTop}>
             <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Text style={styles.back}>← Back</Text>
+              <Ionicons name="chevron-back" size={22} color="#f5a623" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>My Wallet</Text>
             <TouchableOpacity onPress={() => setShowSearch(!showSearch)}>
-              <Text style={styles.searchIcon}>🔍</Text>
+              <Ionicons name="search" size={16} color="#9aa5b8" />
             </TouchableOpacity>
           </View>
 
@@ -117,7 +127,7 @@ export default function WalletScreen({ navigation }: any) {
             <View style={styles.balanceTop}>
               <Text style={styles.balanceLabel}>Available Balance</Text>
               <TouchableOpacity onPress={() => setBalanceVisible(!balanceVisible)}>
-                <Text style={styles.eyeIcon}>{balanceVisible ? '👁️' : '🙈'}</Text>
+                <Ionicons name={balanceVisible ? "eye-outline" : "eye-off-outline"} size={19} color="rgba(255,255,255,0.8)" />
               </TouchableOpacity>
             </View>
             <Text style={styles.balanceAmount}>
@@ -191,7 +201,7 @@ export default function WalletScreen({ navigation }: any) {
           </View>
         {/* Info Card */}
         <View style={styles.infoCard}>
-          <Text style={styles.infoIcon}>💡</Text>
+          <Ionicons name="bulb-outline" size={16} color="#f5a623" />
           <View style={{ flex: 1 }}>
             <Text style={styles.infoTitle}>How to fund your wallet</Text>
             <Text style={styles.infoDesc}>
@@ -213,7 +223,7 @@ export default function WalletScreen({ navigation }: any) {
             />
             {search.length > 0 && (
               <TouchableOpacity onPress={() => setSearch('')} style={styles.clearSearch}>
-                <Text style={styles.clearSearchText}>✕</Text>
+                <Ionicons name="close-circle" size={16} color="#9aa5b8" />
               </TouchableOpacity>
             )}
           </View>
@@ -232,8 +242,8 @@ export default function WalletScreen({ navigation }: any) {
           <View style={styles.filterRow}>
             {[
               { key: 'ALL', label: 'All', count: wallet?.transactions?.length || 0 },
-              { key: 'CREDIT', label: '⬆️ In', count: wallet?.transactions?.filter((t: any) => t.type === 'CREDIT').length || 0 },
-              { key: 'DEBIT', label: '⬇️ Out', count: wallet?.transactions?.filter((t: any) => t.type === 'DEBIT').length || 0 },
+              { key: 'CREDIT', label: 'In', count: wallet?.transactions?.filter((t: any) => t.type === 'CREDIT').length || 0 },
+              { key: 'DEBIT', label: 'Out', count: wallet?.transactions?.filter((t: any) => t.type === 'DEBIT').length || 0 },
             ].map(f => (
               <TouchableOpacity
                 key={f.key}
@@ -255,7 +265,7 @@ export default function WalletScreen({ navigation }: any) {
           {/* Transaction List */}
           {!filteredTransactions?.length ? (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyIcon}>📭</Text>
+              <Ionicons name="receipt-outline" size={44} color="#9aa5b8" />
               <Text style={styles.emptyText}>No transactions found</Text>
               <Text style={styles.emptySubText}>
                 {search ? 'Try a different search term' : 'Your transactions will appear here'}
@@ -266,21 +276,15 @@ export default function WalletScreen({ navigation }: any) {
               {filteredTransactions.map((tx: any, index: number) => {
                 const isFirst = index === 0
                 const prevTx = filteredTransactions[index - 1]
-                const txDate = new Date(tx.createdAt).toLocaleDateString('en-NG', {
-                  day: 'numeric', month: 'short', year: 'numeric'
-                })
-                const prevDate = prevTx ? new Date(prevTx.createdAt).toLocaleDateString('en-NG', {
-                  day: 'numeric', month: 'short', year: 'numeric'
-                }) : null
+                const txDate = dayLabel(tx.createdAt)
+                const prevDate = prevTx ? dayLabel(prevTx.createdAt) : null
                 const showDate = isFirst || txDate !== prevDate
 
                 return (
                   <View key={tx.id}>
                     {showDate && (
-                      <View style={styles.dateHeader}>
-                        <View style={styles.dateLine} />
-                        <Text style={styles.dateText}>{txDate}</Text>
-                        <View style={styles.dateLine} />
+                      <View style={styles.dayHeader}>
+                        <Text style={styles.dayHeaderText}>{txDate}</Text>
                       </View>
                     )}
                     <TouchableOpacity
@@ -292,7 +296,7 @@ export default function WalletScreen({ navigation }: any) {
                         styles.txIconCircle,
                         { backgroundColor: tx.type === 'CREDIT' ? '#e8f5e9' : '#ffebee' }
                       ]}>
-                        <Ionicons name={getTxIcon(tx.description) as any} size={20} color={tx.type === 'CREDIT' ? '#2e7d32' : '#c62828'} />
+                        <Ionicons name={getTxIcon(tx.description) as any} size={20} color={tx.type === 'CREDIT' ? '#22c55e' : '#ef4444'} />
                       </View>
                       <View style={styles.txMiddle}>
                         <Text style={styles.txDesc} numberOfLines={1}>{tx.description}</Text>
@@ -309,7 +313,7 @@ export default function WalletScreen({ navigation }: any) {
                             styles.txStatusText,
                             { color: tx.status === 'SUCCESS' ? '#22c55e' : '#f5a623' }
                           ]}>
-                            {tx.status === 'SUCCESS' ? '✅ Success' : '⏳ Pending'}
+                            {tx.status === 'SUCCESS' ? 'Success' : '⏳ Pending'}
                           </Text>
                         </View>
                       </View>
@@ -369,7 +373,7 @@ export default function WalletScreen({ navigation }: any) {
                     { backgroundColor: selectedTx.status === 'SUCCESS' ? '#22c55e' : '#f5a623' }
                   ]}>
                     <Text style={styles.modalStatusText}>
-                      {selectedTx.status === 'SUCCESS' ? '✅ Successful' : '⏳ Pending'}
+                      {selectedTx.status === 'SUCCESS' ? 'Successful' : '⏳ Pending'}
                     </Text>
                   </View>
                 </LinearGradient>
@@ -377,7 +381,7 @@ export default function WalletScreen({ navigation }: any) {
                 {/* Details */}
                 <View style={styles.modalDetails}>
                   {[
-                    { label: 'Type', value: selectedTx.type === 'CREDIT' ? '⬆️ Money In' : '⬇️ Money Out' },
+                    { label: 'Type', value: selectedTx.type === 'CREDIT' ? 'Money In' : 'Money Out' },
                     { label: 'Description', value: selectedTx.description },
                     { label: 'Balance After', value: `₦${selectedTx.balance?.toLocaleString()}` },
                     { label: 'Reference', value: selectedTx.reference },
@@ -410,6 +414,8 @@ export default function WalletScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
+  dayHeader: { paddingTop: 18, paddingBottom: 8, paddingHorizontal: 2 },
+  dayHeaderText: { fontSize: 12.5, fontWeight: '700', color: '#7c8aa5' },
   periodRow: { flexDirection: 'row', gap: 6, marginTop: 14, marginBottom: 6 },
   periodPill: { flex: 1, paddingVertical: 7, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center' },
   periodPillActive: { backgroundColor: '#f5a623' },

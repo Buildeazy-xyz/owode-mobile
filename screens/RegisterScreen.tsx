@@ -133,7 +133,7 @@ export default function RegisterScreen({ navigation }: any) {
       await authAPI.verifyOTP(phone, otp)
       goNext()
     } catch (error: any) {
-      Alert.alert('Wrong OTP ❌', error.response?.data?.message || 'Invalid OTP. Try again.')
+      Alert.alert('Wrong OTP', error.response?.data?.message || 'Invalid OTP. Try again.')
       setOtp('')
       otpInputRef.current?.focus()
     } finally {
@@ -396,7 +396,7 @@ export default function RegisterScreen({ navigation }: any) {
             </Text>
             <View style={styles.faceTips}>
               <Text style={styles.faceTipsTitle}>For best results:</Text>
-              {['💡 Find a well-lit area', '👓 Remove glasses if possible', 'Hold phone at eye level', '😐 Keep neutral expression'].map((tip, i) => (
+              {['Find a well-lit area', 'Remove glasses if possible', 'Hold phone at eye level', 'Keep neutral expression'].map((tip, i) => (
                 <Text key={i} style={styles.faceTip}>{tip}</Text>
               ))}
             </View>
@@ -539,7 +539,7 @@ export default function RegisterScreen({ navigation }: any) {
               }
               const age = new Date().getFullYear() - parseInt(year)
               if (age < 18) {
-                Alert.alert('Too Young ❌', 'You must be at least 18 years old to use OWODE')
+                Alert.alert('Too Young', 'You must be at least 18 years old to use OWODE')
                 return
               }
               if (age > 100) {
@@ -746,7 +746,7 @@ export default function RegisterScreen({ navigation }: any) {
             style={styles.resendBtn}
           >
             <Text style={[styles.resendText, resendTimer > 0 && styles.resendTextDisabled]}>
-              {resendTimer > 0 ? `⏱ Resend in ${resendTimer}s` : '🔄 Resend OTP'}
+              {resendTimer > 0 ? `⏱ Resend in ${resendTimer}s` : 'Resend OTP'}
             </Text>
           </TouchableOpacity>
 
@@ -861,7 +861,7 @@ export default function RegisterScreen({ navigation }: any) {
           {password && confirmPassword && (
             <View style={password === confirmPassword ? styles.successCard : styles.errorCard}>
               <Text style={password === confirmPassword ? styles.successText : styles.errorText}>
-                {password === confirmPassword ? '✅ Passwords match!' : '❌ Passwords do not match'}
+                {password === confirmPassword ? 'Passwords match!' : 'Passwords do not match'}
               </Text>
             </View>
           )}
@@ -886,7 +886,7 @@ export default function RegisterScreen({ navigation }: any) {
               <Text style={styles.strengthText}>
                 {password.length >= 8 && /[A-Z]/.test(password) && /[0-9]/.test(password)
                   ? 'Strong' : password.length >= 6 && /[0-9]/.test(password)
-                  ? '👍 Good' : '⚠️ Weak'}
+                  ? 'Good' : 'Weak'}
               </Text>
             </View>
           )}

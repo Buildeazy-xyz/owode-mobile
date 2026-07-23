@@ -166,11 +166,11 @@ export default function FaceVerificationScreen({ navigation }: any) {
           <View style={styles.tipsCard}>
             <Text style={styles.tipsTitle}>For best results:</Text>
             {[
-              '💡 Find a well-lit area',
-              '👓 Remove glasses if possible',
+              'Find a well-lit area',
+              'Remove glasses if possible',
               'Hold phone at eye level',
-              '😐 Keep a neutral expression',
-              '🚫 No hats or face coverings'
+              'Keep a neutral expression',
+              'No hats or face coverings'
             ].map((tip, i) => (
               <Text key={i} style={styles.tipItem}>{tip}</Text>
             ))}

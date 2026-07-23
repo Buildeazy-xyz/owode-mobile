@@ -70,7 +70,7 @@ export default function SplashScreenComponent({ onFinish }: { onFinish: () => vo
 
           {/* Feature badges */}
           <View style={styles.badges}>
-            {['🛡️ Guaranteed', '💰 Digital Wallet', '🤝 Community'].map((badge, i) => (
+            {['Guaranteed', 'Digital Wallet', 'Community'].map((badge, i) => (
               <View key={i} style={styles.badge}>
                 <Text style={styles.badgeText}>{badge}</Text>
               </View>

@@ -45,7 +45,7 @@ export default function GroupHistoryScreen({ route, navigation }: any) {
           {group.members?.map((m: any) => (
             <View key={m.id} style={styles.memberCard}>
               <View style={[styles.positionBadge, { backgroundColor: m.isAvatar ? '#f5a623' : '#0d47a1' }]}>
-                <Text style={styles.positionText}>{m.isAvatar ? '🤖' : `#${m.position}`}</Text>
+                <Text style={styles.positionText}>{m.isAvatar ? '' : `#${m.position}`}</Text>
               </View>
               <View style={styles.memberInfo}>
                 <Text style={styles.memberName}>{m.isAvatar ? 'Owode Avatar' : m.user?.fullName}</Text>

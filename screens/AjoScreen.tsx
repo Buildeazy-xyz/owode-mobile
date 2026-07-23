@@ -67,7 +67,7 @@ export default function AjoScreen({ navigation }: any) {
   const handleJoinStandard = async (groupId: string) => {
     try {
       const response = await ajoAPI.joinGroup(groupId)
-      Alert.alert('✅ Joined!', response.data.message)
+      Alert.alert('Joined!', response.data.message)
       await loadGroups()
     } catch (error: any) {
       Alert.alert('Error', error.response?.data?.message || 'Something went wrong')
@@ -77,7 +77,7 @@ export default function AjoScreen({ navigation }: any) {
   const handleJoinGuaranteed = async (groupId: string) => {
     try {
       await guaranteedAjoAPI.joinGroup(groupId)
-      Alert.alert('✅ Joined!', 'You joined the Guaranteed Ajo group!')
+      Alert.alert('Joined!', 'You joined the Guaranteed Ajo group!')
       await loadGroups()
     } catch (error: any) {
       Alert.alert('Error', error.response?.data?.message || 'Something went wrong')
@@ -100,7 +100,7 @@ export default function AjoScreen({ navigation }: any) {
                 Alert.alert('Payout!', `₦${data.payoutAmount?.toLocaleString()} paid out this cycle!`)
               } else {
                 announceContribution(amount, groupName)
-                Alert.alert('✅ Contributed!', `${data.paidCount} of ${data.paidCount + data.remainingCount} members paid`)
+                Alert.alert('Contributed!', `${data.paidCount} of ${data.paidCount + data.remainingCount} members paid`)
               }
               await loadGroups()
             } catch (error: any) {
@@ -128,7 +128,7 @@ export default function AjoScreen({ navigation }: any) {
               if (success) await executeGuaranteedContribution('BIOMETRIC_AUTH')
             }
           },
-          { text: '🔢 Use PIN', onPress: () => setContributeModal(true) },
+          { text: 'Use PIN', onPress: () => setContributeModal(true) },
           { text: 'Cancel', style: 'cancel' }
         ]
       )
@@ -147,7 +147,7 @@ export default function AjoScreen({ navigation }: any) {
       if (data.payoutSent) {
         Alert.alert('Payout Sent!', `₦${data.payoutAmount?.toLocaleString()} paid out!`)
       } else {
-        Alert.alert('✅ Contributed!', `${data.paidCount} of ${data.paidCount + data.remainingCount} members paid.`)
+        Alert.alert('Contributed!', `${data.paidCount} of ${data.paidCount + data.remainingCount} members paid.`)
       }
       await loadGroups()
     } catch (error: any) {
@@ -164,7 +164,7 @@ export default function AjoScreen({ navigation }: any) {
       const isGuaranteed = group.type === 'guaranteed'
       await Share.share({
         message:
-          `${isGuaranteed ? '🛡️' : ''} Join my ${isGuaranteed ? 'Guaranteed ' : ''}Ajo group on OWODE!\n\n` +
+          `${isGuaranteed ? '' : ''} Join my ${isGuaranteed ? 'Guaranteed ' : ''}Ajo group on OWODE!\n\n` +
           `Group: ${group.name}\n` +
           `Amount: ₦${group.amount?.toLocaleString()} per cycle\n` +
           (isGuaranteed ? `Guarantee fee: ₦${group.guaranteeFee?.toLocaleString()}\n` : '') +
@@ -303,14 +303,14 @@ export default function AjoScreen({ navigation }: any) {
                         <View key={`gm-${m.id}`} style={styles.memberChip}>
                           <View style={[styles.memberAvatar, { backgroundColor: m.isAvatar ? '#f5a623' : '#0d47a1' }]}>
                             <Text style={styles.memberAvatarText}>
-                              {m.isAvatar ? '🤖' : m.user?.fullName?.charAt(0)}
+                              {m.isAvatar ? '' : m.user?.fullName?.charAt(0)}
                             </Text>
                           </View>
                           <Text style={styles.memberName} numberOfLines={1}>
                             {m.isAvatar ? 'Avatar' : m.userId === user?.id ? 'You' : m.user?.fullName?.split(' ')[0]}
                           </Text>
                           <Text style={{ fontSize: 10, color: m.hasPaid ? '#22c55e' : '#ccc' }}>
-                            {m.hasPaid ? '✅' : '⏳'}
+                            {m.hasPaid ? '' : '⏳'}
                           </Text>
                         </View>
                       ))}
@@ -363,7 +363,7 @@ export default function AjoScreen({ navigation }: any) {
                       </View>
                       <View style={[styles.statusBadge, { backgroundColor: isFull ? '#e8f5e9' : '#fff3e0' }]}>
                         <Text style={[styles.statusBadgeText, { color: isFull ? '#22c55e' : '#f5a623' }]}>
-                          {isFull ? '✅ Full' : `${spotsLeft} left`}
+                          {isFull ? 'Full' : `${spotsLeft} left`}
                         </Text>
                       </View>
                     </View>
@@ -408,7 +408,7 @@ export default function AjoScreen({ navigation }: any) {
                           {m.userId === user?.id ? 'You' : m.user?.fullName?.split(' ')[0]}
                         </Text>
                         <Text style={{ fontSize: 10, color: m.hasPaid ? '#22c55e' : '#ccc' }}>
-                          {m.hasPaid ? '✅' : '⏳'}
+                          {m.hasPaid ? '' : '⏳'}
                         </Text>
                       </View>
                     ))}
@@ -442,7 +442,7 @@ export default function AjoScreen({ navigation }: any) {
                           disabled={!isFull || member?.hasPaid}
                         >
                           <Text style={styles.contributeBtnText}>
-                            {!isFull ? '⏳ Waiting for members' : member?.hasPaid ? '✅ Paid this cycle' : 'Contribute Now'}
+                            {!isFull ? '⏳ Waiting for members' : member?.hasPaid ? 'Paid this cycle' : 'Contribute Now'}
                           </Text>
                         </TouchableOpacity>
                       </>

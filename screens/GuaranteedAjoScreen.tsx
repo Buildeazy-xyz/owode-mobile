@@ -47,7 +47,7 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
   const handleJoin = async (groupId: string) => {
     try {
       await guaranteedAjoAPI.joinGroup(groupId)
-      Alert.alert('✅ Joined!', 'You joined the Guaranteed Ajo group!')
+      Alert.alert('Joined!', 'You joined the Guaranteed Ajo group!')
       await loadGroups()
     } catch (error: any) {
       Alert.alert('Error', error.response?.data?.message || 'Something went wrong')
@@ -93,7 +93,7 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
               }
             }
           },
-          { text: '🔢 Use PIN', onPress: () => setContributeModal(true) },
+          { text: 'Use PIN', onPress: () => setContributeModal(true) },
           { text: 'Cancel', style: 'cancel' }
         ]
       )
@@ -112,7 +112,7 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
       if (data.payoutSent) {
         Alert.alert('Payout Sent!', `₦${data.payoutAmount?.toLocaleString()} has been paid out this cycle!`)
       } else {
-        Alert.alert('✅ Contributed!', `${data.paidCount} of ${data.paidCount + data.remainingCount} members have paid.\n\nGuarantee fee: ₦${selectedGroup.guaranteeFee?.toLocaleString()} collected to pool.`)
+        Alert.alert('Contributed!', `${data.paidCount} of ${data.paidCount + data.remainingCount} members have paid.\n\nGuarantee fee: ₦${selectedGroup.guaranteeFee?.toLocaleString()} collected to pool.`)
       }
       await loadGroups()
     } catch (error: any) {
@@ -203,14 +203,14 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
                   <View key={m.id} style={styles.memberChip}>
                     <View style={[styles.memberAvatar, { backgroundColor: m.isAvatar ? '#f5a623' : '#0d47a1' }]}>
                       <Text style={styles.memberAvatarText}>
-                        {m.isAvatar ? '🤖' : m.user?.fullName?.charAt(0)}
+                        {m.isAvatar ? '' : m.user?.fullName?.charAt(0)}
                       </Text>
                     </View>
                     <Text style={styles.memberName} numberOfLines={1}>
                       {m.isAvatar ? 'Avatar' : m.user?.fullName?.split(' ')[0]}
                     </Text>
                     <Text style={[styles.memberPaid, { color: m.hasPaid ? '#22c55e' : '#888' }]}>
-                      {m.isAvatar ? '✅' : m.hasPaid ? '✅' : '⏳'}
+                      {m.isAvatar ? '' : m.hasPaid ? '' : '⏳'}
                     </Text>
                   </View>
                 ))}

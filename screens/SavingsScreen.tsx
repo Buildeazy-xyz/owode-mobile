@@ -136,7 +136,7 @@ export default function SavingsScreen({ navigation }: any) {
   const handleWithdraw = async (goal: any) => {
     const isEarly = new Date() < new Date(goal.targetDate)
     Alert.alert(
-      isEarly ? '⚠️ Early Withdrawal' : 'Withdraw Savings',
+      isEarly ? 'Early Withdrawal' : 'Withdraw Savings',
       isEarly
         ? `Withdrawing early will deduct a ${goal.penaltyPercent}% penalty.\n\nYou will receive: ₦${(goal.currentAmount * (1 - goal.penaltyPercent / 100)).toLocaleString()}`
         : `Withdraw ₦${goal.currentAmount?.toLocaleString()} to your wallet?`,
@@ -698,7 +698,7 @@ export default function SavingsScreen({ navigation }: any) {
                         <Text style={[styles.statusBadgeText, {
                           color: goal.status === 'COMPLETED' ? '#22c55e' : goal.status === 'WITHDRAWN' ? '#888' : '#0d47a1'
                         }]}>
-                          {goal.status === 'COMPLETED' ? '✅ Done' : goal.status === 'WITHDRAWN' ? 'Withdrawn' : '🔵 Active'}
+                          {goal.status === 'COMPLETED' ? 'Done' : goal.status === 'WITHDRAWN' ? 'Withdrawn' : 'Active'}
                         </Text>
                       </View>
                     </View>
@@ -757,7 +757,7 @@ export default function SavingsScreen({ navigation }: any) {
                           onPress={() => handleWithdraw(goal)}
                         >
                           <Text style={[styles.withdrawBtnText, !goal.canWithdrawFree && { color: '#f5a623' }]}>
-                            {goal.canWithdrawFree ? 'Withdraw' : '⚠️ Early'}
+                            {goal.canWithdrawFree ? 'Withdraw' : 'Early'}
                           </Text>
                         </TouchableOpacity>
                       </View>
