@@ -348,7 +348,7 @@ export default function WalletScreen({ navigation }: any) {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Transaction Details</Text>
               <TouchableOpacity onPress={() => setSelectedTx(null)}>
-                <Text style={styles.modalClose}>✕</Text>
+                <Ionicons name="close" size={22} color="#7c8aa5" />
               </TouchableOpacity>
             </View>
 

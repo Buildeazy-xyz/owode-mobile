@@ -97,7 +97,7 @@ export default function HelpSupportScreen({ navigation }: any) {
           iconBg={colors.tint}
           iconColor={colors.navy}
           title={PHONE}
-          sub="Mon - Sat, 9am to 9pm"
+          sub="Every day, 9am to 9pm"
           actionLabel="Call"
           onPress={() => Linking.openURL(`tel:${PHONE}`)}
         />

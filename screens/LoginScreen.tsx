@@ -3,6 +3,7 @@ import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Image, Dimensions
 } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useAuth } from '../context/AuthContext'
 
@@ -73,7 +74,7 @@ export default function LoginScreen({ navigation }: any) {
             secureTextEntry={!showPassword}
           />
           <TouchableOpacity style={styles.eyeBtn} onPress={() => setShowPassword(!showPassword)}>
-            <Text style={styles.eyeIcon}>{showPassword ? '👁️' : '🙈'}</Text>
+            <Ionicons name={showPassword ? "eye-outline" : "eye-off-outline"} size={20} color="#7c8aa5" />
           </TouchableOpacity>
         </View>
 

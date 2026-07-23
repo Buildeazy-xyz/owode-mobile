@@ -4,6 +4,7 @@ import {
   ScrollView, Alert, RefreshControl, ActivityIndicator,
   TextInput, Share, Modal
 } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { ajoAPI, guaranteedAjoAPI } from '../utils/api'
 import { useAuth } from '../context/AuthContext'
@@ -187,7 +188,7 @@ export default function AjoScreen({ navigation }: any) {
     <View style={styles.container}>
       <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.back}>← Back</Text>
+          <Ionicons name="chevron-back" size={22} color="#f5a623" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Ajo Groups</Text>
         <View style={{ width: 40 }} />
@@ -206,7 +207,7 @@ export default function AjoScreen({ navigation }: any) {
           />
           {search ? (
             <TouchableOpacity onPress={() => setSearch('')}>
-              <Text style={styles.clearSearch}>✕</Text>
+              <Ionicons name="close-circle" size={16} color="#9aa5b8" />
             </TouchableOpacity>
           ) : null}
         </View>
@@ -338,7 +339,7 @@ export default function AjoScreen({ navigation }: any) {
                         </>
                       )}
                       <TouchableOpacity style={styles.shareBtn} onPress={() => handleShare(group)}>
-                        <Text style={styles.shareBtnText}>📤 Share Group</Text>
+                        <Text style={styles.shareBtnText}>Share Group</Text>
                       </TouchableOpacity>
                     </View>
                     <Text style={styles.cycleInfo}>Cycle {group.currentCycle} • Guaranteed Ajo 🛡️</Text>
@@ -448,7 +449,7 @@ export default function AjoScreen({ navigation }: any) {
                       </>
                     )}
                     <TouchableOpacity style={styles.shareBtn} onPress={() => handleShare(group)}>
-                      <Text style={styles.shareBtnText}>📤 Share Group</Text>
+                      <Text style={styles.shareBtnText}>Share Group</Text>
                     </TouchableOpacity>
                   </View>
                   <Text style={styles.cycleInfo}>Cycle {group.currentCycle} • Standard Ajo</Text>

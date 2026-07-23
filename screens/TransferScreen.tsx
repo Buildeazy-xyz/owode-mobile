@@ -1,6 +1,8 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { walletAPI } from '../utils/api'
 import PinKeypad from '../components/PinKeypad'
 import { useAuth } from '../context/AuthContext'
@@ -14,6 +16,22 @@ export default function TransferScreen({ navigation }: any) {
   const [description, setDescription] = useState('')
   const [loading, setLoading] = useState(false)
   const [step, setStep] = useState<'form' | 'pin'>('form')
+  const [recents, setRecents] = useState<any[]>([])
+
+  useEffect(() => {
+    AsyncStorage.getItem('recent_recipients')
+      .then(v => { if (v) setRecents(JSON.parse(v)) })
+      .catch(() => {})
+  }, [])
+
+  const saveRecipient = async (phone: string, name: string) => {
+    try {
+      const raw = await AsyncStorage.getItem('recent_recipients')
+      const list = raw ? JSON.parse(raw) : []
+      const next = [{ phone, name }, ...list.filter((r: any) => r.phone !== phone)].slice(0, 8)
+      await AsyncStorage.setItem('recent_recipients', JSON.stringify(next))
+    } catch (e) {}
+  }
   const isProcessing = useRef(false) // ← prevents double transfer
   const quickAmounts = [500, 1000, 2000, 5000, 10000, 20000]
 
@@ -91,6 +109,7 @@ export default function TransferScreen({ navigation }: any) {
         description,
         transactionPin
       )
+      await saveRecipient(recipientPhone, response.data.data.recipient)
       announcePayment({ type: 'DEBIT', amount: Number(amount) })
       navigation.replace('Receipt', {
         transaction: {
@@ -136,7 +155,7 @@ export default function TransferScreen({ navigation }: any) {
     >
       <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.back}>← Back</Text>
+          <Ionicons name="chevron-back" size={22} color="#f5a623" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Send Money</Text>
         <Text style={styles.headerSubtitle}>Transfer to any OWODE user instantly</Text>
@@ -149,12 +168,28 @@ export default function TransferScreen({ navigation }: any) {
         </View>
       ) : (
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          {recents.length > 0 && (
+            <View style={styles.card}>
+              <Text style={styles.label}>Recent recipients</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 14, paddingTop: 4 }}>
+                {recents.map((r: any) => (
+                  <TouchableOpacity key={r.phone} style={styles.recentItem} onPress={() => setRecipientPhone(r.phone)}>
+                    <View style={styles.recentAvatar}>
+                      <Text style={styles.recentAvatarText}>{(r.name || '?').charAt(0).toUpperCase()}</Text>
+                    </View>
+                    <Text style={styles.recentName} numberOfLines={1}>{(r.name || r.phone).split(' ')[0]}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          )}
+
           <View style={styles.card}>
             <Text style={styles.label}>Recipient Phone Number</Text>
             <TextInput
               style={styles.input}
               placeholder="08012345678"
-              placeholderTextColor="#888"
+              placeholderTextColor="#9aa5b8"
               value={recipientPhone}
               onChangeText={setRecipientPhone}
               keyboardType="phone-pad"
@@ -167,7 +202,7 @@ export default function TransferScreen({ navigation }: any) {
             <TextInput
               style={styles.amountInput}
               placeholder="0.00"
-              placeholderTextColor="#888"
+              placeholderTextColor="#9aa5b8"
               value={amount}
               onChangeText={setAmount}
               keyboardType="numeric"
@@ -193,7 +228,7 @@ export default function TransferScreen({ navigation }: any) {
             <TextInput
               style={styles.input}
               placeholder="What is this for?"
-              placeholderTextColor="#888"
+              placeholderTextColor="#9aa5b8"
               value={description}
               onChangeText={setDescription}
             />
@@ -235,6 +270,10 @@ export default function TransferScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
+  recentItem: { alignItems: 'center', width: 58 },
+  recentAvatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: '#0d47a1', justifyContent: 'center', alignItems: 'center', marginBottom: 5 },
+  recentAvatarText: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  recentName: { fontSize: 11, color: '#7c8aa5', textAlign: 'center' },
   container: { flex: 1, backgroundColor: '#f4f6fb' },
   header: { padding: 24, paddingTop: 60, paddingBottom: 30 },
   back: { color: '#f5a623', fontSize: 16, marginBottom: 16 },

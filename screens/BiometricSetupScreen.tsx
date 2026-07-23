@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity,
   Alert, ActivityIndicator, Animated
 } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { getBiometricType, authenticateWithBiometrics } from '../utils/biometrics'
 import AsyncStorage from '@react-native-async-storage/async-storage'
@@ -91,7 +92,7 @@ export default function BiometricSetupScreen({ navigation }: any) {
   return (
     <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.container}>
       <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()}>
-        <Text style={styles.backText}>← Back</Text>
+        <Ionicons name="chevron-back" size={22} color="#f5a623" />
       </TouchableOpacity>
 
       {loading ? (

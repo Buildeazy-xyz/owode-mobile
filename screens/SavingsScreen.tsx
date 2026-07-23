@@ -6,6 +6,7 @@ import {
 , KeyboardAvoidingView, Platform
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
+import { Ionicons } from '@expo/vector-icons'
 import { savingsAPI } from '../utils/api'
 import PinKeypad from '../components/PinKeypad'
 import { LineChart, ProgressChart } from 'react-native-chart-kit'
@@ -13,16 +14,16 @@ import { LineChart, ProgressChart } from 'react-native-chart-kit'
 const { width } = Dimensions.get('window')
 
 const GOAL_CATEGORIES = [
-  { icon: '', label: 'Gadget' },
-  { icon: '🏠', label: 'House' },
-  { icon: '🚗', label: 'Car' },
-  { icon: '✈️', label: 'Travel' },
-  { icon: '📚', label: 'Education' },
-  { icon: '💒', label: 'Wedding' },
-  { icon: '🏥', label: 'Medical' },
-  { icon: '💼', label: 'Business' },
-  { icon: '', label: 'Gift' },
-  { icon: '🐷', label: 'General' },
+  { ion: 'phone-portrait-outline', label: 'Gadget' },
+  { ion: 'home-outline', label: 'House' },
+  { ion: 'car-outline', label: 'Car' },
+  { ion: 'airplane-outline', label: 'Travel' },
+  { ion: 'school-outline', label: 'Education' },
+  { ion: 'heart-outline', label: 'Wedding' },
+  { ion: 'medkit-outline', label: 'Medical' },
+  { ion: 'briefcase-outline', label: 'Business' },
+  { ion: 'gift-outline', label: 'Gift' },
+  { ion: 'wallet-outline', label: 'General' },
 ]
 
 export default function SavingsScreen({ navigation }: any) {
@@ -73,7 +74,7 @@ export default function SavingsScreen({ navigation }: any) {
     try {
       setSaving(true)
       await savingsAPI.createGoal({
-        title: `${selectedCategory.icon} ${title}`,
+        title: title.trim(),
         description,
         goalAmount: Number(goalAmount),
         initialDeposit: initialDeposit ? Number(initialDeposit) : undefined,
@@ -233,7 +234,7 @@ export default function SavingsScreen({ navigation }: any) {
       <View style={styles.container}>
         <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.createHeader}>
           <TouchableOpacity onPress={() => setScreen('list')}>
-            <Text style={styles.back}>← Back</Text>
+            <Ionicons name="chevron-back" size={22} color="#f5a623" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Create Goal</Text>
           <View style={{ width: 50 }} />
@@ -249,7 +250,7 @@ export default function SavingsScreen({ navigation }: any) {
                   style={[styles.categoryChip, selectedCategory.label === cat.label && styles.categoryChipActive]}
                   onPress={() => setSelectedCategory(cat)}
                 >
-                  <Text style={styles.categoryIcon}>{cat.icon}</Text>
+                  <Ionicons name={cat.ion as any} size={22} color={selectedCategory.label === cat.label ? '#0d47a1' : '#7c8aa5'} style={{ marginBottom: 4 }} />
                   <Text style={[styles.categoryLabel, selectedCategory.label === cat.label && styles.categoryLabelActive]}>
                     {cat.label}
                   </Text>
@@ -259,7 +260,7 @@ export default function SavingsScreen({ navigation }: any) {
 
             <Text style={styles.fieldLabel}>Goal Name *</Text>
             <View style={styles.inputWrapper}>
-              <Text style={styles.inputPrefix}>{selectedCategory.icon}</Text>
+              <Ionicons name={selectedCategory.ion as any} size={19} color='#0d47a1' style={{ marginRight: 6 }} />
               <TextInput
                 style={styles.inputWithPrefix}
                 placeholder="e.g. New iPhone 16"
@@ -348,7 +349,7 @@ export default function SavingsScreen({ navigation }: any) {
               <View style={styles.summaryPreview}>
                 <Text style={styles.summaryPreviewTitle}>📋 Goal Summary</Text>
                 {[
-                  { label: 'Goal', value: `${selectedCategory.icon} ${title || 'Untitled'}` },
+                  { label: 'Goal', value: title || 'Untitled' },
                   { label: 'Target Amount', value: `₦${Number(goalAmount).toLocaleString()}` },
                   initialDeposit ? { label: 'Starting with', value: `₦${Number(initialDeposit).toLocaleString()}` } : null,
                   { label: 'Target Date', value: targetDate },
@@ -386,7 +387,7 @@ export default function SavingsScreen({ navigation }: any) {
       <View style={styles.container}>
         <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.createHeader}>
           <TouchableOpacity onPress={() => setScreen('list')}>
-            <Text style={styles.back}>← Back</Text>
+            <Ionicons name="chevron-back" size={22} color="#f5a623" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Add Money</Text>
           <View style={{ width: 50 }} />
@@ -472,7 +473,7 @@ export default function SavingsScreen({ navigation }: any) {
     <View style={styles.container}>
       <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.back}>← Back</Text>
+          <Ionicons name="chevron-back" size={22} color="#f5a623" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>🐷 My Savings</Text>
         <TouchableOpacity onPress={() => setScreen('create')}>
@@ -531,9 +532,9 @@ export default function SavingsScreen({ navigation }: any) {
             <View>
               {goals.length === 0 ? (
                 <View style={styles.emptyState}>
-                  <Text style={styles.emptyIcon}></Text>
-                  <Text style={styles.emptyText}>No data yet</Text>
-                  <Text style={styles.emptySubText}>Create savings goals to see analytics!</Text>
+                  <Ionicons name="bar-chart-outline" size={44} color="#9aa5b8" />
+                  <Text style={styles.emptyText}>Nothing to chart yet</Text>
+                  <Text style={styles.emptySubText}>Create a savings goal and your progress will show up here</Text>
                 </View>
               ) : (
                 <>
@@ -677,9 +678,9 @@ export default function SavingsScreen({ navigation }: any) {
             <View>
               {goals.length === 0 ? (
                 <View style={styles.emptyState}>
-                  <Text style={styles.emptyIcon}>🐷</Text>
-                  <Text style={styles.emptyText}>No savings goals yet</Text>
-                  <Text style={styles.emptySubText}>Create your first goal and start building your future!</Text>
+                  <Ionicons name="wallet-outline" size={48} color="#9aa5b8" />
+                  <Text style={styles.emptyText}>Start your first plan</Text>
+                  <Text style={styles.emptySubText}>Set a goal, save at your own pace, and watch your money grow</Text>
                   <TouchableOpacity style={styles.createFirstBtn} onPress={() => setScreen('create')}>
                     <Text style={styles.createFirstBtnText}>Create First Goal</Text>
                   </TouchableOpacity>

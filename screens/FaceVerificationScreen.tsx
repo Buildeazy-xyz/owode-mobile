@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity,
   Alert, ActivityIndicator, Dimensions
 } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { CameraView, useCameraPermissions } from 'expo-camera'
 import { LinearGradient } from 'expo-linear-gradient'
 import * as ImageManipulator from 'expo-image-manipulator'
@@ -136,7 +137,7 @@ export default function FaceVerificationScreen({ navigation }: any) {
     return (
       <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.container}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>← Back</Text>
+          <Ionicons name="chevron-back" size={22} color="#f5a623" />
         </TouchableOpacity>
 
         <View style={styles.introContent}>
@@ -219,7 +220,7 @@ export default function FaceVerificationScreen({ navigation }: any) {
             style={styles.cancelCameraBtn}
             onPress={() => setStep('intro')}
           >
-            <Text style={styles.cancelCameraText}>✕ Cancel</Text>
+            <Text style={styles.cancelCameraText}>Cancel</Text>
           </TouchableOpacity>
         </CameraView>
       </View>
@@ -278,7 +279,7 @@ export default function FaceVerificationScreen({ navigation }: any) {
       <LinearGradient colors={['#0a0a2e', '#7f1d1d']} style={styles.container}>
         <View style={styles.resultContent}>
           <View style={styles.failedCircle}>
-            <Text style={styles.failedIcon}>❌</Text>
+            <Ionicons name="close-circle" size={48} color="#ef4444" />
           </View>
           <Text style={styles.resultTitle}>Verification Failed</Text>
           <Text style={styles.resultDesc}>

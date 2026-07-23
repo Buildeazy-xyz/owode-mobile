@@ -79,7 +79,7 @@ export default function KYCVerificationScreen({ navigation }: any) {
         {/* Header */}
         <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <Text style={styles.back}>← Back</Text>
+            <Ionicons name="chevron-back" size={22} color="#f5a623" />
           </TouchableOpacity>
           <View style={styles.logoCard}>
             <Image source={require('../assets/owode-logo.png')} style={styles.logoImage} resizeMode="contain" />

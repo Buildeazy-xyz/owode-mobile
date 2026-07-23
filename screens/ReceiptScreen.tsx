@@ -1,5 +1,6 @@
 import React, { useRef } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Share, Alert } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import ViewShot from 'react-native-view-shot'
 import * as Sharing from 'expo-sharing'
@@ -89,7 +90,7 @@ export default function ReceiptScreen({ route, navigation }: any) {
       </ViewShot>
 
       <TouchableOpacity style={styles.shareButton} onPress={handleShareAsImage}>
-        <Text style={styles.shareButtonText}>📤 Share Receipt as Image</Text>
+        <Text style={styles.shareButtonText}>Share Receipt as Image</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.doneButton} onPress={() => navigation.navigate('Dashboard')}>

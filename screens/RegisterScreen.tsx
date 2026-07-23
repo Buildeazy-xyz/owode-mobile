@@ -4,6 +4,7 @@ import {
   ActivityIndicator, Alert, KeyboardAvoidingView, Platform,
   ScrollView, Image, Dimensions, Animated, FlatList, Modal
 } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { CameraView, useCameraPermissions } from 'expo-camera'
 import * as ImageManipulator from 'expo-image-manipulator'
@@ -291,7 +292,7 @@ export default function RegisterScreen({ navigation }: any) {
     <LinearGradient colors={['#0a0a2e', '#0d47a1']} style={styles.header}>
       <View style={styles.headerTop}>
         <TouchableOpacity onPress={goBack} style={styles.backBtn}>
-          <Text style={styles.backBtnText}>← Back</Text>
+          <Ionicons name="chevron-back" size={22} color="#f5a623" />
         </TouchableOpacity>
         <View style={styles.logoCard}>
           <Image source={require('../assets/owode-logo.png')} style={styles.logoImage} resizeMode="contain" />
@@ -312,13 +313,13 @@ export default function RegisterScreen({ navigation }: any) {
     return (
       <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={{ flex: 1 }}>
         <PinKeypad
-          title="Set App Lock PIN 🔐"
+          title="Set App Lock PIN"
           subtitle="Create a 6-digit PIN to lock your app"
           pinLength={6}
           onComplete={handleSetAppPin}
         />
         <TouchableOpacity onPress={goBack} style={styles.pinBack}>
-          <Text style={styles.pinBackText}>← Back</Text>
+          <Ionicons name="chevron-back" size={22} color="#f5a623" />
         </TouchableOpacity>
       </LinearGradient>
     )
@@ -334,7 +335,7 @@ export default function RegisterScreen({ navigation }: any) {
           onComplete={handleSetTransactionPin}
         />
         <TouchableOpacity onPress={goBack} style={styles.pinBack}>
-          <Text style={styles.pinBackText}>← Back</Text>
+          <Ionicons name="chevron-back" size={22} color="#f5a623" />
         </TouchableOpacity>
       </LinearGradient>
     )
@@ -364,7 +365,7 @@ export default function RegisterScreen({ navigation }: any) {
               style={{ position: 'absolute', top: 60, right: 24 }}
               onPress={() => setFaceStep('intro')}
             >
-              <Text style={{ color: '#fff', fontSize: 16 }}>✕ Cancel</Text>
+              <Text style={{ color: '#fff', fontSize: 16 }}>Cancel</Text>
             </TouchableOpacity>
           </CameraView>
         </View>
@@ -415,7 +416,7 @@ export default function RegisterScreen({ navigation }: any) {
               <Text style={styles.skipText}>Skip for now — do it later from profile</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={goBack} style={{ alignItems: 'center', marginTop: 8 }}>
-              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>← Back</Text>
+              <Ionicons name="chevron-back" size={18} color="rgba(255,255,255,0.4)" />
             </TouchableOpacity>
           </ScrollView>
         )}
@@ -641,7 +642,7 @@ export default function RegisterScreen({ navigation }: any) {
                 <View style={styles.modalHeader}>
                   <Text style={styles.modalTitle}>Select Country</Text>
                   <TouchableOpacity onPress={() => setShowCountryPicker(false)}>
-                    <Text style={styles.modalClose}>✕</Text>
+                    <Ionicons name="close" size={22} color="#7c8aa5" />
                   </TouchableOpacity>
                 </View>
                 <TextInput
@@ -680,7 +681,7 @@ export default function RegisterScreen({ navigation }: any) {
       {/* Step 4 - OTP */}
       {step === 4 && (
         <ScrollView style={styles.form} contentContainerStyle={styles.formContent}>
-          <Text style={styles.stepHeading}>Verify Phone 🔐</Text>
+          <Text style={styles.stepHeading}>Verify Phone</Text>
           <Text style={styles.stepSubheading}>
             Enter the 6-digit code sent to{'\n'}
             <Text style={{ color: '#0d47a1', fontWeight: 'bold' }}>
@@ -839,7 +840,7 @@ export default function RegisterScreen({ navigation }: any) {
               autoFocus
             />
             <TouchableOpacity style={styles.eyeBtn} onPress={() => setShowPassword(!showPassword)}>
-              <Text style={styles.eyeIcon}>{showPassword ? '👁️' : '🙈'}</Text>
+              <Ionicons name={showPassword ? "eye-outline" : "eye-off-outline"} size={20} color="#7c8aa5" />
             </TouchableOpacity>
           </View>
 
