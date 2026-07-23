@@ -155,7 +155,7 @@ export default function TrustScoreScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  container: { flex: 1, backgroundColor: '#f4f6fb' },
   header: { padding: 24, paddingTop: 60, paddingBottom: 30, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   back: { color: '#f5a623', fontSize: 16 },
   headerTitle: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
@@ -163,24 +163,24 @@ const styles = StyleSheet.create({
   scoreCircle: { width: 140, height: 140, borderRadius: 70, borderWidth: 6, justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
   scoreEmoji: { fontSize: 32, marginBottom: 4 },
   scoreNumber: { fontSize: 40, fontWeight: 'bold' },
-  scoreMax: { fontSize: 14, color: '#888' },
+  scoreMax: { fontSize: 14, color: '#7c8aa5' },
   scoreLabel: { fontSize: 22, fontWeight: 'bold', marginBottom: 8 },
-  scoreDesc: { fontSize: 13, color: '#888', textAlign: 'center', lineHeight: 20 },
+  scoreDesc: { fontSize: 13, color: '#7c8aa5', textAlign: 'center', lineHeight: 20 },
   section: { margin: 16, marginTop: 0 },
   sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#0d47a1', marginBottom: 12 },
   breakdownCard: { backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden' },
   breakdownRow: { flexDirection: 'row', alignItems: 'center', padding: 16 },
   breakdownIcon: { fontSize: 24, marginRight: 12 },
   breakdownText: { flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  breakdownLabel: { fontSize: 14, color: '#333' },
+  breakdownLabel: { fontSize: 14, color: '#1a2b4a' },
   breakdownValue: { fontSize: 14, fontWeight: 'bold', color: '#22c55e' },
-  breakdownDivider: { height: 1, backgroundColor: '#f5f5f5', marginLeft: 52 },
+  breakdownDivider: { height: 1, backgroundColor: '#f4f6fb', marginLeft: 52 },
   eligibilityCard: { backgroundColor: '#fff', borderRadius: 16, padding: 16 },
   eligibilityRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8 },
   eligibilityIcon: { fontSize: 20, marginRight: 12 },
-  eligibilityText: { fontSize: 14, color: '#333', flex: 1 },
+  eligibilityText: { fontSize: 14, color: '#1a2b4a', flex: 1 },
   improveBtn: { margin: 16, backgroundColor: '#0d47a1', borderRadius: 16, padding: 16, alignItems: 'center', marginBottom: 40 },
   improveBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
   errorState: { alignItems: 'center', padding: 60 },
-  errorText: { color: '#888', fontSize: 16 }
+  errorText: { color: '#7c8aa5', fontSize: 16 }
 })

@@ -114,7 +114,7 @@ export default function KYCVerificationScreen({ navigation }: any) {
           <View style={{ marginHorizontal: 20, marginBottom: 4, backgroundColor: '#e8f5e9', borderRadius: 12, padding: 14, flexDirection: 'row', alignItems: 'center' }}>
             <Ionicons name="checkmark-circle" size={22} color="#2e7d32" />
             <View style={{ marginLeft: 10, flex: 1 }}>
-              <Text style={{ color: '#2e7d32', fontWeight: '700', fontSize: 14 }}>
+              <Text style={{ color: '#22c55e', fontWeight: '700', fontSize: 14 }}>
                 {kycStatusState.hasBVN && kycStatusState.hasNIN ? 'BVN & NIN submitted' : kycStatusState.hasBVN ? 'BVN submitted' : 'NIN submitted'} — under review
               </Text>
               <Text style={{ color: '#4b6b4d', fontSize: 12, marginTop: 2 }}>Your details are saved. No need to resubmit.</Text>
@@ -143,8 +143,8 @@ export default function KYCVerificationScreen({ navigation }: any) {
         {activeTab === 'bvn' && kycStatusState.hasBVN && (
           <View style={{ marginHorizontal: 20, backgroundColor: '#fff8e1', borderRadius: 14, padding: 20, alignItems: 'center' }}>
             <Ionicons name="time-outline" size={34} color="#f5a623" />
-            <Text style={{ fontWeight: '800', fontSize: 16, color: '#333', marginTop: 8 }}>BVN Under Review</Text>
-            <Text style={{ color: '#666', fontSize: 13, textAlign: 'center', marginTop: 6 }}>Your BVN has been submitted and is being verified. You will be notified once it is approved.</Text>
+            <Text style={{ fontWeight: '800', fontSize: 16, color: '#1a2b4a', marginTop: 8 }}>BVN Under Review</Text>
+            <Text style={{ color: '#7c8aa5', fontSize: 13, textAlign: 'center', marginTop: 6 }}>Your BVN has been submitted and is being verified. You will be notified once it is approved.</Text>
           </View>
         )}
         {activeTab === 'bvn' && !kycStatusState.hasBVN && (
@@ -203,8 +203,8 @@ export default function KYCVerificationScreen({ navigation }: any) {
         {activeTab === 'nin' && kycStatusState.hasNIN && (
           <View style={{ marginHorizontal: 20, backgroundColor: '#fff8e1', borderRadius: 14, padding: 20, alignItems: 'center' }}>
             <Ionicons name="time-outline" size={34} color="#f5a623" />
-            <Text style={{ fontWeight: '800', fontSize: 16, color: '#333', marginTop: 8 }}>NIN Under Review</Text>
-            <Text style={{ color: '#666', fontSize: 13, textAlign: 'center', marginTop: 6 }}>Your NIN has been submitted and is being verified. You will be notified once it is approved.</Text>
+            <Text style={{ fontWeight: '800', fontSize: 16, color: '#1a2b4a', marginTop: 8 }}>NIN Under Review</Text>
+            <Text style={{ color: '#7c8aa5', fontSize: 13, textAlign: 'center', marginTop: 6 }}>Your NIN has been submitted and is being verified. You will be notified once it is approved.</Text>
           </View>
         )}
         {activeTab === 'nin' && !kycStatusState.hasNIN && (
@@ -266,7 +266,7 @@ export default function KYCVerificationScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  container: { flex: 1, backgroundColor: '#f4f6fb' },
   header: { paddingBottom: 32 },
   backBtn: { paddingTop: 56, paddingHorizontal: 20, paddingBottom: 8 },
   back: { color: '#f5a623', fontSize: 16, fontWeight: '600' },
@@ -279,28 +279,28 @@ const styles = StyleSheet.create({
   whyCard: { backgroundColor: '#fff', borderRadius: 16, padding: 16 },
   whyTitle: { fontSize: 14, fontWeight: 'bold', color: '#0d47a1', marginBottom: 12 },
   whyRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  whyItem: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#f0f7ff', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, width: (width - 64) / 2 - 4 },
+  whyItem: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#eaf2ff', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, width: (width - 64) / 2 - 4 },
   whyIcon: { fontSize: 16 },
   whyText: { fontSize: 12, color: '#0d47a1', fontWeight: '600' },
-  tabs: { flexDirection: 'row', backgroundColor: '#f0f0f0', borderRadius: 14, padding: 4 },
+  tabs: { flexDirection: 'row', backgroundColor: '#f0f2f7', borderRadius: 14, padding: 4 },
   tab: { flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: 10 },
   tabActive: { backgroundColor: '#fff', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
-  tabText: { fontSize: 15, fontWeight: '600', color: '#888' },
+  tabText: { fontSize: 15, fontWeight: '600', color: '#7c8aa5' },
   tabTextActive: { color: '#0d47a1' },
   formCard: { backgroundColor: '#fff', borderRadius: 16, padding: 20 },
   formTitle: { fontSize: 16, fontWeight: 'bold', color: '#0d47a1', marginBottom: 6 },
-  formSub: { fontSize: 13, color: '#888', lineHeight: 20, marginBottom: 16 },
+  formSub: { fontSize: 13, color: '#7c8aa5', lineHeight: 20, marginBottom: 16 },
   infoBox: { backgroundColor: '#fff8e1', borderRadius: 12, padding: 12, marginBottom: 16, borderWidth: 1, borderColor: '#ffe082' },
   infoBoxText: { fontSize: 13, color: '#f57c00', lineHeight: 18 },
   inputLabel: { fontSize: 13, fontWeight: '600', color: '#0d47a1', marginBottom: 8 },
-  input: { backgroundColor: '#f5f5f5', borderRadius: 12, padding: 16, fontSize: 22, color: '#333', letterSpacing: 6, textAlign: 'center', borderWidth: 1, borderColor: '#eee', marginBottom: 12 },
+  input: { backgroundColor: '#f4f6fb', borderRadius: 12, padding: 16, fontSize: 22, color: '#1a2b4a', letterSpacing: 6, textAlign: 'center', borderWidth: 1, borderColor: '#f0f2f7', marginBottom: 12 },
   progressRow: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginBottom: 8 },
-  progressDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#e0e0e0' },
+  progressDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#e6eaf2' },
   progressDotFilled: { backgroundColor: '#0d47a1' },
   inputHint: { fontSize: 12, color: '#f5a623', marginBottom: 8, textAlign: 'center' },
   securityNote: { backgroundColor: '#e8f5e9', borderRadius: 12, padding: 12, marginBottom: 16, borderWidth: 1, borderColor: '#c8e6c9' },
-  securityNoteText: { fontSize: 12, color: '#2e7d32', lineHeight: 18 },
+  securityNoteText: { fontSize: 12, color: '#22c55e', lineHeight: 18 },
   submitBtn: { backgroundColor: '#0d47a1', borderRadius: 14, padding: 18, alignItems: 'center', shadowColor: '#0d47a1', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 },
-  submitBtnDisabled: { backgroundColor: '#ccc', shadowOpacity: 0 },
+  submitBtnDisabled: { backgroundColor: '#e6eaf2', shadowOpacity: 0 },
   submitBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 })

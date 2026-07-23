@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
   progressText: { fontSize: 11, color: 'rgba(255,255,255,0.75)', marginTop: 8 },
   codeCard: { backgroundColor: '#fff', margin: 16, borderRadius: 20, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 10, elevation: 2 },
   codeCaption: { fontSize: 11, color: '#9aa5b8', fontWeight: '700', letterSpacing: 1, marginBottom: 10 },
-  codeBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f0f6ff', borderRadius: 14, borderWidth: 1, borderColor: '#dbe9ff', borderStyle: 'dashed', paddingVertical: 14, paddingHorizontal: 16, marginBottom: 14 },
+  codeBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#eaf2ff', borderRadius: 14, borderWidth: 1, borderColor: '#dbe9ff', borderStyle: 'dashed', paddingVertical: 14, paddingHorizontal: 16, marginBottom: 14 },
   code: { flex: 1, fontSize: 26, fontWeight: '800', color: '#0d47a1', letterSpacing: 4, textAlign: 'center' },
   copyIconBtn: { padding: 4 },
   shareBtn: { borderRadius: 14, overflow: 'hidden' },

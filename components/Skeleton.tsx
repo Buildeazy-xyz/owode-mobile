@@ -20,6 +20,6 @@ export default function Skeleton({ width, height, borderRadius = 8 }: SkeletonPr
   }, [])
 
   return (
-    <Animated.View style={{ width, height, borderRadius, backgroundColor: '#e0e0e0', opacity }} />
+    <Animated.View style={{ width, height, borderRadius, backgroundColor: '#e6eaf2', opacity }} />
   )
 }

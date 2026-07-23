@@ -81,7 +81,7 @@ export default function ProfileScreen({ navigation }: any) {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f5f5' }}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f4f6fb' }}>
         <ActivityIndicator size="large" color="#0d47a1" />
       </View>
     )
@@ -110,6 +110,16 @@ export default function ProfileScreen({ navigation }: any) {
       onPress: () => navigation.navigate('FaceVerification')
     },
   ]
+
+  const hasBVN = !!(currentUser as any)?.hasBVN
+  const hasNIN = !!(currentUser as any)?.hasNIN
+  const kycLevel = currentUser?.isVerified ? 3 : (hasBVN || hasNIN) ? 2 : 1
+  const kycLabel = kycLevel === 3 ? 'Fully verified' : kycLevel === 2 ? 'Identity submitted' : 'Basic account'
+  const kycHint = kycLevel === 3
+    ? 'You have full access to all features.'
+    : kycLevel === 2
+      ? 'Your BVN/NIN is under review. We will notify you once approved.'
+      : 'Add your BVN or NIN to raise your limits and unlock all features.'
 
   const securityItems = [
     {
@@ -144,6 +154,12 @@ export default function ProfileScreen({ navigation }: any) {
       label: 'Visit Website',
       sub: 'owodealajo.com',
       onPress: () => Linking.openURL('https://owodealajo.com')
+    },
+    {
+      icon: 'settings-outline' as any, bg: '#eaf2ff', iconColor: '#0d47a1',
+      label: 'Settings',
+      sub: 'Security, notifications and more',
+      onPress: () => navigation.navigate('Settings')
     },
     {
       icon: 'share-social-outline' as any, bg: '#fce4ec', iconColor: '#e91e63',
@@ -275,24 +291,23 @@ export default function ProfileScreen({ navigation }: any) {
 
       {/* Security */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Security</Text>
-        <View style={styles.card}>
-          {securityItems.map((item, i) => (
-            <View key={item.label}>
-              <TouchableOpacity style={styles.menuItem} onPress={item.onPress}>
-                <View style={[styles.menuIconBg, { backgroundColor: item.bg }]}>
-                  <Ionicons name={item.icon} size={20} color={item.iconColor} />
-                </View>
-                <View style={styles.menuText}>
-                  <Text style={styles.menuLabel}>{item.label}</Text>
-                  <Text style={styles.menuSub}>{item.sub}</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={18} color="#ccc" />
-              </TouchableOpacity>
-              {i < securityItems.length - 1 && <View style={styles.divider} />}
+        <Text style={styles.sectionTitle}>Account Level</Text>
+        <TouchableOpacity style={styles.kycCard} onPress={() => navigation.navigate('KYCVerification')}>
+          <View style={styles.kycTop}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.kycLevel}>Level {kycLevel} of 3</Text>
+              <Text style={styles.kycLabel}>{kycLabel}</Text>
             </View>
-          ))}
-        </View>
+            <View style={styles.kycAction}>
+              <Text style={styles.kycActionText}>{kycLevel < 3 ? 'Upgrade' : 'Verified'}</Text>
+              {kycLevel < 3 && <Ionicons name="chevron-forward" size={14} color="#0d47a1" />}
+            </View>
+          </View>
+          <View style={styles.kycTrack}>
+            <View style={[styles.kycFill, { width: `${(kycLevel / 3) * 100}%` }]} />
+          </View>
+          <Text style={styles.kycHint}>{kycHint}</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Account Info */}
@@ -300,12 +315,12 @@ export default function ProfileScreen({ navigation }: any) {
         <Text style={styles.sectionTitle}>Account Details</Text>
         <View style={styles.card}>
           {[
-            { label: 'Full Name', value: currentUser?.fullName, editable: false },
-            { label: 'Phone Number', value: currentUser?.phone, editable: false },
-            { label: 'Email', value: currentUser?.email || 'Not provided — tap to add', editable: true },
-            { label: 'Country', value: currentUser?.country || 'Nigeria', editable: false },
-            { label: 'Account Type', value: currentUser?.role, editable: false },
-            { label: 'Wallet Status', value: currentUser?.wallet?.isLocked ? 'Locked' : 'Active', editable: false },
+            { label: 'Full Name', value: currentUser?.fullName, editable: false, status: '' },
+            { label: 'Phone Number', value: currentUser?.phone, editable: false, status: 'Verified' },
+            { label: 'Email', value: currentUser?.email || 'Not provided — tap to add', editable: true, status: currentUser?.email ? 'Added' : 'Missing' },
+            { label: 'BVN', value: hasBVN ? 'Submitted' : 'Not provided', editable: false, status: hasBVN ? (currentUser?.isVerified ? 'Verified' : 'Under review') : 'Missing' },
+            { label: 'NIN', value: hasNIN ? 'Submitted' : 'Not provided', editable: false, status: hasNIN ? (currentUser?.isVerified ? 'Verified' : 'Under review') : 'Missing' },
+            { label: 'Account Type', value: currentUser?.role, editable: false, status: '' },
           ].map((item, i) => (
             <View key={item.label}>
               <TouchableOpacity
@@ -318,6 +333,19 @@ export default function ProfileScreen({ navigation }: any) {
                   <Text style={[styles.infoValue, item.editable && !currentUser?.email && { color: '#f5a623' }]}>
                     {item.value}
                   </Text>
+                  {!!item.status && (
+                    <View style={[styles.statusChip, {
+                      backgroundColor: item.status === 'Verified' ? '#e8f5e9'
+                        : item.status === 'Under review' || item.status === 'Added' ? '#fff8e1'
+                        : '#f0f2f7'
+                    }]}>
+                      <Text style={[styles.statusChipText, {
+                        color: item.status === 'Verified' ? '#22c55e'
+                          : item.status === 'Under review' || item.status === 'Added' ? '#f5a623'
+                          : '#7c8aa5'
+                      }]}>{item.status}</Text>
+                    </View>
+                  )}
                   {item.editable && (
                     <Ionicons
                       name={currentUser?.email ? 'create-outline' : 'add-circle-outline'}
@@ -421,7 +449,18 @@ export default function ProfileScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  kycCard: { backgroundColor: '#fff', borderRadius: 16, padding: 18, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
+  kycTop: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  kycLevel: { fontSize: 17, fontWeight: '800', color: '#1a2b4a' },
+  kycLabel: { fontSize: 12.5, color: '#7c8aa5', marginTop: 2 },
+  kycAction: { flexDirection: 'row', alignItems: 'center', gap: 2, backgroundColor: '#eaf2ff', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 100 },
+  kycActionText: { fontSize: 12, fontWeight: '700', color: '#0d47a1' },
+  kycTrack: { height: 7, borderRadius: 4, backgroundColor: '#f0f2f7', overflow: 'hidden' },
+  kycFill: { height: 7, borderRadius: 4, backgroundColor: '#f5a623' },
+  kycHint: { fontSize: 12, color: '#7c8aa5', marginTop: 10, lineHeight: 16 },
+  statusChip: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, marginLeft: 8 },
+  statusChipText: { fontSize: 10.5, fontWeight: '700' },
+  container: { flex: 1, backgroundColor: '#f4f6fb' },
   header: { paddingBottom: 32 },
   backBtn: { paddingTop: 56, paddingHorizontal: 16, paddingBottom: 8 },
   logoCard: { alignSelf: 'center', backgroundColor: '#fff', borderRadius: 14, padding: 8, marginBottom: 16 },
@@ -437,43 +476,43 @@ const styles = StyleSheet.create({
   badgeText: { fontWeight: 'bold', fontSize: 12 },
   statsRow: { flexDirection: 'row', margin: 16, gap: 8 },
   statCard: { flex: 1, backgroundColor: '#fff', borderRadius: 16, padding: 12, alignItems: 'center', gap: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
-  statValue: { fontSize: 16, fontWeight: 'bold', textAlign: 'center', color: '#333' },
-  statLabel: { fontSize: 10, color: '#888' },
+  statValue: { fontSize: 16, fontWeight: 'bold', textAlign: 'center', color: '#1a2b4a' },
+  statLabel: { fontSize: 10, color: '#7c8aa5' },
   section: { marginHorizontal: 16, marginBottom: 16 },
   sectionTitle: { fontSize: 15, fontWeight: 'bold', color: '#0d47a1', marginBottom: 10 },
   card: { backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
-  cardTitle: { fontSize: 14, fontWeight: '600', color: '#333' },
+  cardTitle: { fontSize: 14, fontWeight: '600', color: '#1a2b4a' },
   trustTitleRow: { flexDirection: 'row', alignItems: 'center' },
   trustHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, paddingBottom: 8 },
   trustScore: { fontSize: 12, fontWeight: 'bold' },
-  trustBar: { height: 6, backgroundColor: '#f0f0f0', marginHorizontal: 16, borderRadius: 3, overflow: 'hidden', marginBottom: 8 },
+  trustBar: { height: 6, backgroundColor: '#f0f2f7', marginHorizontal: 16, borderRadius: 3, overflow: 'hidden', marginBottom: 8 },
   trustFill: { height: 6, borderRadius: 3 },
-  trustHint: { fontSize: 11, color: '#aaa', lineHeight: 16, paddingHorizontal: 16, paddingBottom: 16 },
-  divider: { height: 1, backgroundColor: '#f5f5f5', marginLeft: 64 },
+  trustHint: { fontSize: 11, color: '#9aa5b8', lineHeight: 16, paddingHorizontal: 16, paddingBottom: 16 },
+  divider: { height: 1, backgroundColor: '#f4f6fb', marginLeft: 64 },
   menuItem: { flexDirection: 'row', alignItems: 'center', padding: 16, gap: 14 },
   menuIconBg: { width: 44, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 3, elevation: 1 },
   menuText: { flex: 1 },
-  menuLabel: { fontSize: 15, fontWeight: '600', color: '#1a1a1a' },
+  menuLabel: { fontSize: 15, fontWeight: '600', color: '#1a2b4a' },
   menuSub: { fontSize: 12, color: '#999', marginTop: 3 },
   infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 14 },
-  infoLabel: { fontSize: 13, color: '#888' },
+  infoLabel: { fontSize: 13, color: '#7c8aa5' },
   infoRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  infoValue: { fontSize: 13, fontWeight: '600', color: '#333', maxWidth: 160, textAlign: 'right' },
+  infoValue: { fontSize: 13, fontWeight: '600', color: '#1a2b4a', maxWidth: 160, textAlign: 'right' },
   appInfoRow: { flexDirection: 'row', alignItems: 'center', padding: 16, gap: 12 },
-  logoCardSmall: { backgroundColor: '#f5f5f5', borderRadius: 10, padding: 8 },
+  logoCardSmall: { backgroundColor: '#f4f6fb', borderRadius: 10, padding: 8 },
   logoImageSmall: { width: 80, height: 30 },
-  appInfoTitle: { fontSize: 14, fontWeight: 'bold', color: '#333' },
-  appInfoSub: { fontSize: 11, color: '#888', marginTop: 2 },
+  appInfoTitle: { fontSize: 14, fontWeight: 'bold', color: '#1a2b4a' },
+  appInfoSub: { fontSize: 11, color: '#7c8aa5', marginTop: 2 },
   logoutBtn: { backgroundColor: '#fff', borderRadius: 16, padding: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: '#ef4444' },
   logoutText: { color: '#ef4444', fontSize: 16, fontWeight: 'bold' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modalContent: { backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24 },
   modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#0d47a1', marginBottom: 6 },
-  modalSub: { fontSize: 13, color: '#888', marginBottom: 20, lineHeight: 20 },
-  modalInput: { backgroundColor: '#f5f5f5', borderRadius: 12, padding: 16, fontSize: 16, color: '#333', borderWidth: 1, borderColor: '#eee', marginBottom: 20 },
+  modalSub: { fontSize: 13, color: '#7c8aa5', marginBottom: 20, lineHeight: 20 },
+  modalInput: { backgroundColor: '#f4f6fb', borderRadius: 12, padding: 16, fontSize: 16, color: '#1a2b4a', borderWidth: 1, borderColor: '#f0f2f7', marginBottom: 20 },
   modalBtns: { flexDirection: 'row', gap: 12 },
-  modalCancelBtn: { flex: 1, backgroundColor: '#f5f5f5', borderRadius: 12, padding: 16, alignItems: 'center' },
-  modalCancelText: { color: '#666', fontWeight: '600' },
+  modalCancelBtn: { flex: 1, backgroundColor: '#f4f6fb', borderRadius: 12, padding: 16, alignItems: 'center' },
+  modalCancelText: { color: '#7c8aa5', fontWeight: '600' },
   modalSaveBtn: { flex: 1, backgroundColor: '#0d47a1', borderRadius: 12, padding: 16, alignItems: 'center' },
   modalSaveText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
 })

@@ -235,7 +235,7 @@ export default function TransferScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  container: { flex: 1, backgroundColor: '#f4f6fb' },
   header: { padding: 24, paddingTop: 60, paddingBottom: 30 },
   back: { color: '#f5a623', fontSize: 16, marginBottom: 16 },
   headerTitle: { color: '#fff', fontSize: 24, fontWeight: 'bold' },
@@ -245,21 +245,21 @@ const styles = StyleSheet.create({
   loadingText: { color: '#0d47a1', fontSize: 16, marginTop: 16, fontWeight: '600' },
   card: { backgroundColor: '#fff', borderRadius: 16, padding: 20, marginBottom: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
   label: { fontSize: 14, fontWeight: '600', color: '#0d47a1', marginBottom: 12 },
-  input: { backgroundColor: '#f5f5f5', borderRadius: 12, padding: 16, fontSize: 16, color: '#333' },
-  amountInput: { backgroundColor: '#f5f5f5', borderRadius: 12, padding: 16, fontSize: 28, fontWeight: 'bold', color: '#0d47a1', textAlign: 'center', marginBottom: 16 },
-  quickLabel: { fontSize: 12, color: '#888', marginBottom: 8 },
+  input: { backgroundColor: '#f4f6fb', borderRadius: 12, padding: 16, fontSize: 16, color: '#1a2b4a' },
+  amountInput: { backgroundColor: '#f4f6fb', borderRadius: 12, padding: 16, fontSize: 28, fontWeight: 'bold', color: '#0d47a1', textAlign: 'center', marginBottom: 16 },
+  quickLabel: { fontSize: 12, color: '#7c8aa5', marginBottom: 8 },
   quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  quickBtn: { backgroundColor: '#f5f5f5', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 },
+  quickBtn: { backgroundColor: '#f4f6fb', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 },
   quickBtnActive: { backgroundColor: '#0d47a1' },
-  quickBtnText: { fontSize: 13, color: '#333', fontWeight: '600' },
+  quickBtnText: { fontSize: 13, color: '#1a2b4a', fontWeight: '600' },
   quickBtnTextActive: { color: '#fff' },
   pinWarning: { backgroundColor: '#fff3e0', borderRadius: 16, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: '#f5a623' },
   pinWarningText: { fontSize: 13, color: '#f5a623', marginBottom: 12 },
   pinWarningBtn: { backgroundColor: '#f5a623', borderRadius: 10, padding: 12, alignItems: 'center' },
   pinWarningBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
   sendButton: { backgroundColor: '#0d47a1', borderRadius: 16, padding: 20, alignItems: 'center', marginBottom: 16 },
-  sendButtonDisabled: { backgroundColor: '#ccc' },
+  sendButtonDisabled: { backgroundColor: '#e6eaf2' },
   sendButtonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
   sendButtonAmount: { color: 'rgba(255,255,255,0.8)', fontSize: 14, marginTop: 4 },
-  disclaimer: { textAlign: 'center', color: '#888', fontSize: 12, marginBottom: 40, lineHeight: 20 }
+  disclaimer: { textAlign: 'center', color: '#7c8aa5', fontSize: 12, marginBottom: 40, lineHeight: 20 }
 })

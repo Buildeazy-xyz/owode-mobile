@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#e6eaf2',
   },
   stepDotActive: {
     backgroundColor: '#0d47a1',
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
   stepLine: {
     width: 40,
     height: 2,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#e6eaf2',
   },
   title: {
     fontSize: 22,
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 14,
-    color: '#888',
+    color: '#7c8aa5',
     marginBottom: 16,
     textAlign: 'center',
     lineHeight: 20,
@@ -302,8 +302,8 @@ const styles = StyleSheet.create({
   },
   dotEmpty: {
     borderWidth: 2,
-    borderColor: '#e0e0e0',
-    backgroundColor: '#f9f9f9',
+    borderColor: '#e6eaf2',
+    backgroundColor: '#f4f6fb',
   },
   dotFilled: {
     backgroundColor: '#0d47a1',
@@ -339,9 +339,9 @@ const styles = StyleSheet.create({
     width: (width * 0.85 - 36) / 3,
     height: 72,
     borderRadius: 16,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#f4f6fb',
     borderWidth: 1,
-    borderColor: '#eee',
+    borderColor: '#f0f2f7',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -363,12 +363,12 @@ const styles = StyleSheet.create({
   keyText: {
     fontSize: 26,
     fontWeight: '400',
-    color: '#1a1a1a',
+    color: '#1a2b4a',
     lineHeight: 30,
   },
   keySubText: {
     fontSize: 9,
-    color: '#aaa',
+    color: '#9aa5b8',
     letterSpacing: 1,
     marginTop: 2,
   },
@@ -378,13 +378,13 @@ const styles = StyleSheet.create({
   },
   secureBadge: {
     marginBottom: 32,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f4f6fb',
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
   secureBadgeText: {
-    color: '#888',
+    color: '#7c8aa5',
     fontSize: 11,
   },
 })
