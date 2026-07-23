@@ -9,6 +9,27 @@ import { authAPI } from '../utils/api'
 
 const { width } = Dimensions.get('window')
 
+const CAMPAIGNS = [
+  {
+    icon: 'people-outline', color: '#0d47a1', tint: '#eaf2ff',
+    title: 'Invite a friend',
+    desc: 'They join an Ajo group, you both earn trust points',
+    reward: '+5 points', expiry: 'Ongoing',
+  },
+  {
+    icon: 'trophy-outline', color: '#f5a623', tint: '#fff8e1',
+    title: 'Reach Silver tier',
+    desc: 'Invite 5 friends to unlock priority Ajo positions',
+    reward: '5 friends', expiry: 'No end date',
+  },
+  {
+    icon: 'shield-checkmark-outline', color: '#22c55e', tint: '#e8f5e9',
+    title: 'Verified referral bonus',
+    desc: 'Extra points when a friend completes BVN or NIN verification',
+    reward: '+3 points', expiry: 'Ongoing',
+  },
+]
+
 export default function ReferralScreen({ navigation }: any) {
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -28,7 +49,7 @@ export default function ReferralScreen({ navigation }: any) {
   }
 
   const count = data?.referralCount || 0
-  const link = `https://owodeagent.com/join?ref=${data?.referralCode || ''}`
+  const link = `https://owodealajo.com/join?ref=${data?.referralCode || ''}`
 
   const nextTier = count >= 10 ? null : count >= 5 ? 10 : 5
   const tierName = count >= 10 ? 'Gold' : count >= 5 ? 'Silver' : 'Bronze'
@@ -125,6 +146,30 @@ export default function ReferralScreen({ navigation }: any) {
         ))}
       </ScrollView>
 
+      <Text style={styles.sectionTitle}>Active campaigns</Text>
+      <View style={{ paddingHorizontal: 16, gap: 12, marginBottom: 8 }}>
+        {CAMPAIGNS.map((c, i) => (
+          <View key={i} style={styles.campaignCard}>
+            <View style={styles.campaignTop}>
+              <View style={[styles.campaignIcon, { backgroundColor: c.tint }]}>
+                <Ionicons name={c.icon as any} size={18} color={c.color} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.campaignTitle}>{c.title}</Text>
+                <Text style={styles.campaignDesc}>{c.desc}</Text>
+              </View>
+            </View>
+            <View style={styles.campaignFooter}>
+              <View style={styles.expiryChip}>
+                <Ionicons name="time-outline" size={11} color="#7c8aa5" />
+                <Text style={styles.expiryText}>{c.expiry}</Text>
+              </View>
+              <Text style={[styles.campaignReward, { color: c.color }]}>{c.reward}</Text>
+            </View>
+          </View>
+        ))}
+      </View>
+
       <Text style={styles.sectionTitle}>Reward tiers</Text>
       <View style={styles.tiersCard}>
         {[
@@ -188,6 +233,15 @@ export default function ReferralScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
+  campaignCard: { backgroundColor: '#fff', borderRadius: 16, padding: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
+  campaignTop: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
+  campaignIcon: { width: 36, height: 36, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+  campaignTitle: { fontSize: 14.5, fontWeight: '700', color: '#1a2b4a' },
+  campaignDesc: { fontSize: 12, color: '#7c8aa5', marginTop: 2, lineHeight: 16 },
+  campaignFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#f0f2f7' },
+  expiryChip: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#f0f2f7', paddingHorizontal: 9, paddingVertical: 4, borderRadius: 100 },
+  expiryText: { fontSize: 10.5, color: '#7c8aa5', fontWeight: '600' },
+  campaignReward: { fontSize: 13, fontWeight: '800' },
   container: { flex: 1, backgroundColor: '#f4f6fb' },
   loader: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f4f6fb' },
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 56, paddingBottom: 16, paddingHorizontal: 16 },
