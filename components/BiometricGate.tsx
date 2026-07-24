@@ -27,7 +27,7 @@ export default function BiometricGate({ children, reason }: BiometricGateProps) 
   if (unlocked) return <>{children}</>
 
   return (
-    <LinearGradient colors={['#0a0a2e', '#0d47a1']} style={styles.container}>
+    <LinearGradient colors={['#1a2e55', '#25427a']} style={styles.container}>
       <Text style={styles.icon}>🔒</Text>
       <Text style={styles.title}>Secure Content</Text>
       <Text style={styles.subtitle}>{reason || 'Verify your identity to view this'}</Text>

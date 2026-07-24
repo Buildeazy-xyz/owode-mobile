@@ -83,14 +83,14 @@ export default function ProfileScreen({ navigation }: any) {
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f4f6fb' }}>
-        <ActivityIndicator size="large" color="#0d47a1" />
+        <ActivityIndicator size="large" color="#25427a" />
       </View>
     )
   }
 
   const kycItems = [
     {
-      icon: 'card-outline' as any, bg: '#e3f2fd', iconColor: '#0d47a1',
+      icon: 'card-outline' as any, bg: '#e3f2fd', iconColor: '#25427a',
       label: 'BVN Verification',
       sub: currentUser?.hasBVN ? 'BVN verified' : 'Not submitted — tap to verify',
       done: currentUser?.hasBVN,
@@ -124,7 +124,7 @@ export default function ProfileScreen({ navigation }: any) {
 
   const securityItems = [
     {
-      icon: 'keypad-outline' as any, bg: '#e3f2fd', iconColor: '#0d47a1',
+      icon: 'keypad-outline' as any, bg: '#e3f2fd', iconColor: '#25427a',
       label: currentUser?.hasTransactionPin ? 'Change Transaction PIN' : 'Set Transaction PIN',
       sub: currentUser?.hasTransactionPin ? '4-digit PIN is set' : 'Not set — tap to set now',
       onPress: () => navigation.navigate('SetTransactionPin')
@@ -145,7 +145,7 @@ export default function ProfileScreen({ navigation }: any) {
       onPress: () => Linking.openURL('https://wa.me/2348020973590?text=Hello OWODE Support')
     },
     {
-      icon: 'mail-open-outline' as any, bg: '#e3f2fd', iconColor: '#0d47a1',
+      icon: 'mail-open-outline' as any, bg: '#e3f2fd', iconColor: '#25427a',
       label: 'Email Support',
       sub: 'support@owodealajo.com',
       onPress: () => Linking.openURL('mailto:support@owodealajo.com')
@@ -157,7 +157,7 @@ export default function ProfileScreen({ navigation }: any) {
       onPress: () => Linking.openURL('https://owodealajo.com')
     },
     {
-      icon: 'settings-outline' as any, bg: '#eaf2ff', iconColor: '#0d47a1',
+      icon: 'settings-outline' as any, bg: '#eaf2ff', iconColor: '#25427a',
       label: 'Settings',
       sub: 'Security, notifications and more',
       onPress: () => navigation.navigate('Settings')
@@ -186,7 +186,7 @@ export default function ProfileScreen({ navigation }: any) {
     <View style={{ flex: 1, backgroundColor: '#f4f6fb' }}>
     <ScrollView contentContainerStyle={{ paddingBottom: 110 }} style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Header */}
-      <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.header}>
+      <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Ionicons name="chevron-back" size={24} color="#f5a623" />
         </TouchableOpacity>
@@ -302,7 +302,7 @@ export default function ProfileScreen({ navigation }: any) {
             </View>
             <View style={styles.kycAction}>
               <Text style={styles.kycActionText}>{kycLevel < 3 ? 'Upgrade' : 'Verified'}</Text>
-              {kycLevel < 3 && <Ionicons name="chevron-forward" size={14} color="#0d47a1" />}
+              {kycLevel < 3 && <Ionicons name="chevron-forward" size={14} color="#25427a" />}
             </View>
           </View>
           <View style={styles.kycTrack}>
@@ -352,7 +352,7 @@ export default function ProfileScreen({ navigation }: any) {
                     <Ionicons
                       name={currentUser?.email ? 'create-outline' : 'add-circle-outline'}
                       size={16}
-                      color="#0d47a1"
+                      color="#25427a"
                     />
                   )}
                 </View>
@@ -458,7 +458,7 @@ const styles = StyleSheet.create({
   kycLevel: { fontSize: 17, fontWeight: '800', color: '#1a2b4a' },
   kycLabel: { fontSize: 12.5, color: '#7c8aa5', marginTop: 2 },
   kycAction: { flexDirection: 'row', alignItems: 'center', gap: 2, backgroundColor: '#eaf2ff', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 100 },
-  kycActionText: { fontSize: 12, fontWeight: '700', color: '#0d47a1' },
+  kycActionText: { fontSize: 12, fontWeight: '700', color: '#25427a' },
   kycTrack: { height: 7, borderRadius: 4, backgroundColor: '#f0f2f7', overflow: 'hidden' },
   kycFill: { height: 7, borderRadius: 4, backgroundColor: '#f5a623' },
   kycHint: { fontSize: 12, color: '#7c8aa5', marginTop: 10, lineHeight: 16 },
@@ -472,7 +472,7 @@ const styles = StyleSheet.create({
   avatarContainer: { alignItems: 'center', paddingHorizontal: 20 },
   avatar: { width: 88, height: 88, borderRadius: 44, backgroundColor: '#f5a623', justifyContent: 'center', alignItems: 'center', marginBottom: 12, borderWidth: 3, borderColor: 'rgba(255,255,255,0.3)' },
   avatarText: { color: '#fff', fontSize: 36, fontWeight: 'bold' },
-  avatarEdit: { position: 'absolute', bottom: 0, right: 0, backgroundColor: '#0d47a1', borderRadius: 12, width: 26, height: 26, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#fff' },
+  avatarEdit: { position: 'absolute', bottom: 0, right: 0, backgroundColor: '#25427a', borderRadius: 12, width: 26, height: 26, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#fff' },
   name: { fontSize: 22, fontWeight: 'bold', color: '#fff', marginBottom: 4 },
   phone: { fontSize: 14, color: 'rgba(255,255,255,0.7)', marginBottom: 12 },
   badgeRow: { flexDirection: 'row', gap: 8 },
@@ -483,7 +483,7 @@ const styles = StyleSheet.create({
   statValue: { fontSize: 16, fontWeight: 'bold', textAlign: 'center', color: '#1a2b4a' },
   statLabel: { fontSize: 10, color: '#7c8aa5' },
   section: { marginHorizontal: 16, marginBottom: 16 },
-  sectionTitle: { fontSize: 15, fontWeight: 'bold', color: '#0d47a1', marginBottom: 10 },
+  sectionTitle: { fontSize: 15, fontWeight: 'bold', color: '#25427a', marginBottom: 10 },
   card: { backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
   cardTitle: { fontSize: 14, fontWeight: '600', color: '#1a2b4a' },
   trustTitleRow: { flexDirection: 'row', alignItems: 'center' },
@@ -511,12 +511,12 @@ const styles = StyleSheet.create({
   logoutText: { color: '#ef4444', fontSize: 16, fontWeight: 'bold' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modalContent: { backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24 },
-  modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#0d47a1', marginBottom: 6 },
+  modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#25427a', marginBottom: 6 },
   modalSub: { fontSize: 13, color: '#7c8aa5', marginBottom: 20, lineHeight: 20 },
   modalInput: { backgroundColor: '#f4f6fb', borderRadius: 12, padding: 16, fontSize: 16, color: '#1a2b4a', borderWidth: 1, borderColor: '#f0f2f7', marginBottom: 20 },
   modalBtns: { flexDirection: 'row', gap: 12 },
   modalCancelBtn: { flex: 1, backgroundColor: '#f4f6fb', borderRadius: 12, padding: 16, alignItems: 'center' },
   modalCancelText: { color: '#7c8aa5', fontWeight: '600' },
-  modalSaveBtn: { flex: 1, backgroundColor: '#0d47a1', borderRadius: 12, padding: 16, alignItems: 'center' },
+  modalSaveBtn: { flex: 1, backgroundColor: '#25427a', borderRadius: 12, padding: 16, alignItems: 'center' },
   modalSaveText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
 })

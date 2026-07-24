@@ -156,7 +156,7 @@ export default function SavingsScreen({ navigation }: any) {
   const getProgressColor = (progress: number) => {
     if (progress >= 100) return '#22c55e'
     if (progress >= 50) return '#f5a623'
-    return '#0d47a1'
+    return '#25427a'
   }
 
   // Analytics data
@@ -180,7 +180,7 @@ export default function SavingsScreen({ navigation }: any) {
 
   const buildLineData = () => {
     if (allContributions.length === 0) {
-      return { labels: ['Start'], datasets: [{ data: [0], color: () => '#0d47a1', strokeWidth: 3 }] }
+      return { labels: ['Start'], datasets: [{ data: [0], color: () => '#25427a', strokeWidth: 3 }] }
     }
     // group by month, cumulative
     const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
@@ -197,7 +197,7 @@ export default function SavingsScreen({ navigation }: any) {
     const sliceFrom = Math.max(0, keys.length - 6)
     return {
       labels: keys.slice(sliceFrom),
-      datasets: [{ data: cumulative.slice(sliceFrom), color: () => '#0d47a1', strokeWidth: 3 }]
+      datasets: [{ data: cumulative.slice(sliceFrom), color: () => '#25427a', strokeWidth: 3 }]
     }
   }
   const savingsLineData = buildLineData()
@@ -210,13 +210,13 @@ export default function SavingsScreen({ navigation }: any) {
     color: (opacity = 1) => `rgba(13, 71, 161, ${opacity})`,
     labelColor: () => '#888',
     style: { borderRadius: 16 },
-    propsForDots: { r: '5', strokeWidth: '2', stroke: '#0d47a1' }
+    propsForDots: { r: '5', strokeWidth: '2', stroke: '#25427a' }
   }
 
   // CREATE SCREEN
   if (pinAction) {
     return (
-      <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
+      <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
         <PinKeypad
           title="Enter Transaction PIN"
           subtitle={pinAction.type === 'deposit' ? 'Confirm your savings deposit' : 'Confirm your withdrawal'}
@@ -233,7 +233,7 @@ export default function SavingsScreen({ navigation }: any) {
   if (screen === 'create') {
     return (
       <View style={styles.container}>
-        <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.createHeader}>
+        <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.createHeader}>
           <TouchableOpacity onPress={() => setScreen('list')}>
             <Ionicons name="chevron-back" size={22} color="#f5a623" />
           </TouchableOpacity>
@@ -251,7 +251,7 @@ export default function SavingsScreen({ navigation }: any) {
                   style={[styles.categoryChip, selectedCategory.label === cat.label && styles.categoryChipActive]}
                   onPress={() => setSelectedCategory(cat)}
                 >
-                  <Ionicons name={cat.ion as any} size={22} color={selectedCategory.label === cat.label ? '#0d47a1' : '#7c8aa5'} style={{ marginBottom: 4 }} />
+                  <Ionicons name={cat.ion as any} size={22} color={selectedCategory.label === cat.label ? '#25427a' : '#7c8aa5'} style={{ marginBottom: 4 }} />
                   <Text style={[styles.categoryLabel, selectedCategory.label === cat.label && styles.categoryLabelActive]}>
                     {cat.label}
                   </Text>
@@ -261,7 +261,7 @@ export default function SavingsScreen({ navigation }: any) {
 
             <Text style={styles.fieldLabel}>Goal Name *</Text>
             <View style={styles.inputWrapper}>
-              <Ionicons name={selectedCategory.ion as any} size={19} color='#0d47a1' style={{ marginRight: 6 }} />
+              <Ionicons name={selectedCategory.ion as any} size={19} color='#25427a' style={{ marginRight: 6 }} />
               <TextInput
                 style={styles.inputWithPrefix}
                 placeholder="e.g. New iPhone 16"
@@ -370,7 +370,7 @@ export default function SavingsScreen({ navigation }: any) {
               onPress={handleCreate}
               disabled={saving}
             >
-              <LinearGradient colors={['#0d47a1', '#1565c0']} style={styles.createGoalBtnGradient}>
+              <LinearGradient colors={['#25427a', '#385c9e']} style={styles.createGoalBtnGradient}>
                 {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.createGoalBtnText}>Create Savings Goal</Text>}
               </LinearGradient>
             </TouchableOpacity>
@@ -386,7 +386,7 @@ export default function SavingsScreen({ navigation }: any) {
   if (screen === 'deposit') {
     return (
       <View style={styles.container}>
-        <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.createHeader}>
+        <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.createHeader}>
           <TouchableOpacity onPress={() => setScreen('list')}>
             <Ionicons name="chevron-back" size={22} color="#f5a623" />
           </TouchableOpacity>
@@ -446,7 +446,7 @@ export default function SavingsScreen({ navigation }: any) {
                   ].map((item: any, i) => (
                     <View key={i} style={[styles.summaryPreviewRow, i === 2 && { borderBottomWidth: 0 }]}>
                       <Text style={[styles.summaryPreviewLabel, item.bold && { fontWeight: 'bold' }]}>{item.label}</Text>
-                      <Text style={[styles.summaryPreviewValue, item.color && { color: item.color }, item.bold && { color: '#0d47a1' }]}>{item.value}</Text>
+                      <Text style={[styles.summaryPreviewValue, item.color && { color: item.color }, item.bold && { color: '#25427a' }]}>{item.value}</Text>
                     </View>
                   ))}
                 </View>
@@ -472,7 +472,7 @@ export default function SavingsScreen({ navigation }: any) {
   // MAIN LIST SCREEN
   return (
     <View style={styles.container}>
-      <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.header}>
+      <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={22} color="#f5a623" />
         </TouchableOpacity>
@@ -483,7 +483,7 @@ export default function SavingsScreen({ navigation }: any) {
       </LinearGradient>
 
       {/* Summary Card */}
-      <LinearGradient colors={['#0d47a1', '#1565c0']} style={styles.summaryCard}>
+      <LinearGradient colors={['#25427a', '#385c9e']} style={styles.summaryCard}>
         <Text style={styles.summaryLabel}>Total Saved Across All Goals</Text>
         <Text style={styles.summaryAmount}>₦{totalSaved.toLocaleString()}</Text>
         <View style={styles.summaryRow}>
@@ -522,7 +522,7 @@ export default function SavingsScreen({ navigation }: any) {
       </View>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#0d47a1" style={{ marginTop: 60 }} />
+        <ActivityIndicator size="large" color="#25427a" style={{ marginTop: 60 }} />
       ) : (
         <ScrollView automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled"
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
@@ -551,7 +551,7 @@ export default function SavingsScreen({ navigation }: any) {
                         {[
                           { label: 'Total Saved', value: `₦${totalSaved.toLocaleString()}`, color: '#22c55e' },
                           { label: 'Remaining', value: `₦${Math.max(0, totalTarget - totalSaved).toLocaleString()}`, color: '#ef4444' },
-                          { label: 'Goals', value: `${activeGoals.length} active`, color: '#0d47a1' },
+                          { label: 'Goals', value: `${activeGoals.length} active`, color: '#25427a' },
                         ].map(item => (
                           <View key={item.label} style={styles.overallStat}>
                             <Text style={[styles.overallStatValue, { color: item.color }]}>{item.value}</Text>
@@ -564,7 +564,7 @@ export default function SavingsScreen({ navigation }: any) {
                     <View style={styles.overallBar}>
                       <View style={[styles.overallBarFill, {
                         width: `${Math.min(overallProgress, 100)}%`,
-                        backgroundColor: overallProgress >= 100 ? '#22c55e' : overallProgress >= 50 ? '#f5a623' : '#0d47a1'
+                        backgroundColor: overallProgress >= 100 ? '#22c55e' : overallProgress >= 50 ? '#f5a623' : '#25427a'
                       }]} />
                     </View>
                   </View>
@@ -698,7 +698,7 @@ export default function SavingsScreen({ navigation }: any) {
                         backgroundColor: goal.status === 'COMPLETED' ? '#e8f5e9' : goal.status === 'WITHDRAWN' ? '#f5f5f5' : '#e3f2fd'
                       }]}>
                         <Text style={[styles.statusBadgeText, {
-                          color: goal.status === 'COMPLETED' ? '#22c55e' : goal.status === 'WITHDRAWN' ? '#888' : '#0d47a1'
+                          color: goal.status === 'COMPLETED' ? '#22c55e' : goal.status === 'WITHDRAWN' ? '#888' : '#25427a'
                         }]}>
                           {goal.status === 'COMPLETED' ? 'Done' : goal.status === 'WITHDRAWN' ? 'Withdrawn' : 'Active'}
                         </Text>
@@ -709,7 +709,7 @@ export default function SavingsScreen({ navigation }: any) {
                       {[
                         { label: 'Saved', value: `₦${goal.currentAmount?.toLocaleString()}` },
                         { label: 'Target', value: `₦${goal.goalAmount?.toLocaleString()}` },
-                        { label: 'Days Left', value: goal.daysLeft === 0 ? '' : `${goal.daysLeft}d`, color: goal.daysLeft < 30 ? '#f5a623' : '#0d47a1' },
+                        { label: 'Days Left', value: goal.daysLeft === 0 ? '' : `${goal.daysLeft}d`, color: goal.daysLeft < 30 ? '#f5a623' : '#25427a' },
                       ].map(item => (
                         <View key={item.label} style={styles.amountBox}>
                           <Text style={styles.amountBoxLabel}>{item.label}</Text>
@@ -803,15 +803,15 @@ const styles = StyleSheet.create({
   tab: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 10 },
   tabActive: { backgroundColor: '#fff', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
   tabText: { fontSize: 14, fontWeight: '600', color: '#7c8aa5' },
-  tabTextActive: { color: '#0d47a1' },
+  tabTextActive: { color: '#25427a' },
   // Analytics
   analyticsCard: { backgroundColor: '#fff', margin: 16, marginBottom: 8, borderRadius: 20, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 10, elevation: 3 },
-  analyticsTitle: { fontSize: 16, fontWeight: 'bold', color: '#0d47a1', marginBottom: 4 },
+  analyticsTitle: { fontSize: 16, fontWeight: 'bold', color: '#25427a', marginBottom: 4 },
   analyticsSubtitle: { fontSize: 12, color: '#7c8aa5', marginBottom: 12 },
   chart: { borderRadius: 16, marginTop: 8 },
   overallProgressRow: { flexDirection: 'row', alignItems: 'center', gap: 16, marginBottom: 16 },
-  overallProgressCircle: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#eaf2ff', justifyContent: 'center', alignItems: 'center', borderWidth: 4, borderColor: '#0d47a1' },
-  overallProgressPercent: { fontSize: 18, fontWeight: 'bold', color: '#0d47a1' },
+  overallProgressCircle: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#eaf2ff', justifyContent: 'center', alignItems: 'center', borderWidth: 4, borderColor: '#25427a' },
+  overallProgressPercent: { fontSize: 18, fontWeight: 'bold', color: '#25427a' },
   overallProgressLabel: { fontSize: 10, color: '#7c8aa5' },
   overallProgressStats: { flex: 1, gap: 8 },
   overallStat: {},
@@ -835,18 +835,18 @@ const styles = StyleSheet.create({
   emptyIcon: { fontSize: 64, marginBottom: 16 },
   emptyText: { fontSize: 18, fontWeight: 'bold', color: '#1a2b4a', marginBottom: 8 },
   emptySubText: { fontSize: 14, color: '#7c8aa5', textAlign: 'center', lineHeight: 22, marginBottom: 24 },
-  createFirstBtn: { backgroundColor: '#0d47a1', borderRadius: 16, paddingHorizontal: 32, paddingVertical: 16 },
+  createFirstBtn: { backgroundColor: '#25427a', borderRadius: 16, paddingHorizontal: 32, paddingVertical: 16 },
   createFirstBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
   goalCard: { backgroundColor: '#fff', margin: 16, marginBottom: 8, borderRadius: 20, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 10, elevation: 3 },
   goalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 },
-  goalTitle: { fontSize: 17, fontWeight: 'bold', color: '#0d47a1', marginBottom: 4 },
+  goalTitle: { fontSize: 17, fontWeight: 'bold', color: '#25427a', marginBottom: 4 },
   goalDesc: { fontSize: 12, color: '#7c8aa5' },
   statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
   statusBadgeText: { fontSize: 11, fontWeight: 'bold' },
   amountsRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
   amountBox: { flex: 1, backgroundColor: '#f4f6fb', borderRadius: 12, padding: 12, alignItems: 'center' },
   amountBoxLabel: { fontSize: 11, color: '#7c8aa5', marginBottom: 4 },
-  amountBoxValue: { fontSize: 14, fontWeight: 'bold', color: '#0d47a1' },
+  amountBoxValue: { fontSize: 14, fontWeight: 'bold', color: '#25427a' },
   progressSection: { marginBottom: 12 },
   progressRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
   progressLabel: { fontSize: 12, color: '#7c8aa5' },
@@ -854,12 +854,12 @@ const styles = StyleSheet.create({
   progressBar: { height: 10, backgroundColor: '#f0f2f7', borderRadius: 5, overflow: 'hidden' },
   progressBarFill: { height: 10, borderRadius: 5 },
   autoDebitBadge: { backgroundColor: '#eaf2ff', borderRadius: 10, padding: 8, marginBottom: 8 },
-  autoDebitBadgeText: { fontSize: 12, color: '#0d47a1' },
+  autoDebitBadgeText: { fontSize: 12, color: '#25427a' },
   targetDate: { fontSize: 12, color: '#7c8aa5', marginBottom: 8 },
   penaltyWarning: { backgroundColor: '#fff3e0', borderRadius: 10, padding: 8, marginBottom: 12 },
   penaltyWarningText: { fontSize: 12, color: '#f5a623' },
   actions: { flexDirection: 'row', gap: 8 },
-  depositBtn: { flex: 2, backgroundColor: '#0d47a1', borderRadius: 12, padding: 14, alignItems: 'center' },
+  depositBtn: { flex: 2, backgroundColor: '#25427a', borderRadius: 12, padding: 14, alignItems: 'center' },
   depositBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
   withdrawBtn: { flex: 1, backgroundColor: '#e8f5e9', borderRadius: 12, padding: 14, alignItems: 'center' },
   withdrawBtnEarly: { backgroundColor: '#fff3e0' },
@@ -868,15 +868,15 @@ const styles = StyleSheet.create({
   withdrawCompletedBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
   // Create/Deposit
   createContent: { padding: 20 },
-  fieldLabel: { fontSize: 14, fontWeight: '600', color: '#0d47a1', marginBottom: 8, marginTop: 16 },
+  fieldLabel: { fontSize: 14, fontWeight: '600', color: '#25427a', marginBottom: 8, marginTop: 16 },
   categoryRow: { marginBottom: 8 },
   categoryChip: { alignItems: 'center', marginRight: 12, backgroundColor: '#fff', borderRadius: 16, padding: 12, borderWidth: 2, borderColor: '#e6eaf2', width: 80 },
-  categoryChipActive: { borderColor: '#0d47a1', backgroundColor: '#eaf2ff' },
+  categoryChipActive: { borderColor: '#25427a', backgroundColor: '#eaf2ff' },
   categoryIcon: { fontSize: 24, marginBottom: 4 },
   categoryLabel: { fontSize: 11, color: '#7c8aa5', fontWeight: '600' },
-  categoryLabelActive: { color: '#0d47a1' },
+  categoryLabelActive: { color: '#25427a' },
   inputWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 14, borderWidth: 1.5, borderColor: '#e6eaf2', paddingHorizontal: 16, marginBottom: 4 },
-  inputPrefix: { fontSize: 18, color: '#0d47a1', fontWeight: 'bold', marginRight: 8 },
+  inputPrefix: { fontSize: 18, color: '#25427a', fontWeight: 'bold', marginRight: 8 },
   inputWithPrefix: { flex: 1, fontSize: 16, color: '#1a2b4a', paddingVertical: 16 },
   input: { backgroundColor: '#fff', borderRadius: 14, borderWidth: 1.5, borderColor: '#e6eaf2', paddingHorizontal: 16, paddingVertical: 16, fontSize: 16, color: '#1a2b4a' },
   textArea: { height: 80, textAlignVertical: 'top' },
@@ -884,11 +884,11 @@ const styles = StyleSheet.create({
   autoDebitHint: { fontSize: 12, color: '#7c8aa5', marginTop: 2, marginBottom: 8 },
   freqRow: { flexDirection: 'row', gap: 8, marginTop: 8 },
   freqBtn: { flex: 1, backgroundColor: '#fff', borderRadius: 10, padding: 10, alignItems: 'center', borderWidth: 1, borderColor: '#e6eaf2' },
-  freqBtnActive: { backgroundColor: '#0d47a1', borderColor: '#0d47a1' },
+  freqBtnActive: { backgroundColor: '#25427a', borderColor: '#25427a' },
   freqBtnText: { color: '#7c8aa5', fontWeight: '600', fontSize: 12 },
   freqBtnTextActive: { color: '#fff' },
   summaryPreview: { backgroundColor: '#f4f6fb', borderRadius: 16, padding: 16, marginTop: 16 },
-  summaryPreviewTitle: { fontSize: 14, fontWeight: 'bold', color: '#0d47a1', marginBottom: 12 },
+  summaryPreviewTitle: { fontSize: 14, fontWeight: 'bold', color: '#25427a', marginBottom: 12 },
   summaryPreviewRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#e0e0e0' },
   summaryPreviewLabel: { fontSize: 13, color: '#7c8aa5' },
   summaryPreviewValue: { fontSize: 13, color: '#1a2b4a', fontWeight: '600' },
@@ -896,14 +896,14 @@ const styles = StyleSheet.create({
   createGoalBtnGradient: { padding: 18, alignItems: 'center' },
   createGoalBtnText: { color: '#fff', fontSize: 17, fontWeight: 'bold' },
   depositGoalInfo: { backgroundColor: '#eaf2ff', borderRadius: 16, padding: 16, marginBottom: 24 },
-  depositGoalTitle: { fontSize: 16, fontWeight: 'bold', color: '#0d47a1', marginBottom: 8 },
+  depositGoalTitle: { fontSize: 16, fontWeight: 'bold', color: '#25427a', marginBottom: 8 },
   depositGoalProgress: { fontSize: 13, color: '#7c8aa5', marginBottom: 8 },
   depositProgressBar: { height: 8, backgroundColor: '#c5d8f0', borderRadius: 4, marginBottom: 4, overflow: 'hidden' },
-  depositProgressFill: { height: 8, backgroundColor: '#0d47a1', borderRadius: 4 },
-  depositProgressPercent: { fontSize: 12, color: '#0d47a1', fontWeight: '600' },
+  depositProgressFill: { height: 8, backgroundColor: '#25427a', borderRadius: 4 },
+  depositProgressPercent: { fontSize: 12, color: '#25427a', fontWeight: '600' },
   quickAmounts: { flexDirection: 'row', gap: 8, marginTop: 12, marginBottom: 4 },
   quickAmountBtn: { flex: 1, backgroundColor: '#f4f6fb', borderRadius: 10, padding: 10, alignItems: 'center', borderWidth: 1, borderColor: '#e6eaf2' },
-  quickAmountBtnActive: { backgroundColor: '#eaf2ff', borderColor: '#0d47a1' },
+  quickAmountBtnActive: { backgroundColor: '#eaf2ff', borderColor: '#25427a' },
   quickAmountText: { fontSize: 12, color: '#7c8aa5', fontWeight: '600' },
-  quickAmountTextActive: { color: '#0d47a1' },
+  quickAmountTextActive: { color: '#25427a' },
 })

@@ -29,7 +29,7 @@ export default function ReceiptScreen({ route, navigation }: any) {
   return (
     <ScrollView style={styles.container}>
       <ViewShot ref={receiptRef} options={{ format: 'png', quality: 1 }}>
-        <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.header}>
+        <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.header}>
           <View style={[styles.statusCircle, { backgroundColor: isCredit ? '#22c55e' : '#f5a623' }]}>
             <Text style={styles.statusIcon}>{isCredit ? '✅' : ''}</Text>
           </View>
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
   amount: { color: '#fff', fontSize: 40, fontWeight: 'bold' },
   receiptCard: { backgroundColor: '#fff', margin: 16, borderRadius: 20, padding: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 12, elevation: 4 },
   receiptHeader: { alignItems: 'center', marginBottom: 20 },
-  owodeLogo: { fontSize: 24, fontWeight: 'bold', color: '#0d47a1', letterSpacing: 4 },
+  owodeLogo: { fontSize: 24, fontWeight: 'bold', color: '#25427a', letterSpacing: 4 },
   receiptTitle: { fontSize: 14, color: '#7c8aa5', marginTop: 4 },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12 },
   rowLabel: { fontSize: 14, color: '#7c8aa5', flex: 1 },
@@ -118,8 +118,8 @@ const styles = StyleSheet.create({
   poweredBy: { marginTop: 20, alignItems: 'center', gap: 8 },
   poweredByLine: { height: 1, backgroundColor: '#f0f2f7', width: '100%' },
   poweredByText: { fontSize: 11, color: '#7c8aa5', textAlign: 'center' },
-  shareButton: { margin: 16, marginBottom: 8, backgroundColor: '#fff', borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 2, borderColor: '#0d47a1' },
-  shareButtonText: { color: '#0d47a1', fontSize: 16, fontWeight: 'bold' },
-  doneButton: { margin: 16, marginTop: 0, backgroundColor: '#0d47a1', borderRadius: 16, padding: 16, alignItems: 'center', marginBottom: 40 },
+  shareButton: { margin: 16, marginBottom: 8, backgroundColor: '#fff', borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 2, borderColor: '#25427a' },
+  shareButtonText: { color: '#25427a', fontSize: 16, fontWeight: 'bold' },
+  doneButton: { margin: 16, marginTop: 0, backgroundColor: '#25427a', borderRadius: 16, padding: 16, alignItems: 'center', marginBottom: 40 },
   doneButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' }
 })

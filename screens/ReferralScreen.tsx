@@ -11,7 +11,7 @@ const { width } = Dimensions.get('window')
 
 const CAMPAIGNS = [
   {
-    icon: 'people-outline', color: '#0d47a1', tint: '#eaf2ff',
+    icon: 'people-outline', color: '#25427a', tint: '#eaf2ff',
     title: 'Invite a friend',
     desc: 'They join an Ajo group, you both earn trust points',
     reward: '+5 points', expiry: 'Ongoing',
@@ -74,14 +74,14 @@ export default function ReferralScreen({ navigation }: any) {
   if (loading) {
     return (
       <View style={styles.loader}>
-        <ActivityIndicator size="large" color="#0d47a1" />
+        <ActivityIndicator size="large" color="#25427a" />
       </View>
     )
   }
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 110 }} showsVerticalScrollIndicator={false}>
-      <LinearGradient colors={['#0a0a2e', '#0d47a1']} style={styles.topBar}>
+      <LinearGradient colors={['#1a2e55', '#25427a']} style={styles.topBar}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Ionicons name="chevron-back" size={24} color="#f5a623" />
         </TouchableOpacity>
@@ -90,7 +90,7 @@ export default function ReferralScreen({ navigation }: any) {
       </LinearGradient>
 
       <View style={styles.heroWrap}>
-        <LinearGradient colors={['#0d47a1', '#1565c0']} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.hero}>
+        <LinearGradient colors={['#25427a', '#385c9e']} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.hero}>
           <View style={styles.heroIconCircle}>
             <Ionicons name="gift" size={30} color="#f5a623" />
           </View>
@@ -116,7 +116,7 @@ export default function ReferralScreen({ navigation }: any) {
         <View style={styles.codeBox}>
           <Text style={styles.code}>{data?.referralCode || '------'}</Text>
           <TouchableOpacity style={styles.copyIconBtn} onPress={handleCopy}>
-            <Ionicons name={copied ? 'checkmark-circle' : 'copy-outline'} size={22} color={copied ? '#22c55e' : '#0d47a1'} />
+            <Ionicons name={copied ? 'checkmark-circle' : 'copy-outline'} size={22} color={copied ? '#22c55e' : '#25427a'} />
           </TouchableOpacity>
         </View>
 
@@ -137,7 +137,7 @@ export default function ReferralScreen({ navigation }: any) {
         ].map((s, i) => (
           <View key={i} style={styles.stepCard}>
             <View style={styles.stepIconCircle}>
-              <Ionicons name={s.icon as any} size={22} color="#0d47a1" />
+              <Ionicons name={s.icon as any} size={22} color="#25427a" />
             </View>
             <Text style={styles.stepNum}>STEP {i + 1}</Text>
             <Text style={styles.stepTitle}>{s.title}</Text>
@@ -222,7 +222,7 @@ export default function ReferralScreen({ navigation }: any) {
       ) : (
         <View style={styles.empty}>
           <View style={styles.emptyIconCircle}>
-            <Ionicons name="people-outline" size={30} color="#0d47a1" />
+            <Ionicons name="people-outline" size={30} color="#25427a" />
           </View>
           <Text style={styles.emptyTitle}>No invites yet</Text>
           <Text style={styles.emptySub}>Share your code above and start earning rewards!</Text>
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
   backBtn: { width: 24 },
   topTitle: { color: '#fff', fontSize: 18, fontWeight: '700' },
   heroWrap: { paddingHorizontal: 16, marginTop: -4 },
-  hero: { borderRadius: 24, padding: 24, alignItems: 'center', shadowColor: '#0d47a1', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.25, shadowRadius: 16, elevation: 6 },
+  hero: { borderRadius: 24, padding: 24, alignItems: 'center', shadowColor: '#25427a', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.25, shadowRadius: 16, elevation: 6 },
   heroIconCircle: { width: 60, height: 60, borderRadius: 30, backgroundColor: 'rgba(255,255,255,0.12)', justifyContent: 'center', alignItems: 'center', marginBottom: 10 },
   heroValue: { fontSize: 44, fontWeight: '800', color: '#fff', lineHeight: 48 },
   heroLabel: { fontSize: 13, color: 'rgba(255,255,255,0.75)', marginBottom: 14 },
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
   codeCard: { backgroundColor: '#fff', margin: 16, borderRadius: 20, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 10, elevation: 2 },
   codeCaption: { fontSize: 11, color: '#9aa5b8', fontWeight: '700', letterSpacing: 1, marginBottom: 10 },
   codeBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#eaf2ff', borderRadius: 14, borderWidth: 1, borderColor: '#dbe9ff', borderStyle: 'dashed', paddingVertical: 14, paddingHorizontal: 16, marginBottom: 14 },
-  code: { flex: 1, fontSize: 26, fontWeight: '800', color: '#0d47a1', letterSpacing: 4, textAlign: 'center' },
+  code: { flex: 1, fontSize: 26, fontWeight: '800', color: '#25427a', letterSpacing: 4, textAlign: 'center' },
   copyIconBtn: { padding: 4 },
   shareBtn: { borderRadius: 14, overflow: 'hidden' },
   shareBtnInner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 15 },
@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
   activeChipText: { color: '#fff', fontSize: 11, fontWeight: '700' },
   friendsCard: { backgroundColor: '#fff', marginHorizontal: 16, borderRadius: 18, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
   friendRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14 },
-  friendAvatar: { width: 42, height: 42, borderRadius: 21, backgroundColor: '#0d47a1', justifyContent: 'center', alignItems: 'center' },
+  friendAvatar: { width: 42, height: 42, borderRadius: 21, backgroundColor: '#25427a', justifyContent: 'center', alignItems: 'center' },
   friendAvatarText: { color: '#fff', fontWeight: '700', fontSize: 17 },
   friendName: { fontSize: 14, fontWeight: '600', color: '#1a2b4a' },
   friendDate: { fontSize: 11, color: '#9aa5b8', marginTop: 2 },

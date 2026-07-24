@@ -201,7 +201,7 @@ export default function AjoScreen({ navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.header}>
+      <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={22} color="#f5a623" />
         </TouchableOpacity>
@@ -257,7 +257,7 @@ export default function AjoScreen({ navigation }: any) {
       )}
 
       {loading ? (
-        <ActivityIndicator size="large" color="#0d47a1" style={{ marginTop: 60 }} />
+        <ActivityIndicator size="large" color="#25427a" style={{ marginTop: 60 }} />
       ) : (
         <ScrollView contentContainerStyle={{ paddingBottom: 110 }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
@@ -317,7 +317,7 @@ export default function AjoScreen({ navigation }: any) {
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.membersRow}>
                       {group.members?.map((m: any) => (
                         <View key={`gm-${m.id}`} style={styles.memberChip}>
-                          <View style={[styles.memberAvatar, { backgroundColor: m.isAvatar ? '#f5a623' : '#0d47a1' }]}>
+                          <View style={[styles.memberAvatar, { backgroundColor: m.isAvatar ? '#f5a623' : '#25427a' }]}>
                             <Text style={styles.memberAvatarText}>
                               {m.isAvatar ? '' : m.user?.fullName?.charAt(0)}
                             </Text>
@@ -400,7 +400,7 @@ export default function AjoScreen({ navigation }: any) {
                         styles.progressBarFill,
                         {
                           width: `${((group.members?.filter((m: any) => !m.isAvatar).length || 0) / group.totalMembers) * 100}%`,
-                          backgroundColor: isFull ? '#22c55e' : '#0d47a1'
+                          backgroundColor: isFull ? '#22c55e' : '#25427a'
                         }
                       ]} />
                     </View>
@@ -417,7 +417,7 @@ export default function AjoScreen({ navigation }: any) {
                   <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.membersRow}>
                     {group.members?.filter((m: any) => !m.isAvatar).map((m: any) => (
                       <View key={`sm-${m.id}`} style={styles.memberChip}>
-                        <View style={[styles.memberAvatar, { backgroundColor: m.userId === user?.id ? '#f5a623' : '#0d47a1' }]}>
+                        <View style={[styles.memberAvatar, { backgroundColor: m.userId === user?.id ? '#f5a623' : '#25427a' }]}>
                           <Text style={styles.memberAvatarText}>{m.user?.fullName?.charAt(0)}</Text>
                         </View>
                         <Text style={styles.memberName} numberOfLines={1}>
@@ -479,7 +479,7 @@ export default function AjoScreen({ navigation }: any) {
       {/* Guaranteed Contribute Modal */}
       <Modal visible={contributeModal} animationType="slide" transparent>
         {pinStep ? (
-          <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.pinContainer}>
+          <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.pinContainer}>
             {contributing ? (
               <ActivityIndicator size="large" color="#f5a623" />
             ) : (
@@ -515,8 +515,8 @@ export default function AjoScreen({ navigation }: any) {
                     <Text style={styles.confirmValue}>₦{selectedGroup.guaranteeFee?.toLocaleString()}</Text>
                   </View>
                   <View style={[styles.confirmRow, { borderBottomWidth: 0 }]}>
-                    <Text style={[styles.confirmLabel, { fontWeight: 'bold', color: '#0d47a1' }]}>Total</Text>
-                    <Text style={[styles.confirmValue, { fontWeight: 'bold', color: '#0d47a1' }]}>
+                    <Text style={[styles.confirmLabel, { fontWeight: 'bold', color: '#25427a' }]}>Total</Text>
+                    <Text style={[styles.confirmValue, { fontWeight: 'bold', color: '#25427a' }]}>
                       ₦{(selectedGroup.amount + selectedGroup.guaranteeFee)?.toLocaleString()}
                     </Text>
                   </View>
@@ -552,7 +552,7 @@ const styles = StyleSheet.create({
   clearSearch: { fontSize: 14, color: '#7c8aa5', padding: 4 },
   tabsContainer: { flexDirection: 'row', backgroundColor: '#fff', paddingHorizontal: 16, paddingBottom: 12, gap: 8 },
   tab: { flex: 1, paddingVertical: 8, borderRadius: 20, backgroundColor: '#f4f6fb', alignItems: 'center' },
-  tabActive: { backgroundColor: '#0d47a1' },
+  tabActive: { backgroundColor: '#25427a' },
   tabText: { fontSize: 11, color: '#7c8aa5', fontWeight: '600' },
   tabTextActive: { color: '#fff' },
   guaranteedInfoBar: { backgroundColor: '#e8f5e9', padding: 10, paddingHorizontal: 16 },
@@ -564,16 +564,16 @@ const styles = StyleSheet.create({
   groupCard: { backgroundColor: '#fff', margin: 16, marginBottom: 8, borderRadius: 20, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 10, elevation: 3 },
   guaranteedCard: { borderWidth: 1.5, borderColor: '#bbf7d0' },
   groupHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
-  groupName: { fontSize: 17, fontWeight: 'bold', color: '#0d47a1', marginBottom: 2 },
+  groupName: { fontSize: 17, fontWeight: 'bold', color: '#25427a', marginBottom: 2 },
   groupFrequencyText: { fontSize: 12, color: '#7c8aa5' },
   badgeRow: { flexDirection: 'row', gap: 4, flexWrap: 'wrap', justifyContent: 'flex-end' },
   standardBadge: { backgroundColor: '#eaf2ff', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10 },
-  standardBadgeText: { fontSize: 10, color: '#0d47a1', fontWeight: 'bold' },
+  standardBadgeText: { fontSize: 10, color: '#25427a', fontWeight: 'bold' },
   guaranteedBadge: { backgroundColor: '#fef3c7', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10 },
   guaranteedBadgeText: { fontSize: 10, color: '#d97706', fontWeight: 'bold' },
   statusBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10 },
   statusBadgeText: { fontSize: 10, fontWeight: 'bold' },
-  groupAmount: { fontSize: 28, fontWeight: 'bold', color: '#0d47a1' },
+  groupAmount: { fontSize: 28, fontWeight: 'bold', color: '#25427a' },
   groupAmountLabel: { fontSize: 12, color: '#7c8aa5', marginBottom: 16 },
   progressSection: { marginBottom: 12 },
   progressRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
@@ -596,24 +596,24 @@ const styles = StyleSheet.create({
   groupActions: { gap: 8 },
   actionBtn: { borderRadius: 12, padding: 14, alignItems: 'center' },
   actionBtnDisabled: { opacity: 0.5 },
-  joinBtn: { backgroundColor: '#0d47a1' },
+  joinBtn: { backgroundColor: '#25427a' },
   joinBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
   contributeBtn: { backgroundColor: '#22c55e' },
   contributeBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
   memberBadge: { backgroundColor: '#e8f5e9', borderRadius: 10, padding: 10, marginBottom: 4, alignItems: 'center' },
   memberBadgeText: { fontSize: 13, color: '#22c55e', fontWeight: '600' },
   cycleInfo: { fontSize: 11, color: '#9aa5b8', textAlign: 'center', marginTop: 12 },
-  shareBtn: { backgroundColor: '#eaf2ff', borderRadius: 12, padding: 12, alignItems: 'center', borderWidth: 1, borderColor: '#0d47a1', marginTop: 4 },
-  shareBtnText: { color: '#0d47a1', fontWeight: '600', fontSize: 14 },
+  shareBtn: { backgroundColor: '#eaf2ff', borderRadius: 12, padding: 12, alignItems: 'center', borderWidth: 1, borderColor: '#25427a', marginTop: 4 },
+  shareBtnText: { color: '#25427a', fontWeight: '600', fontSize: 14 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modal: { backgroundColor: '#fff', borderTopLeftRadius: 30, borderTopRightRadius: 30, padding: 30 },
-  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#0d47a1', marginBottom: 16 },
+  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#25427a', marginBottom: 16 },
   confirmRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#f5f5f5' },
   confirmLabel: { fontSize: 14, color: '#7c8aa5' },
   confirmValue: { fontSize: 14, color: '#1a2b4a' },
   avatarNote: { backgroundColor: '#eaf2ff', borderRadius: 12, padding: 12, marginVertical: 16 },
-  avatarNoteText: { fontSize: 12, color: '#0d47a1', textAlign: 'center' },
-  confirmBtn: { backgroundColor: '#0d47a1', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 12 },
+  avatarNoteText: { fontSize: 12, color: '#25427a', textAlign: 'center' },
+  confirmBtn: { backgroundColor: '#25427a', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 12 },
   confirmBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
   cancelText: { textAlign: 'center', color: '#7c8aa5', fontSize: 14 },
   pinContainer: { flex: 1 },

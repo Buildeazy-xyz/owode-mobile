@@ -8,6 +8,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { walletAPI } from '../utils/api'
 import { Ionicons } from '@expo/vector-icons'
 import BottomNav from '../components/BottomNav'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { announceNewCredit } from '../utils/speech'
 import { showPaymentNotification } from '../utils/notifications'
 
@@ -43,9 +44,10 @@ export default function WalletScreen({ navigation }: any) {
       if (latestTx && latestTx.type === 'CREDIT') {
         announceNewCredit(latestTx.id)
       }
-      if (latestTx && latestTx.id !== lastTxRef.current) {
-        lastTxRef.current = latestTx.id
-        await showPaymentNotification({
+      const lastNotified = await AsyncStorage.getItem('owode_last_notified_tx')
+      if (latestTx && latestTx.id !== lastNotified) {
+        await AsyncStorage.setItem('owode_last_notified_tx', latestTx.id)
+        if (lastNotified !== null) await showPaymentNotification({
           type: latestTx.type,
           amount: latestTx.amount,
           balance: latestTx.balance,
@@ -112,7 +114,7 @@ export default function WalletScreen({ navigation }: any) {
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
-        <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.header}>
+        <LinearGradient colors={['#25427a', '#1c3a6d']} style={styles.header}>
           <View style={styles.headerTop}>
             <TouchableOpacity onPress={() => navigation.goBack()}>
               <Ionicons name="chevron-back" size={22} color="#f5a623" />
@@ -149,12 +151,12 @@ export default function WalletScreen({ navigation }: any) {
             {/* Stats Row */}
             <View style={styles.statsRow}>
               <View style={styles.statItem}>
-                <Text style={styles.statLabel}>Money In</Text>
+                <Text style={styles.statLabel} numberOfLines={1}>Money In</Text>
                 <Text style={[styles.statValue, { color: '#7CFFB2' }]}>{balanceVisible ? `₦${totalCredit.toLocaleString()}` : '••••'}</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
-                <Text style={styles.statLabel}>Money Out</Text>
+                <Text style={styles.statLabel} numberOfLines={1}>Money Out</Text>
                 <Text style={[styles.statValue, { color: '#FF9E9E' }]}>{balanceVisible ? `₦${totalDebit.toLocaleString()}` : '••••'}</Text>
               </View>
             </View>
@@ -167,37 +169,37 @@ export default function WalletScreen({ navigation }: any) {
               style={styles.actionBtn}
               onPress={() => navigation.navigate('Transfer')}
             >
-              <View style={[styles.actionIconBg, { backgroundColor: '#eaf2ff' }]}>
-                <Ionicons name='paper-plane' size={23} color='#1565c0' />
+              <View style={styles.actionIconBg}>
+                <Ionicons name='paper-plane' size={23} color='#385c9e' />
               </View>
-              <Text style={styles.actionText}>Send Money</Text>
+              <Text style={styles.actionText} numberOfLines={1}>Send Money</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionBtn}
               onPress={() => navigation.navigate('Savings')}
             >
-              <View style={[styles.actionIconBg, { backgroundColor: '#e8f5e9' }]}>
+              <View style={styles.actionIconBg}>
                 <Ionicons name='wallet' size={23} color='#2e7d32' />
               </View>
-              <Text style={styles.actionText}>Savings</Text>
+              <Text style={styles.actionText} numberOfLines={1}>Savings</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionBtn}
               onPress={() => Alert.alert('Coming Soon', 'Bank withdrawal will be available after Providus Bank integration!')}
             >
-              <View style={[styles.actionIconBg, { backgroundColor: '#fff3e0' }]}>
+              <View style={styles.actionIconBg}>
                 <Ionicons name='cash' size={23} color='#ef6c00' />
               </View>
-              <Text style={styles.actionText}>Withdraw</Text>
+              <Text style={styles.actionText} numberOfLines={1}>Withdraw</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionBtn}
               onPress={() => navigation.navigate('Ajo')}
             >
-              <View style={[styles.actionIconBg, { backgroundColor: '#f3e5f5' }]}>
+              <View style={styles.actionIconBg}>
                 <Ionicons name='people' size={23} color='#7b1fa2' />
               </View>
-              <Text style={styles.actionText}>Ajo Groups</Text>
+              <Text style={styles.actionText} numberOfLines={1}>Ajo Groups</Text>
             </TouchableOpacity>
           </View>
         {/* Info Card */}
@@ -325,8 +327,8 @@ export default function WalletScreen({ navigation }: any) {
                         ]}>
                           {tx.type === 'CREDIT' ? '+' : '-'}₦{tx.amount.toLocaleString()}
                         </Text>
-                        <Text style={styles.txBalance}>
-                          Bal: ₦{tx.balance.toLocaleString()}
+                        <Text style={styles.txBalance} numberOfLines={1}>
+                          Bal: ₦{(tx.balance ?? 0).toLocaleString()}
                         </Text>
                         <Text style={styles.txArrow}>›</Text>
                       </View>
@@ -416,6 +418,9 @@ export default function WalletScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
+  actionText: { fontSize: 11, color: '#1a2b4a', fontWeight: '500', textAlign: 'center' },
+  actionBtn: { flex: 1, alignItems: 'center', paddingHorizontal: 2 },
+  actionsRow: { flexDirection: 'row', backgroundColor: '#fff', borderRadius: 18, marginHorizontal: 16, marginTop: 16, paddingVertical: 14, paddingHorizontal: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
   dayHeader: { paddingTop: 18, paddingBottom: 8, paddingHorizontal: 2 },
   dayHeaderText: { fontSize: 12.5, fontWeight: '700', color: '#7c8aa5' },
   periodRow: { flexDirection: 'row', gap: 6, marginTop: 14, marginBottom: 6 },
@@ -436,17 +441,17 @@ const styles = StyleSheet.create({
   balanceAmount: { color: '#fff', fontSize: 38, fontWeight: 'bold', marginBottom: 16 },
   statsRow: { flexDirection: 'row', justifyContent: 'space-between' },
   statItem: { flex: 1, alignItems: 'center' },
-  statLabel: { color: 'rgba(255,255,255,0.6)', fontSize: 11, marginBottom: 4 },
+  statLabel: { color: 'rgba(255,255,255,0.6)', fontSize: 11, marginBottom: 4, textAlign: 'center' },
   statValue: { color: '#fff', fontSize: 13, fontWeight: 'bold' },
   statDivider: { width: 1, backgroundColor: 'rgba(255,255,255,0.2)' },
-  actionsRow: { flexDirection: 'row', marginHorizontal: 16, marginTop: 16, gap: 10 },
-  actionBtn: { flex: 1, backgroundColor: '#fff', borderRadius: 16, padding: 12, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
-  actionIconBg: { width: 44, height: 44, borderRadius: 14, justifyContent: 'center', alignItems: 'center', marginBottom: 6 },
+  actionsRowOld: { flexDirection: 'row', marginHorizontal: 16, marginTop: 16, gap: 10 },
+  actionBtnOld: { flex: 1, backgroundColor: '#fff', borderRadius: 16, padding: 12, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
+  actionIconBg: { width: 42, height: 42, borderRadius: 13, backgroundColor: '#eaf2ff', justifyContent: 'center', alignItems: 'center', marginBottom: 6 },
   actionIcon: { fontSize: 22 },
-  actionText: { fontSize: 11, color: '#0d47a1', fontWeight: '600' },
+  actionTextOld: { fontSize: 11, color: '#25427a', fontWeight: '600' },
   infoCard: { backgroundColor: '#eaf2ff', marginHorizontal: 16, marginTop: 12, borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   infoIcon: { fontSize: 20 },
-  infoTitle: { fontSize: 13, fontWeight: 'bold', color: '#0d47a1', marginBottom: 2 },
+  infoTitle: { fontSize: 13, fontWeight: 'bold', color: '#25427a', marginBottom: 2 },
   infoDesc: { fontSize: 11, color: '#7c8aa5', lineHeight: 16 },
   searchContainer: { marginHorizontal: 16, marginTop: 12, flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 14, paddingHorizontal: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
   searchInput: { flex: 1, paddingVertical: 14, fontSize: 15, color: '#1a2b4a' },
@@ -454,11 +459,11 @@ const styles = StyleSheet.create({
   clearSearchText: { color: '#7c8aa5', fontSize: 16 },
   historySection: { marginTop: 16, paddingHorizontal: 16 },
   historyHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  historyTitle: { fontSize: 18, fontWeight: 'bold', color: '#0d47a1' },
+  historyTitle: { fontSize: 15, fontWeight: '700', color: '#1a2b4a' },
   historyCount: { fontSize: 12, color: '#7c8aa5' },
   filterRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
   filterBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: '#fff', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 1 },
-  filterBtnActive: { backgroundColor: '#0d47a1' },
+  filterBtnActive: { backgroundColor: '#25427a' },
   filterBtnText: { fontSize: 13, color: '#7c8aa5', fontWeight: '600' },
   filterBtnTextActive: { color: '#fff' },
   filterCount: { backgroundColor: '#f0f2f7', borderRadius: 10, paddingHorizontal: 6, paddingVertical: 2 },
@@ -473,7 +478,7 @@ const styles = StyleSheet.create({
   dateHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginVertical: 8 },
   dateLine: { flex: 1, height: 1, backgroundColor: '#e6eaf2' },
   dateText: { fontSize: 11, color: '#7c8aa5', fontWeight: '600' },
-  txCard: { backgroundColor: '#fff', borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 1 },
+  txCard: { backgroundColor: '#fff', borderRadius: 14, padding: 11, flexDirection: 'row', alignItems: 'center', gap: 11, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 1 },
   txIconCircle: { width: 46, height: 46, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
   txIcon: { fontSize: 22 },
   txMiddle: { flex: 1 },
@@ -483,12 +488,12 @@ const styles = StyleSheet.create({
   txStatusText: { fontSize: 10, fontWeight: '600' },
   txRight: { alignItems: 'flex-end', gap: 2 },
   txAmount: { fontSize: 15, fontWeight: 'bold' },
-  txBalance: { fontSize: 10, color: '#9aa5b8' },
+  txBalance: { fontSize: 10, color: '#9aa5b8', textAlign: 'right' },
   txArrow: { fontSize: 18, color: '#9aa5b8', marginTop: 2 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modalContent: { backgroundColor: '#fff', borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, maxHeight: '85%' },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#0d47a1' },
+  modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#25427a' },
   modalClose: { fontSize: 20, color: '#7c8aa5', padding: 4 },
   modalAmountCard: { borderRadius: 20, padding: 24, alignItems: 'center', marginBottom: 20 },
   modalAmountIcon: { fontSize: 40, marginBottom: 8 },
@@ -500,6 +505,6 @@ const styles = StyleSheet.create({
   modalDetailLabel: { fontSize: 13, color: '#7c8aa5' },
   modalDetailValue: { fontSize: 13, fontWeight: '600', color: '#1a2b4a', maxWidth: '60%', textAlign: 'right' },
   modalDivider: { height: 1, backgroundColor: '#f0f2f7' },
-  modalCloseBtn: { backgroundColor: '#0d47a1', borderRadius: 14, padding: 16, alignItems: 'center' },
+  modalCloseBtn: { backgroundColor: '#25427a', borderRadius: 14, padding: 16, alignItems: 'center' },
   modalCloseBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
 })

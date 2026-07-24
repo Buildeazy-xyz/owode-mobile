@@ -77,7 +77,7 @@ export default function KYCVerificationScreen({ navigation }: any) {
         keyboardShouldPersistTaps="handled"
       >
         {/* Header */}
-        <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.header}>
+        <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
             <Ionicons name="chevron-back" size={22} color="#f5a623" />
           </TouchableOpacity>
@@ -277,30 +277,30 @@ const styles = StyleSheet.create({
   headerSub: { fontSize: 14, color: 'rgba(255,255,255,0.7)', textAlign: 'center' },
   section: { marginHorizontal: 16, marginTop: 16 },
   whyCard: { backgroundColor: '#fff', borderRadius: 16, padding: 16 },
-  whyTitle: { fontSize: 14, fontWeight: 'bold', color: '#0d47a1', marginBottom: 12 },
+  whyTitle: { fontSize: 14, fontWeight: 'bold', color: '#25427a', marginBottom: 12 },
   whyRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   whyItem: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#eaf2ff', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, width: (width - 64) / 2 - 4 },
   whyIcon: { fontSize: 16 },
-  whyText: { fontSize: 12, color: '#0d47a1', fontWeight: '600' },
+  whyText: { fontSize: 12, color: '#25427a', fontWeight: '600' },
   tabs: { flexDirection: 'row', backgroundColor: '#f0f2f7', borderRadius: 14, padding: 4 },
   tab: { flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: 10 },
   tabActive: { backgroundColor: '#fff', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
   tabText: { fontSize: 15, fontWeight: '600', color: '#7c8aa5' },
-  tabTextActive: { color: '#0d47a1' },
+  tabTextActive: { color: '#25427a' },
   formCard: { backgroundColor: '#fff', borderRadius: 16, padding: 20 },
-  formTitle: { fontSize: 16, fontWeight: 'bold', color: '#0d47a1', marginBottom: 6 },
+  formTitle: { fontSize: 16, fontWeight: 'bold', color: '#25427a', marginBottom: 6 },
   formSub: { fontSize: 13, color: '#7c8aa5', lineHeight: 20, marginBottom: 16 },
   infoBox: { backgroundColor: '#fff8e1', borderRadius: 12, padding: 12, marginBottom: 16, borderWidth: 1, borderColor: '#ffe082' },
   infoBoxText: { fontSize: 13, color: '#f57c00', lineHeight: 18 },
-  inputLabel: { fontSize: 13, fontWeight: '600', color: '#0d47a1', marginBottom: 8 },
+  inputLabel: { fontSize: 13, fontWeight: '600', color: '#25427a', marginBottom: 8 },
   input: { backgroundColor: '#f4f6fb', borderRadius: 12, padding: 16, fontSize: 22, color: '#1a2b4a', letterSpacing: 6, textAlign: 'center', borderWidth: 1, borderColor: '#f0f2f7', marginBottom: 12 },
   progressRow: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginBottom: 8 },
   progressDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#e6eaf2' },
-  progressDotFilled: { backgroundColor: '#0d47a1' },
+  progressDotFilled: { backgroundColor: '#25427a' },
   inputHint: { fontSize: 12, color: '#f5a623', marginBottom: 8, textAlign: 'center' },
   securityNote: { backgroundColor: '#e8f5e9', borderRadius: 12, padding: 12, marginBottom: 16, borderWidth: 1, borderColor: '#c8e6c9' },
   securityNoteText: { fontSize: 12, color: '#22c55e', lineHeight: 18 },
-  submitBtn: { backgroundColor: '#0d47a1', borderRadius: 14, padding: 18, alignItems: 'center', shadowColor: '#0d47a1', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 },
+  submitBtn: { backgroundColor: '#25427a', borderRadius: 14, padding: 18, alignItems: 'center', shadowColor: '#25427a', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 },
   submitBtnDisabled: { backgroundColor: '#e6eaf2', shadowOpacity: 0 },
   submitBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 })

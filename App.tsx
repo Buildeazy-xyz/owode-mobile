@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { AuthProvider } from './context/AuthContext'
 import AppNavigator from './navigation/AppNavigator'
 import SplashScreenComponent from './components/SplashScreenComponent'
@@ -18,8 +19,10 @@ export default function App() {
     return <SplashScreenComponent onFinish={() => setShowSplash(false)} />
   }
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </SafeAreaProvider>
   )
 }

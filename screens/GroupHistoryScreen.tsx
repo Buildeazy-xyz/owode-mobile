@@ -25,7 +25,7 @@ export default function GroupHistoryScreen({ route, navigation }: any) {
 
   return (
     <ScrollView style={styles.container}>
-      <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.header}>
+      <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={22} color="#f5a623" />
         </TouchableOpacity>
@@ -34,7 +34,7 @@ export default function GroupHistoryScreen({ route, navigation }: any) {
       </LinearGradient>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#0d47a1" style={{ marginTop: 40 }} />
+        <ActivityIndicator size="large" color="#25427a" style={{ marginTop: 40 }} />
       ) : group ? (
         <>
           <View style={styles.groupInfo}>
@@ -45,7 +45,7 @@ export default function GroupHistoryScreen({ route, navigation }: any) {
           <Text style={styles.sectionTitle}>Members & Positions</Text>
           {group.members?.map((m: any) => (
             <View key={m.id} style={styles.memberCard}>
-              <View style={[styles.positionBadge, { backgroundColor: m.isAvatar ? '#f5a623' : '#0d47a1' }]}>
+              <View style={[styles.positionBadge, { backgroundColor: m.isAvatar ? '#f5a623' : '#25427a' }]}>
                 <Text style={styles.positionText}>{m.isAvatar ? '' : `#${m.position}`}</Text>
               </View>
               <View style={styles.memberInfo}>
@@ -111,9 +111,9 @@ const styles = StyleSheet.create({
   back: { color: '#f5a623', fontSize: 16 },
   headerTitle: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
   groupInfo: { backgroundColor: '#fff', margin: 16, borderRadius: 16, padding: 20, alignItems: 'center' },
-  groupName: { fontSize: 20, fontWeight: 'bold', color: '#0d47a1', marginBottom: 4 },
+  groupName: { fontSize: 20, fontWeight: 'bold', color: '#25427a', marginBottom: 4 },
   groupCycle: { fontSize: 14, color: '#7c8aa5' },
-  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#0d47a1', marginHorizontal: 16, marginTop: 16, marginBottom: 8 },
+  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#25427a', marginHorizontal: 16, marginTop: 16, marginBottom: 8 },
   memberCard: { backgroundColor: '#fff', marginHorizontal: 16, marginBottom: 8, borderRadius: 12, padding: 16, flexDirection: 'row', alignItems: 'center' },
   positionBadge: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
   positionText: { color: '#fff', fontWeight: 'bold', fontSize: 13 },
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
   memberPhone: { fontSize: 12, color: '#7c8aa5', marginTop: 2 },
   memberStatus: { alignItems: 'flex-end' },
   payoutReceived: { fontSize: 12, color: '#22c55e', fontWeight: '600' },
-  hasPaid: { fontSize: 12, color: '#0d47a1', fontWeight: '600' },
+  hasPaid: { fontSize: 12, color: '#25427a', fontWeight: '600' },
   pending: { fontSize: 12, color: '#7c8aa5' },
   avatarReady: { fontSize: 12, color: '#f5a623', fontWeight: '600' },
   emptyState: { alignItems: 'center', padding: 20 },

@@ -115,7 +115,7 @@ export default function FaceVerificationScreen({ navigation }: any) {
 
   if (!permission.granted) {
     return (
-      <LinearGradient colors={['#0a0a2e', '#0d47a1']} style={styles.container}>
+      <LinearGradient colors={['#1a2e55', '#25427a']} style={styles.container}>
         <View style={styles.permissionContent}>
           <Text style={styles.permissionIcon}>📷</Text>
           <Text style={styles.permissionTitle}>Camera Access Required</Text>
@@ -135,7 +135,7 @@ export default function FaceVerificationScreen({ navigation }: any) {
 
   if (step === 'intro') {
     return (
-      <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.container}>
+      <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.container}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={22} color="#f5a623" />
         </TouchableOpacity>
@@ -229,7 +229,7 @@ export default function FaceVerificationScreen({ navigation }: any) {
 
   if (step === 'processing') {
     return (
-      <LinearGradient colors={['#0a0a2e', '#0d47a1']} style={styles.container}>
+      <LinearGradient colors={['#1a2e55', '#25427a']} style={styles.container}>
         <View style={styles.processingContent}>
           <ActivityIndicator size="large" color="#f5a623" />
           <Text style={styles.processingTitle}>Verifying Identity</Text>
@@ -248,7 +248,7 @@ export default function FaceVerificationScreen({ navigation }: any) {
 
   if (step === 'success') {
     return (
-      <LinearGradient colors={['#0a0a2e', '#22c55e', '#16a34a']} style={styles.container}>
+      <LinearGradient colors={['#1a2e55', '#22c55e', '#16a34a']} style={styles.container}>
         <View style={styles.resultContent}>
           <View style={styles.successCircle}>
             <Text style={styles.successIcon}>✅</Text>
@@ -276,7 +276,7 @@ export default function FaceVerificationScreen({ navigation }: any) {
 
   if (step === 'failed') {
     return (
-      <LinearGradient colors={['#0a0a2e', '#7f1d1d']} style={styles.container}>
+      <LinearGradient colors={['#1a2e55', '#7f1d1d']} style={styles.container}>
         <View style={styles.resultContent}>
           <View style={styles.failedCircle}>
             <Ionicons name="close-circle" size={48} color="#ef4444" />

@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
   },
   header: {
     width: '100%',
-    backgroundColor: '#0d47a1',
+    backgroundColor: '#25427a',
     paddingTop: 60,
     paddingBottom: 24,
     alignItems: 'center',
@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#e6eaf2',
   },
   stepDotActive: {
-    backgroundColor: '#0d47a1',
+    backgroundColor: '#25427a',
     width: 28,
     borderRadius: 5,
   },
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#0d47a1',
+    color: '#25427a',
     marginBottom: 6,
     textAlign: 'center',
   },
@@ -306,8 +306,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#f4f6fb',
   },
   dotFilled: {
-    backgroundColor: '#0d47a1',
-    shadowColor: '#0d47a1',
+    backgroundColor: '#25427a',
+    shadowColor: '#25427a',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.4,
     shadowRadius: 8,

@@ -35,7 +35,7 @@ export default function SplashScreenComponent({ onFinish }: { onFinish: () => vo
   }, [])
 
   return (
-    <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.container}>
+    <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.container}>
 
       {/* Main Content */}
       <View style={styles.content}>

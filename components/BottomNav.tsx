@@ -1,6 +1,7 @@
 import React from 'react'
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 type TabKey = 'home' | 'wallet' | 'savings' | 'ajo' | 'profile'
 
@@ -13,8 +14,9 @@ const TABS: { key: TabKey; label: string; route: string; icon: any; iconActive: 
 ]
 
 export default function BottomNav({ navigation, active }: { navigation: any; active: TabKey }) {
+  const insets = useSafeAreaInsets()
   return (
-    <View style={styles.bar}>
+    <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom, 10) + 8 }]}>
       {TABS.map(tab => {
         const isActive = tab.key === active
         return (
@@ -27,9 +29,9 @@ export default function BottomNav({ navigation, active }: { navigation: any; act
             <Ionicons
               name={isActive ? tab.iconActive : tab.icon}
               size={22}
-              color={isActive ? '#0d47a1' : '#9aa5b8'}
+              color={isActive ? '#25427a' : '#9aa5b8'}
             />
-            <Text style={[styles.label, isActive && styles.labelActive]}>{tab.label}</Text>
+            <Text style={[styles.label, isActive && styles.labelActive]} numberOfLines={1}>{tab.label}</Text>
           </TouchableOpacity>
         )
       })}
@@ -42,11 +44,11 @@ const styles = StyleSheet.create({
     position: 'absolute', left: 0, right: 0, bottom: 0,
     flexDirection: 'row', backgroundColor: '#fff',
     borderTopWidth: 1, borderTopColor: '#f0f2f7',
-    paddingTop: 10, paddingBottom: 26,
+    paddingTop: 10,
     shadowColor: '#000', shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.04, shadowRadius: 8, elevation: 8,
   },
   tab: { flex: 1, alignItems: 'center', gap: 3 },
   label: { fontSize: 11, color: '#9aa5b8', fontWeight: '500' },
-  labelActive: { color: '#0d47a1', fontWeight: '700' },
+  labelActive: { color: '#25427a', fontWeight: '700' },
 })

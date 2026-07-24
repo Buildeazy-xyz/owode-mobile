@@ -36,7 +36,7 @@ export default function LoginScreen({ navigation }: any) {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.header}>
+      <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.header}>
         {/* Logo Card */}
         <View style={styles.logoCard}>
           <Image
@@ -99,7 +99,7 @@ export default function LoginScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0d47a1' },
+  container: { flex: 1, backgroundColor: '#25427a' },
   header: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 40, paddingBottom: 20 },
   logoCard: {
     backgroundColor: '#fff',
@@ -117,9 +117,9 @@ const styles = StyleSheet.create({
   logoImage: { width: width * 0.60, height: 70 },
   tagline: { fontSize: 9, color: '#f5a623', letterSpacing: 1, textAlign: 'center', paddingHorizontal: 20 },
   form: { flex: 2, backgroundColor: '#fff', borderTopLeftRadius: 30, borderTopRightRadius: 30, padding: 30 },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#0d47a1', marginBottom: 4 },
+  title: { fontSize: 24, fontWeight: 'bold', color: '#25427a', marginBottom: 4 },
   subtitle: { fontSize: 14, color: '#7c8aa5', marginBottom: 24 },
-  inputLabel: { fontSize: 13, fontWeight: '600', color: '#0d47a1', marginBottom: 6 },
+  inputLabel: { fontSize: 13, fontWeight: '600', color: '#25427a', marginBottom: 6 },
   input: { backgroundColor: '#f4f6fb', borderRadius: 12, padding: 16, fontSize: 16, marginBottom: 16, color: '#1a2b4a' },
   passwordWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f4f6fb', borderRadius: 12, marginBottom: 16 },
   passwordInput: { flex: 1, padding: 16, fontSize: 16, color: '#1a2b4a' },
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
   eyeIcon: { fontSize: 18 },
   securityBadges: { flexDirection: 'row', gap: 8, marginBottom: 20 },
   badge: { backgroundColor: '#eaf2ff', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 6 },
-  badgeText: { fontSize: 11, color: '#0d47a1', fontWeight: '600' },
+  badgeText: { fontSize: 11, color: '#25427a', fontWeight: '600' },
   button: { backgroundColor: '#f5a623', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 20, marginTop: 8 },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
   link: { color: '#7c8aa5', fontSize: 14, textAlign: 'center', marginTop: 8 },

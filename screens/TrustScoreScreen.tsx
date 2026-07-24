@@ -40,7 +40,7 @@ export default function TrustScoreScreen({ navigation }: any) {
 
   return (
     <ScrollView style={styles.container}>
-      <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.header}>
+      <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={22} color="#f5a623" />
         </TouchableOpacity>
@@ -49,7 +49,7 @@ export default function TrustScoreScreen({ navigation }: any) {
       </LinearGradient>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#0d47a1" style={{ marginTop: 60 }} />
+        <ActivityIndicator size="large" color="#25427a" style={{ marginTop: 60 }} />
       ) : trustData ? (
         <>
           {/* Score Circle */}
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
   scoreLabel: { fontSize: 22, fontWeight: 'bold', marginBottom: 8 },
   scoreDesc: { fontSize: 13, color: '#7c8aa5', textAlign: 'center', lineHeight: 20 },
   section: { margin: 16, marginTop: 0 },
-  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#0d47a1', marginBottom: 12 },
+  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#25427a', marginBottom: 12 },
   breakdownCard: { backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden' },
   breakdownRow: { flexDirection: 'row', alignItems: 'center', padding: 16 },
   breakdownIcon: { fontSize: 24, marginRight: 12 },
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
   eligibilityRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8 },
   eligibilityIcon: { fontSize: 20, marginRight: 12 },
   eligibilityText: { fontSize: 14, color: '#1a2b4a', flex: 1 },
-  improveBtn: { margin: 16, backgroundColor: '#0d47a1', borderRadius: 16, padding: 16, alignItems: 'center', marginBottom: 40 },
+  improveBtn: { margin: 16, backgroundColor: '#25427a', borderRadius: 16, padding: 16, alignItems: 'center', marginBottom: 40 },
   improveBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
   errorState: { alignItems: 'center', padding: 60 },
   errorText: { color: '#7c8aa5', fontSize: 16 }

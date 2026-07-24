@@ -132,7 +132,7 @@ export default function TransferScreen({ navigation }: any) {
 
   if (step === 'pin') {
     return (
-      <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={{ flex: 1 }}>
+      <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={{ flex: 1 }}>
         <PinKeypad
           title="Transaction PIN"
           subtitle={`Authorizing ₦${Number(amount).toLocaleString()} transfer`}
@@ -153,7 +153,7 @@ export default function TransferScreen({ navigation }: any) {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.header}>
+      <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={22} color="#f5a623" />
         </TouchableOpacity>
@@ -163,7 +163,7 @@ export default function TransferScreen({ navigation }: any) {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#0d47a1" />
+          <ActivityIndicator size="large" color="#25427a" />
           <Text style={styles.loadingText}>Processing transfer...</Text>
         </View>
       ) : (
@@ -271,7 +271,7 @@ export default function TransferScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   recentItem: { alignItems: 'center', width: 58 },
-  recentAvatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: '#0d47a1', justifyContent: 'center', alignItems: 'center', marginBottom: 5 },
+  recentAvatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: '#25427a', justifyContent: 'center', alignItems: 'center', marginBottom: 5 },
   recentAvatarText: { color: '#fff', fontSize: 18, fontWeight: '700' },
   recentName: { fontSize: 11, color: '#7c8aa5', textAlign: 'center' },
   container: { flex: 1, backgroundColor: '#f4f6fb' },
@@ -281,22 +281,22 @@ const styles = StyleSheet.create({
   headerSubtitle: { color: 'rgba(255,255,255,0.7)', fontSize: 14, marginTop: 4 },
   content: { flex: 1, padding: 16 },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  loadingText: { color: '#0d47a1', fontSize: 16, marginTop: 16, fontWeight: '600' },
+  loadingText: { color: '#25427a', fontSize: 16, marginTop: 16, fontWeight: '600' },
   card: { backgroundColor: '#fff', borderRadius: 16, padding: 20, marginBottom: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
-  label: { fontSize: 14, fontWeight: '600', color: '#0d47a1', marginBottom: 12 },
+  label: { fontSize: 14, fontWeight: '600', color: '#25427a', marginBottom: 12 },
   input: { backgroundColor: '#f4f6fb', borderRadius: 12, padding: 16, fontSize: 16, color: '#1a2b4a' },
-  amountInput: { backgroundColor: '#f4f6fb', borderRadius: 12, padding: 16, fontSize: 28, fontWeight: 'bold', color: '#0d47a1', textAlign: 'center', marginBottom: 16 },
+  amountInput: { backgroundColor: '#f4f6fb', borderRadius: 12, padding: 16, fontSize: 28, fontWeight: 'bold', color: '#25427a', textAlign: 'center', marginBottom: 16 },
   quickLabel: { fontSize: 12, color: '#7c8aa5', marginBottom: 8 },
   quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   quickBtn: { backgroundColor: '#f4f6fb', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 },
-  quickBtnActive: { backgroundColor: '#0d47a1' },
+  quickBtnActive: { backgroundColor: '#25427a' },
   quickBtnText: { fontSize: 13, color: '#1a2b4a', fontWeight: '600' },
   quickBtnTextActive: { color: '#fff' },
   pinWarning: { backgroundColor: '#fff3e0', borderRadius: 16, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: '#f5a623' },
   pinWarningText: { fontSize: 13, color: '#f5a623', marginBottom: 12 },
   pinWarningBtn: { backgroundColor: '#f5a623', borderRadius: 10, padding: 12, alignItems: 'center' },
   pinWarningBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
-  sendButton: { backgroundColor: '#0d47a1', borderRadius: 16, padding: 20, alignItems: 'center', marginBottom: 16 },
+  sendButton: { backgroundColor: '#25427a', borderRadius: 16, padding: 20, alignItems: 'center', marginBottom: 16 },
   sendButtonDisabled: { backgroundColor: '#e6eaf2' },
   sendButtonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
   sendButtonAmount: { color: 'rgba(255,255,255,0.8)', fontSize: 14, marginTop: 4 },

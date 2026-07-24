@@ -76,7 +76,7 @@ export default function SetTransactionPinScreen({ navigation, route }: any) {
 
   if (step === 'verify') {
     return (
-      <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.container}>
+      <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.container}>
         <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={22} color="#f5a623" />
           <Text style={styles.backText}>Back</Text>
@@ -117,7 +117,7 @@ export default function SetTransactionPinScreen({ navigation, route }: any) {
   const totalSteps = hasExistingPin ? 3 : 2
 
   return (
-    <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.container}>
+    <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.container}>
       {!fromRegister && (
         <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={22} color="#f5a623" />

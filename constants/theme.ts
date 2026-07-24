@@ -3,9 +3,9 @@
 
 export const colors = {
   // Brand
-  navy:        '#0d47a1',
-  navyLight:   '#1565c0',
-  navyDeep:    '#0a0a2e',
+  navy:        '#25427a',
+  navyLight:   '#385c9e',
+  navyDeep:    '#1a2e55',
   gold:        '#f5a623',
   goldDark:    '#e8940f',
 

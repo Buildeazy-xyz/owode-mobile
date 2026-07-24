@@ -126,7 +126,7 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.header}>
+      <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={22} color="#f5a623" />
         </TouchableOpacity>
@@ -202,7 +202,7 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.membersRow}>
                 {group.members?.map((m: any) => (
                   <View key={m.id} style={styles.memberChip}>
-                    <View style={[styles.memberAvatar, { backgroundColor: m.isAvatar ? '#f5a623' : '#0d47a1' }]}>
+                    <View style={[styles.memberAvatar, { backgroundColor: m.isAvatar ? '#f5a623' : '#25427a' }]}>
                       <Text style={styles.memberAvatarText}>
                         {m.isAvatar ? '' : m.user?.fullName?.charAt(0)}
                       </Text>
@@ -238,7 +238,7 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
       {/* Contribute Modal */}
       <Modal visible={contributeModal} animationType="slide" transparent>
         {pinStep ? (
-          <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.pinContainer}>
+          <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.pinContainer}>
             {loading ? (
               <ActivityIndicator size="large" color="#f5a623" />
             ) : (
@@ -274,8 +274,8 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
                     <Text style={styles.confirmValue}>₦{selectedGroup.guaranteeFee?.toLocaleString()}</Text>
                   </View>
                   <View style={[styles.confirmRow, styles.confirmTotal]}>
-                    <Text style={[styles.confirmLabel, { fontWeight: 'bold', color: '#0d47a1' }]}>Total Deducted</Text>
-                    <Text style={[styles.confirmValue, { fontWeight: 'bold', color: '#0d47a1' }]}>
+                    <Text style={[styles.confirmLabel, { fontWeight: 'bold', color: '#25427a' }]}>Total Deducted</Text>
+                    <Text style={[styles.confirmValue, { fontWeight: 'bold', color: '#25427a' }]}>
                       ₦{(selectedGroup.amount + selectedGroup.guaranteeFee)?.toLocaleString()}
                     </Text>
                   </View>
@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
   infoBanner: { backgroundColor: '#eaf2ff', margin: 16, borderRadius: 16, padding: 16, flexDirection: 'row', alignItems: 'flex-start' },
   infoBannerIcon: { fontSize: 28, marginRight: 12 },
   infoBannerText: { flex: 1 },
-  infoBannerTitle: { fontSize: 14, fontWeight: 'bold', color: '#0d47a1', marginBottom: 4 },
+  infoBannerTitle: { fontSize: 14, fontWeight: 'bold', color: '#25427a', marginBottom: 4 },
   infoBannerDesc: { fontSize: 12, color: '#7c8aa5', lineHeight: 18 },
   emptyState: { alignItems: 'center', padding: 60 },
   emptyIcon: { fontSize: 56, marginBottom: 16 },
@@ -314,11 +314,11 @@ const styles = StyleSheet.create({
   emptySubText: { fontSize: 14, color: '#7c8aa5', textAlign: 'center', marginTop: 8, marginBottom: 24 },
   groupCard: { backgroundColor: '#fff', margin: 16, marginBottom: 8, borderRadius: 20, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
   groupHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
-  groupName: { fontSize: 16, fontWeight: 'bold', color: '#0d47a1', marginBottom: 4 },
+  groupName: { fontSize: 16, fontWeight: 'bold', color: '#25427a', marginBottom: 4 },
   guaranteedBadge: { backgroundColor: '#fef3c7', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, alignSelf: 'flex-start' },
   guaranteedBadgeText: { fontSize: 11, color: '#d97706', fontWeight: '600' },
-  groupFrequency: { backgroundColor: '#0d47a1', color: '#fff', fontSize: 11, fontWeight: 'bold', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
-  groupAmount: { fontSize: 22, fontWeight: 'bold', color: '#0d47a1', marginBottom: 2 },
+  groupFrequency: { backgroundColor: '#25427a', color: '#fff', fontSize: 11, fontWeight: 'bold', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
+  groupAmount: { fontSize: 22, fontWeight: 'bold', color: '#25427a', marginBottom: 2 },
   groupFee: { fontSize: 12, color: '#7c8aa5', marginBottom: 12 },
   avatarCoverage: { backgroundColor: '#f4f6fb', borderRadius: 12, padding: 12, marginBottom: 12 },
   avatarCoverageText: { fontSize: 12, color: '#1a2b4a', marginBottom: 6 },
@@ -333,15 +333,15 @@ const styles = StyleSheet.create({
   memberPaid: { fontSize: 12, marginTop: 2 },
   groupActions: { flexDirection: 'row', gap: 8, marginBottom: 8 },
   joinBtn: { flex: 1, backgroundColor: '#f4f6fb', borderRadius: 12, padding: 12, alignItems: 'center' },
-  joinBtnText: { color: '#0d47a1', fontWeight: '600', fontSize: 13 },
-  contributeBtn: { flex: 1, backgroundColor: '#0d47a1', borderRadius: 12, padding: 12, alignItems: 'center' },
+  joinBtnText: { color: '#25427a', fontWeight: '600', fontSize: 13 },
+  contributeBtn: { flex: 1, backgroundColor: '#25427a', borderRadius: 12, padding: 12, alignItems: 'center' },
   contributeBtnText: { color: '#fff', fontWeight: '600', fontSize: 13 },
-  shareBtn: { backgroundColor: '#eaf2ff', borderRadius: 12, padding: 12, alignItems: 'center', borderWidth: 1, borderColor: '#0d47a1', marginTop: 4 },
-  shareBtnText: { color: '#0d47a1', fontWeight: '600', fontSize: 14 },
+  shareBtn: { backgroundColor: '#eaf2ff', borderRadius: 12, padding: 12, alignItems: 'center', borderWidth: 1, borderColor: '#25427a', marginTop: 4 },
+  shareBtnText: { color: '#25427a', fontWeight: '600', fontSize: 14 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modal: { backgroundColor: '#fff', borderTopLeftRadius: 30, borderTopRightRadius: 30, padding: 30 },
-  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#0d47a1', marginBottom: 4 },
-  createGroupBtn: { backgroundColor: '#0d47a1', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 12 },
+  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#25427a', marginBottom: 4 },
+  createGroupBtn: { backgroundColor: '#25427a', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 12 },
   createGroupBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
   cancelText: { textAlign: 'center', color: '#7c8aa5', fontSize: 14, marginBottom: 8 },
   pinContainer: { flex: 1 },
@@ -351,7 +351,7 @@ const styles = StyleSheet.create({
   confirmLabel: { fontSize: 14, color: '#7c8aa5' },
   confirmValue: { fontSize: 14, color: '#1a2b4a' },
   avatarNote: { backgroundColor: '#eaf2ff', borderRadius: 12, padding: 12, marginVertical: 16 },
-  avatarNoteText: { fontSize: 12, color: '#0d47a1', textAlign: 'center' },
+  avatarNoteText: { fontSize: 12, color: '#25427a', textAlign: 'center' },
   searchContainer: { backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 12 },
   searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f4f6fb', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, gap: 8 },
   searchIcon: { fontSize: 16 },

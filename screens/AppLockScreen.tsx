@@ -48,7 +48,7 @@ export default function AppLockScreen({ onUnlock }: { onUnlock: () => void }) {
 
   if (loading) {
     return (
-      <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.loadingContainer}>
+      <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.loadingContainer}>
         <Image
           source={require('../assets/owode-logo.png')}
           style={styles.loadingLogo}
@@ -61,7 +61,7 @@ export default function AppLockScreen({ onUnlock }: { onUnlock: () => void }) {
   }
 
   return (
-    <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={{ flex: 1 }}>
+    <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={{ flex: 1 }}>
       {/* Logo at top */}
       <View style={styles.logoContainer}>
         <Image
