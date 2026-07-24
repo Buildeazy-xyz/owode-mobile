@@ -7,6 +7,7 @@ import {
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Ionicons } from '@expo/vector-icons'
+import BottomNav from '../components/BottomNav'
 import { savingsAPI } from '../utils/api'
 import PinKeypad from '../components/PinKeypad'
 import { LineChart, ProgressChart } from 'react-native-chart-kit'
@@ -778,6 +779,7 @@ export default function SavingsScreen({ navigation }: any) {
           <View style={{ height: 40 }} />
         </ScrollView>
       )}
+      <BottomNav navigation={navigation} active="savings" />
     </View>
   )
 }

@@ -5,6 +5,7 @@ import {
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Ionicons } from '@expo/vector-icons'
+import BottomNav from '../components/BottomNav'
 import { useAuth } from '../context/AuthContext'
 import { walletAPI } from '../utils/api'
 import * as Haptics from 'expo-haptics'
@@ -556,6 +557,7 @@ export default function DashboardScreen({ navigation }: any) {
           </View>
         </View>
       </Modal>
+      <BottomNav navigation={navigation} active="home" />
     </View>
   )
 }

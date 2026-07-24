@@ -7,6 +7,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient'
 import { walletAPI } from '../utils/api'
 import { Ionicons } from '@expo/vector-icons'
+import BottomNav from '../components/BottomNav'
 import { announceNewCredit } from '../utils/speech'
 import { showPaymentNotification } from '../utils/notifications'
 
@@ -409,6 +410,7 @@ export default function WalletScreen({ navigation }: any) {
           </View>
         </View>
       </Modal>
+      <BottomNav navigation={navigation} active="wallet" />
     </View>
   )
 }

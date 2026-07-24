@@ -5,6 +5,7 @@ import {
   TextInput, Share, Modal
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
+import BottomNav from '../components/BottomNav'
 import { LinearGradient } from 'expo-linear-gradient'
 import { ajoAPI, guaranteedAjoAPI } from '../utils/api'
 import { useAuth } from '../context/AuthContext'
@@ -534,6 +535,7 @@ export default function AjoScreen({ navigation }: any) {
           </View>
         )}
       </Modal>
+      <BottomNav navigation={navigation} active="ajo" />
     </View>
   )
 }

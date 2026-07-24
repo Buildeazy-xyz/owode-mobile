@@ -6,6 +6,7 @@ import {
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Ionicons } from '@expo/vector-icons'
+import BottomNav from '../components/BottomNav'
 import { useAuth } from '../context/AuthContext'
 import { authAPI } from '../utils/api'
 import { isBiometricEnabled, getBiometricType } from '../utils/biometrics'
@@ -182,6 +183,7 @@ export default function ProfileScreen({ navigation }: any) {
   ]
 
   return (
+    <View style={{ flex: 1, backgroundColor: '#f4f6fb' }}>
     <ScrollView contentContainerStyle={{ paddingBottom: 110 }} style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Header */}
       <LinearGradient colors={['#0a0a2e', '#0d47a1', '#1565c0']} style={styles.header}>
@@ -445,6 +447,8 @@ export default function ProfileScreen({ navigation }: any) {
         </View>
       </Modal>
     </ScrollView>
+    <BottomNav navigation={navigation} active="profile" />
+    </View>
   )
 }
 
