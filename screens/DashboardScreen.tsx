@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons'
 import BottomNav from '../components/BottomNav'
 import { useAuth } from '../context/AuthContext'
 import { walletAPI } from '../utils/api'
+import { phoneToAccountNumber } from '../utils/account'
 import * as Haptics from 'expo-haptics'
 import { announceNewCredit } from '../utils/speech'
 import { isBiometricEnabled, getBiometricType } from '../utils/biometrics'
@@ -93,11 +94,11 @@ export default function DashboardScreen({ navigation }: any) {
   }
 
   const handleAddMoney = () => {
-    Alert.alert(
-      'Add Money',
-      'Ask a friend to send money to your OWODE number, or visit an OWODE agent to fund your wallet.',
-      [{ text: 'Got it' }]
-    )
+    navigation.navigate('AddMoney', {
+      accountNumber: phoneToAccountNumber(user?.phone),
+      bankName: 'OWODE',
+      accountName: user?.fullName || '',
+    })
   }
 
   const loadWallet = async () => {
@@ -357,9 +358,6 @@ export default function DashboardScreen({ navigation }: any) {
               </Text>
               <Ionicons name={copied ? 'checkmark' : 'copy-outline'} size={13} color="rgba(255,255,255,0.75)" />
             </TouchableOpacity>
-            <View style={styles.cardLogoChip}>
-              <Image source={require('../assets/owode-logo.png')} style={styles.cardLogoImg} resizeMode="contain" />
-            </View>
           </View>
 
           <View style={styles.balanceRow}>

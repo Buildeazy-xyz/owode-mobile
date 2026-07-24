@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import LoginScreen from '../screens/LoginScreen'
 import RegisterScreen from '../screens/RegisterScreen'
 import DashboardScreen from '../screens/DashboardScreen'
+import AddMoneyScreen from '../screens/AddMoneyScreen'
 import WalletScreen from '../screens/WalletScreen'
 import AjoScreen from '../screens/AjoScreen'
 import ProfileScreen from '../screens/ProfileScreen'
@@ -34,6 +35,7 @@ export default function AppNavigator() {
        {user ? (
   <>
     <Stack.Screen name="Dashboard" component={DashboardScreen} />
+        <Stack.Screen name="AddMoney" component={AddMoneyScreen} options={{ headerShown: false }} />
     <Stack.Screen name="Wallet" component={WalletScreen} />
     <Stack.Screen name="Ajo" component={AjoScreen} />
     <Stack.Screen name="TrustScore" component={TrustScoreScreen} />
