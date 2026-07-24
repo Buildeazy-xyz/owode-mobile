@@ -22,6 +22,7 @@ export default function AjoScreen({ navigation }: any) {
   const [activeTab, setActiveTab] = useState<'all' | 'standard' | 'guaranteed'>('all')
   const [contributeModal, setContributeModal] = useState(false)
   const [pinStep, setPinStep] = useState(false)
+  const [contributeMode, setContributeMode] = useState<'standard' | 'guaranteed'>('guaranteed')
   const [selectedGroup, setSelectedGroup] = useState<any>(null)
   const [contributing, setContributing] = useState(false)
 
@@ -92,25 +93,38 @@ export default function AjoScreen({ navigation }: any) {
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Contribute', onPress: async () => {
-            try {
-              const response = await ajoAPI.contribute(groupId)
-              const data = response.data.data
-              if (data.payoutSent) {
-                announceAjoPayout(data.payoutAmount, groupName)
-                Alert.alert('Payout!', `₦${data.payoutAmount?.toLocaleString()} paid out this cycle!`)
-              } else {
-                announceContribution(amount, groupName)
-                Alert.alert('Contributed!', `${data.paidCount} of ${data.paidCount + data.remainingCount} members paid`)
-              }
-              await loadGroups()
-            } catch (error: any) {
-              Alert.alert('Error', error.response?.data?.message || 'Something went wrong')
-            }
+          text: 'Continue', onPress: () => {
+            setSelectedGroup({ id: groupId, name: groupName, amount })
+            setContributeMode('standard')
+            setContributeModal(true)
+            setPinStep(true)
           }
         }
       ]
     )
+  }
+
+  const executeStandardContribution = async (pin: string) => {
+    try {
+      setContributing(true)
+      const response = await ajoAPI.contribute(selectedGroup.id, pin)
+      const data = response.data.data
+      setContributeModal(false)
+      setPinStep(false)
+      if (data.payoutSent) {
+        announceAjoPayout(data.payoutAmount, selectedGroup.name)
+        Alert.alert('Payout!', `₦${data.payoutAmount?.toLocaleString()} paid out this cycle!`)
+      } else {
+        announceContribution(selectedGroup.amount, selectedGroup.name)
+        Alert.alert('Contributed!', `${data.paidCount} of ${data.paidCount + data.remainingCount} members paid`)
+      }
+      await loadGroups()
+    } catch (error: any) {
+      setPinStep(false)
+      Alert.alert('Error', error.response?.data?.message || 'Something went wrong')
+    } finally {
+      setContributing(false)
+    }
   }
 
   const handleContributeGuaranteed = async (group: any) => {
@@ -332,7 +346,7 @@ export default function AjoScreen({ navigation }: any) {
                           </View>
                           <TouchableOpacity
                             style={[styles.actionBtn, styles.contributeBtn]}
-                            onPress={() => handleContributeGuaranteed(group)}
+                            onPress={() => { setContributeMode('guaranteed'); handleContributeGuaranteed(group) }}
                           >
                             <Text style={styles.contributeBtnText}>Contribute</Text>
                           </TouchableOpacity>
@@ -473,7 +487,7 @@ export default function AjoScreen({ navigation }: any) {
                   title="Transaction PIN"
                   subtitle="Enter your 4-digit PIN to confirm"
                   pinLength={4}
-                  onComplete={executeGuaranteedContribution}
+                  onComplete={contributeMode === 'standard' ? executeStandardContribution : executeGuaranteedContribution}
                 />
                 <TouchableOpacity onPress={() => { setPinStep(false); setContributeModal(false) }}>
                   <Text style={styles.cancelPinText}>Cancel</Text>

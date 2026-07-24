@@ -49,6 +49,23 @@ export default function DashboardScreen({ navigation }: any) {
 
   const [copied, setCopied] = useState(false)
 
+  useEffect(() => {
+    if (user && !user.hasTransactionPin) {
+      AsyncStorage.getItem('pin_prompt_seen').then(seen => {
+        if (seen === 'true') return
+        AsyncStorage.setItem('pin_prompt_seen', 'true')
+        Alert.alert(
+          'Secure Your Account',
+          'Set a 4-digit transaction PIN to protect your money. You will need it for every transfer, savings deposit and Ajo contribution.',
+          [
+            { text: 'Later', style: 'cancel' },
+            { text: 'Set PIN Now', onPress: () => navigation.navigate('SetTransactionPin') }
+          ]
+        )
+      }).catch(() => {})
+    }
+  }, [user?.hasTransactionPin])
+
   const copyAccount = () => {
     Clipboard.setString(user?.phone || '')
     setCopied(true)
@@ -312,6 +329,21 @@ export default function DashboardScreen({ navigation }: any) {
           </View>
         </LinearGradient>
 
+        {/* Transaction PIN prompt — money cannot move without it */}
+        {user && !user.hasTransactionPin && (
+          <TouchableOpacity
+            style={styles.pinBanner}
+            onPress={() => navigation.navigate('SetTransactionPin')}
+          >
+            <Ionicons name="lock-closed" size={22} color="#ef4444" />
+            <View style={styles.verifyBannerText}>
+              <Text style={styles.pinBannerTitle}>Set Your Transaction PIN</Text>
+              <Text style={styles.pinBannerDesc}>Required before you can transfer or save</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#ef4444" />
+          </TouchableOpacity>
+        )}
+
         {/* Verification Banner */}
         {!user?.isVerified && (
           <TouchableOpacity
@@ -529,6 +561,9 @@ export default function DashboardScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
+  pinBanner: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#ffebee', borderColor: '#ffcdd2', borderWidth: 1, borderRadius: 14, padding: 16, marginHorizontal: 16, marginTop: 12 },
+  pinBannerTitle: { fontSize: 15, fontWeight: '700', color: '#ef4444' },
+  pinBannerDesc: { fontSize: 12.5, color: '#b3261e', marginTop: 2 },
   acctRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 },
   acctText: { color: 'rgba(255,255,255,0.75)', fontSize: 11.5, flexShrink: 1 },
   walletUpdated: { color: 'rgba(255,255,255,0.55)', fontSize: 11, marginTop: 4 },

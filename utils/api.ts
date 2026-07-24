@@ -51,7 +51,8 @@ export const ajoAPI = {
   getAllGroups: () => api.get('/ajo/groups'),
   getGroup: (id: string) => api.get(`/ajo/groups/${id}`),
   joinGroup: (groupId: string) => api.post('/ajo/join', { groupId }),
-  contribute: (groupId: string) => api.post('/ajo/contribute', { groupId })
+  contribute: (groupId: string, transactionPin: string) =>
+    api.post('/ajo/contribute', { groupId, transactionPin })
 }
 
 export const guaranteedAjoAPI = {
