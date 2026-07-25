@@ -299,7 +299,7 @@ export default function DashboardScreen({ navigation }: any) {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.headerIcon}
-                onPress={() => { setShowNotifications(true); markAllRead() }}
+                onPress={() => navigation.navigate('Notifications')}}
               >
                 <Ionicons name="notifications-outline" size={21} color="#fff" />
                 {unreadCount > 0 && (

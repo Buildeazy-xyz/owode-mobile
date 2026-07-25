@@ -1,4 +1,4 @@
-export const phoneToAccountNumber = (phone: string): string => {
+export const phoneToAccountNumber = (phone?: string | null): string => {
   const d = (phone || '').replace(/\D/g, '');
   if (d.startsWith('234')) return d.slice(3);
   if (d.startsWith('0')) return d.slice(1);

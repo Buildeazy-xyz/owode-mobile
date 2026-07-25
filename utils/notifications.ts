@@ -1,6 +1,7 @@
 import * as Notifications from 'expo-notifications'
 import { Platform } from 'react-native'
 import { announcePayment } from './speech'
+import { addNotification } from './notificationStore'
 import api from './api'
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -62,8 +63,14 @@ export const registerForPushNotifications = async (): Promise<string | null> => 
 }
 
 export const setupBackgroundNotifications = () => {
-  Notifications.addNotificationReceivedListener(notification => {
-    console.log('Notification received:', notification)
+  Notifications.addNotificationReceivedListener(async notification => {
+    const c: any = notification?.request?.content || {}
+    const title = c.title || 'OWODE'
+    const body = c.body || ''
+    const kind = /credit|received/i.test(title) ? 'CREDIT'
+      : /debit|sent/i.test(title) ? 'DEBIT'
+      : /reward|referral|bonus/i.test(title) ? 'REWARD' : 'INFO'
+    await addNotification({ kind, title, body })
   })
 
   Notifications.addNotificationResponseReceivedListener(response => {
@@ -92,6 +99,8 @@ export const showPaymentNotification = async (data: {
       },
       trigger: null
     })
+
+    await addNotification({ kind: data.type === 'CREDIT' ? 'CREDIT' : 'DEBIT', title, body })
 
     announcePayment({ type: data.type, amount: data.amount, sender: data.sender })
   } catch (error) {
