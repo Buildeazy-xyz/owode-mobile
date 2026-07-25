@@ -234,7 +234,7 @@ export default function AjoScreen({ navigation }: any) {
       {/* Search Bar */}
       <View style={styles.searchContainer}>
         <View style={styles.searchBar}>
-          <Text style={styles.searchIcon}>🔍</Text>
+          <Ionicons name="search-outline" size={16} color="#9aa5b8" />
           <TextInput
             style={styles.searchInput}
             placeholder="Search groups..."
@@ -255,7 +255,7 @@ export default function AjoScreen({ navigation }: any) {
         {[
           { key: 'all', label: `All (${allGroups.length})` },
           { key: 'standard', label: `Standard (${standardGroups.length})` },
-          { key: 'guaranteed', label: `🛡️ Guaranteed (${guaranteedGroups.length})` }
+          { key: 'guaranteed', label: `Guaranteed (${guaranteedGroups.length})` }
         ].map(tab => (
           <TouchableOpacity
             key={tab.key}
@@ -273,7 +273,7 @@ export default function AjoScreen({ navigation }: any) {
       {activeTab === 'guaranteed' && (
         <View style={styles.guaranteedInfoBar}>
           <Text style={styles.guaranteedInfoText}>
-            🤖 Owode Avatar guarantees your payout even if members default!
+            Owode Avatar guarantees your payout even if members default!
           </Text>
         </View>
       )}
@@ -287,7 +287,7 @@ export default function AjoScreen({ navigation }: any) {
         >
           {filteredGroups.length === 0 ? (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyIcon}>{search ? '🔍' : ''}</Text>
+              {search ? <Ionicons name="search-outline" size={56} color="#9aa5b8" style={{ marginBottom: 16 }} /> : null}
               <Text style={styles.emptyText}>
                 {search ? `No groups found for "${search}"` : 'No Ajo groups available'}
               </Text>
@@ -309,7 +309,7 @@ export default function AjoScreen({ navigation }: any) {
                         <Text style={styles.groupFrequencyText}>{group.frequency}</Text>
                       </View>
                       <View style={styles.guaranteedBadge}>
-                        <Text style={styles.guaranteedBadgeText}>🛡️ Guaranteed</Text>
+                        <Text style={styles.guaranteedBadgeText}>Guaranteed</Text>
                       </View>
                     </View>
 
@@ -320,7 +320,7 @@ export default function AjoScreen({ navigation }: any) {
 
                     <View style={styles.avatarCoverage}>
                       <Text style={styles.avatarCoverageText}>
-                        🤖 Avatar Coverage: {group.avatarCoveredCount}/{group.maxAvatarCoverage} used
+                        Avatar Coverage: {group.avatarCoveredCount}/{group.maxAvatarCoverage} used
                       </Text>
                       <View style={styles.coverageBar}>
                         <View style={[
@@ -365,7 +365,7 @@ export default function AjoScreen({ navigation }: any) {
                       ) : (
                         <>
                           <View style={styles.memberBadge}>
-                            <Text style={styles.memberBadgeText}>✅ Member — Position #{member?.position}</Text>
+                            <Text style={styles.memberBadgeText}>Member — Position #{member?.position}</Text>
                           </View>
                           <TouchableOpacity
                             style={[styles.actionBtn, styles.contributeBtn]}
@@ -379,7 +379,7 @@ export default function AjoScreen({ navigation }: any) {
                         <Text style={styles.shareBtnText}>Share Group</Text>
                       </TouchableOpacity>
                     </View>
-                    <Text style={styles.cycleInfo}>Cycle {group.currentCycle} • Guaranteed Ajo 🛡️</Text>
+                    <Text style={styles.cycleInfo}>Cycle {group.currentCycle} • Guaranteed Ajo</Text>
                   </View>
                 )
               }
@@ -472,7 +472,7 @@ export default function AjoScreen({ navigation }: any) {
                     ) : (
                       <>
                         <View style={styles.memberBadge}>
-                          <Text style={styles.memberBadgeText}>✅ Member — Position #{member?.position}</Text>
+                          <Text style={styles.memberBadgeText}>Member — Position #{member?.position}</Text>
                         </View>
                         <TouchableOpacity
                           style={[styles.actionBtn, styles.contributeBtn, (!isFull || member?.hasPaid) && styles.actionBtnDisabled]}
@@ -543,7 +543,7 @@ export default function AjoScreen({ navigation }: any) {
                     </Text>
                   </View>
                   <View style={styles.avatarNote}>
-                    <Text style={styles.avatarNoteText}>🤖 Your payout is protected by the Owode Avatar</Text>
+                    <Text style={styles.avatarNoteText}>Your payout is protected by the Owode Avatar</Text>
                   </View>
                 </>
               )}

@@ -99,7 +99,7 @@ export default function BiometricSetupScreen({ navigation }: any) {
         <ActivityIndicator size="large" color="#f5a623" />
       ) : !biometricInfo?.hasAny ? (
         <View style={styles.content}>
-          <Text style={styles.noSupportIcon}>😔</Text>
+          <Ionicons name="sad-outline" size={64} color="#9aa5b8" style={{ marginBottom: 16 }} />
           <Text style={styles.noSupportTitle}>Not Available</Text>
           <Text style={styles.noSupportDesc}>
             Your device doesn't have biometric hardware or you haven't set up fingerprint/face ID in your phone settings.
@@ -128,7 +128,7 @@ export default function BiometricSetupScreen({ navigation }: any) {
 
           {/* Status */}
           <View style={[styles.statusCard, { borderColor: isEnabled ? '#22c55e' : '#f5a623' }]}>
-            <Text style={styles.statusIcon}>{isEnabled ? '✅' : '⚪'}</Text>
+            <Ionicons name={isEnabled ? "checkmark-circle" : "ellipse-outline"} size={24} color={isEnabled ? "#22c55e" : "#9aa5b8"} />
             <View style={styles.statusText}>
               <Text style={styles.statusTitle}>{isEnabled ? 'Enabled' : 'Not Enabled'}</Text>
               <Text style={styles.statusDesc}>
@@ -143,9 +143,9 @@ export default function BiometricSetupScreen({ navigation }: any) {
           <View style={styles.featuresCard}>
             <Text style={styles.featuresTitle}>What you can do with {biometricInfo.label}:</Text>
             {[
-              `🔓 Unlock OWODE app instantly`,
+              `Unlock OWODE app instantly`,
               `Authorize transfers faster`,
-              `🛡️ Extra layer of security`,
+              `Extra layer of security`,
               `No PIN needed for quick access`
             ].map((f, i) => (
               <Text key={i} style={styles.featureItem}>{f}</Text>
@@ -170,7 +170,7 @@ export default function BiometricSetupScreen({ navigation }: any) {
           ) : (
             <View style={styles.enabledActions}>
               <TouchableOpacity style={styles.testBtn} onPress={handleTest}>
-                <Text style={styles.testBtnText}>🧪 Test It</Text>
+                <Text style={styles.testBtnText}>Test It</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.disableBtn} onPress={handleDisable}>
                 <Text style={styles.disableBtnText}>Disable</Text>

@@ -31,7 +31,7 @@ export default function ReceiptScreen({ route, navigation }: any) {
       <ViewShot ref={receiptRef} options={{ format: 'png', quality: 1 }}>
         <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.header}>
           <View style={[styles.statusCircle, { backgroundColor: isCredit ? '#22c55e' : '#f5a623' }]}>
-            <Text style={styles.statusIcon}>{isCredit ? '✅' : ''}</Text>
+            {isCredit ? <Ionicons name="checkmark-circle" size={36} color="#22c55e" /> : null}
           </View>
           <Text style={styles.statusText}>{isCredit ? 'Money Received!' : 'Transfer Successful!'}</Text>
           <Text style={styles.amount}>₦{transaction.amount?.toLocaleString()}</Text>
@@ -45,7 +45,7 @@ export default function ReceiptScreen({ route, navigation }: any) {
 
           <View style={styles.row}>
             <Text style={styles.rowLabel}>Status</Text>
-            <Text style={[styles.rowValue, { color: '#22c55e', fontWeight: 'bold' }]}>✅ {transaction.status}</Text>
+            <Text style={[styles.rowValue, { color: '#22c55e', fontWeight: 'bold' }]}>{transaction.status}</Text>
           </View>
           <View style={styles.separator} />
 

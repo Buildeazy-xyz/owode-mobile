@@ -117,7 +117,7 @@ export default function FaceVerificationScreen({ navigation }: any) {
     return (
       <LinearGradient colors={['#1a2e55', '#25427a']} style={styles.container}>
         <View style={styles.permissionContent}>
-          <Text style={styles.permissionIcon}>📷</Text>
+          <Ionicons name="camera-outline" size={64} color="#fff" style={{ marginBottom: 20 }} />
           <Text style={styles.permissionTitle}>Camera Access Required</Text>
           <Text style={styles.permissionDesc}>
             OWODE needs camera access to verify your identity
@@ -153,7 +153,7 @@ export default function FaceVerificationScreen({ navigation }: any) {
           {!user?.bvn && !user?.nin && (
             <View style={styles.warningCard}>
               <Text style={styles.warningText}>
-                ⚠️ You need to submit your BVN or NIN first before face verification!
+                You need to submit your BVN or NIN first before face verification!
               </Text>
               <TouchableOpacity
                 style={styles.warningBtn}
@@ -182,7 +182,7 @@ export default function FaceVerificationScreen({ navigation }: any) {
             onPress={() => setStep('camera')}
             disabled={!user?.bvn && !user?.nin}
           >
-            <Text style={styles.startBtnText}>📷 Start Verification</Text>
+            <Text style={styles.startBtnText}>Start Verification</Text>
           </TouchableOpacity>
         </View>
       </LinearGradient>
@@ -237,7 +237,7 @@ export default function FaceVerificationScreen({ navigation }: any) {
             Comparing your face with government records via YouVerify...
           </Text>
           <View style={styles.processingSteps}>
-            <Text style={styles.processingStep}>✅ Liveness detected</Text>
+            <Text style={styles.processingStep}>Liveness detected</Text>
             <Text style={styles.processingStep}>⏳ Matching with ID photo...</Text>
             <Text style={styles.processingStep}>⏳ Confirming identity...</Text>
           </View>
@@ -251,7 +251,7 @@ export default function FaceVerificationScreen({ navigation }: any) {
       <LinearGradient colors={['#1a2e55', '#22c55e', '#16a34a']} style={styles.container}>
         <View style={styles.resultContent}>
           <View style={styles.successCircle}>
-            <Text style={styles.successIcon}>✅</Text>
+            <Ionicons name="checkmark-circle" size={56} color="#22c55e" />
           </View>
           <Text style={styles.resultTitle}>Identity Verified!</Text>
           <Text style={styles.resultDesc}>
@@ -259,9 +259,9 @@ export default function FaceVerificationScreen({ navigation }: any) {
           </Text>
           <View style={styles.benefitsCard}>
             <Text style={styles.benefitsTitle}>You can now:</Text>
-            <Text style={styles.benefitItem}>✅ Join Guaranteed Ajo groups</Text>
-            <Text style={styles.benefitItem}>✅ Make larger transfers</Text>
-            <Text style={styles.benefitItem}>✅ Access all platform features</Text>
+            <Text style={styles.benefitItem}>Join Guaranteed Ajo groups</Text>
+            <Text style={styles.benefitItem}>Make larger transfers</Text>
+            <Text style={styles.benefitItem}>Access all platform features</Text>
           </View>
           <TouchableOpacity
             style={styles.doneBtn}
@@ -298,7 +298,7 @@ export default function FaceVerificationScreen({ navigation }: any) {
               onPress={() => setStep('intro')}
             >
               <Text style={styles.retryBtnText}>
-                🔄 Try Again ({3 - attempts} attempts left)
+                Try Again ({3 - attempts} attempts left)
               </Text>
             </TouchableOpacity>
           )}

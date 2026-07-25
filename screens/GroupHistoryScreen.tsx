@@ -53,10 +53,10 @@ export default function GroupHistoryScreen({ route, navigation }: any) {
                 <Text style={styles.memberPhone}>{m.isAvatar ? 'Safety Net' : m.user?.phone}</Text>
               </View>
               <View style={styles.memberStatus}>
-                {m.payoutReceived && <Text style={styles.payoutReceived}>✅ Paid Out</Text>}
-                {m.hasPaid && !m.payoutReceived && <Text style={styles.hasPaid}>✅ Contributed</Text>}
+                {m.payoutReceived && <Text style={styles.payoutReceived}>Paid Out</Text>}
+                {m.hasPaid && !m.payoutReceived && <Text style={styles.hasPaid}>Contributed</Text>}
                 {!m.hasPaid && !m.isAvatar && <Text style={styles.pending}>⏳ Pending</Text>}
-                {m.isAvatar && <Text style={styles.avatarReady}>🛡️ Ready</Text>}
+                {m.isAvatar && <Text style={styles.avatarReady}>Ready</Text>}
               </View>
             </View>
           ))}
@@ -76,7 +76,7 @@ export default function GroupHistoryScreen({ route, navigation }: any) {
                 <View style={styles.cycleRight}>
                   <Text style={styles.cycleAmount}>₦{cycle.totalAmount?.toLocaleString()}</Text>
                   {cycle.avatarCovered && (
-                    <Text style={styles.avatarCovered}>🤖 Avatar covered</Text>
+                    <Text style={styles.avatarCovered}>Avatar covered</Text>
                   )}
                 </View>
               </View>
@@ -86,7 +86,7 @@ export default function GroupHistoryScreen({ route, navigation }: any) {
           {/* Defaults in this group */}
           {group.defaultRecords?.length > 0 && (
             <>
-              <Text style={styles.sectionTitle}>⚠️ Default Records</Text>
+              <Text style={styles.sectionTitle}>Default Records</Text>
               {group.defaultRecords.map((record: any) => (
                 <View key={record.id} style={styles.defaultCard}>
                   <Text style={styles.defaultUser}>{record.user?.fullName}</Text>

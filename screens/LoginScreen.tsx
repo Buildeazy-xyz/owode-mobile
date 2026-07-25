@@ -80,7 +80,7 @@ export default function LoginScreen({ navigation }: any) {
 
         <View style={styles.securityBadges}>
           <View style={styles.badge}><Text style={styles.badgeText}>Encrypted</Text></View>
-          <View style={styles.badge}><Text style={styles.badgeText}>🛡️ Secure</Text></View>
+          <View style={styles.badge}><Text style={styles.badgeText}>Secure</Text></View>
           <View style={styles.badge}><Text style={styles.badgeText}>Bank-grade</Text></View>
         </View>
 

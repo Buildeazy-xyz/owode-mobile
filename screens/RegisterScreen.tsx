@@ -18,18 +18,7 @@ const TOTAL_STEPS = 9
 // ⚠️ TESTING ONLY — set back to false once Termii SMS is approved
 const SKIP_OTP_FOR_TESTING = false
 
-const COUNTRIES = [
-  { name: 'Nigeria', code: 'NG', dial: '+234', flag: '🇳🇬', digits: 11 },
-  { name: 'Ghana', code: 'GH', dial: '+233', flag: '🇬🇭', digits: 10 },
-  { name: 'Kenya', code: 'KE', dial: '+254', flag: '🇰🇪', digits: 10 },
-  { name: 'South Africa', code: 'ZA', dial: '+27', flag: '🇿🇦', digits: 10 },
-  { name: 'United Kingdom', code: 'GB', dial: '+44', flag: '🇬🇧', digits: 10 },
-  { name: 'United States', code: 'US', dial: '+1', flag: '🇺🇸', digits: 10 },
-  { name: 'Canada', code: 'CA', dial: '+1', flag: '🇨🇦', digits: 10 },
-  { name: 'Tanzania', code: 'TZ', dial: '+255', flag: '🇹🇿', digits: 10 },
-  { name: 'Uganda', code: 'UG', dial: '+256', flag: '🇺🇬', digits: 10 },
-  { name: 'Cameroon', code: 'CM', dial: '+237', flag: '🇨🇲', digits: 9 },
-]
+import { COUNTRIES } from '../utils/countries'
 
 export default function RegisterScreen({ navigation }: any) {
   const { login } = useAuth()
@@ -382,7 +371,7 @@ export default function RegisterScreen({ navigation }: any) {
           </View>
         ) : faceStep === 'success' ? (
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 }}>
-            <Text style={{ fontSize: 80, marginBottom: 20 }}>✅</Text>
+            <Ionicons name="checkmark-circle" size={80} color="#22c55e" style={{ marginBottom: 20 }} />
             <Text style={styles.faceTitle}>Identity Verified!</Text>
             <Text style={styles.faceSubtitle}>Welcome to OWODE! Your account is fully set up.</Text>
           </View>
@@ -410,7 +399,7 @@ export default function RegisterScreen({ navigation }: any) {
                 setTimeout(startLivenessInstructions, 1000)
               }}
             >
-              <Text style={styles.faceStartBtnText}>📷 Start Face Verification</Text>
+              <Text style={styles.faceStartBtnText}>Start Face Verification</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={finishRegistration} style={styles.skipBtn}>
               <Text style={styles.skipText}>Skip for now — do it later from profile</Text>
@@ -459,7 +448,7 @@ export default function RegisterScreen({ navigation }: any) {
           />
 
           <View style={styles.infoCard}>
-            <Text style={styles.infoText}>📋 Use your legal name exactly as on your government ID</Text>
+            <Text style={styles.infoText}>Use your legal name exactly as on your government ID</Text>
           </View>
 
           <TouchableOpacity
@@ -485,7 +474,7 @@ export default function RegisterScreen({ navigation }: any) {
       {/* Step 2 - DOB */}
       {step === 2 && (
         <ScrollView style={styles.form} contentContainerStyle={styles.formContent}>
-          <Text style={styles.stepHeading}>Date of Birth 🎂</Text>
+          <Text style={styles.stepHeading}>Date of Birth</Text>
           <Text style={styles.stepSubheading}>You must be at least 18 years old to use OWODE</Text>
 
           <View style={styles.dobRow}>
@@ -668,7 +657,7 @@ export default function RegisterScreen({ navigation }: any) {
                       <Text style={styles.countryItemFlag}>{item.flag}</Text>
                       <Text style={styles.countryItemName}>{item.name}</Text>
                       <Text style={styles.countryItemDial}>{item.dial}</Text>
-                      {selectedCountry.code === item.code && <Text style={styles.countryItemCheck}>✅</Text>}
+                      {selectedCountry.code === item.code && <Ionicons name="checkmark" size={16} color="#22c55e" />}
                     </TouchableOpacity>
                   )}
                 />
@@ -752,7 +741,7 @@ export default function RegisterScreen({ navigation }: any) {
           </TouchableOpacity>
 
           <View style={styles.infoCard}>
-            <Text style={styles.infoText}>💡 Tap the boxes above to bring up your keyboard</Text>
+            <Text style={styles.infoText}>Tap the boxes above to bring up your keyboard</Text>
           </View>
         </ScrollView>
       )}
@@ -760,7 +749,7 @@ export default function RegisterScreen({ navigation }: any) {
       {/* Step 5 - BVN/NIN */}
       {step === 5 && (
         <ScrollView style={styles.form} contentContainerStyle={styles.formContent}>
-          <Text style={styles.stepHeading}>Identity Verification 🪪</Text>
+          <Text style={styles.stepHeading}>Identity Verification</Text>
           <Text style={styles.stepSubheading}>Verify your identity with your BVN or NIN for security</Text>
 
           <View style={styles.idTypeRow}>
@@ -770,7 +759,7 @@ export default function RegisterScreen({ navigation }: any) {
                 style={[styles.idTypeBtn, idType === type && styles.idTypeBtnActive]}
                 onPress={() => { setIdType(type); setIdNumber('') }}
               >
-                <Text style={styles.idTypeIcon}>{type === 'bvn' ? '' : '🪪'}</Text>
+                {type === 'bvn' ? null : <Ionicons name="card-outline" size={28} color="#25427a" />}
                 <Text style={[styles.idTypeBtnText, idType === type && styles.idTypeBtnTextActive]}>
                   {type.toUpperCase()}
                 </Text>
@@ -824,7 +813,7 @@ export default function RegisterScreen({ navigation }: any) {
       {/* Step 6 - Password */}
       {step === 6 && (
         <ScrollView style={styles.form} contentContainerStyle={styles.formContent}>
-          <Text style={styles.stepHeading}>Set Password 🔑</Text>
+          <Text style={styles.stepHeading}>Set Password</Text>
           <Text style={styles.stepSubheading}>Create a strong password to protect your account</Text>
 
           <Text style={styles.inputLabel}>Password *</Text>
@@ -855,7 +844,7 @@ export default function RegisterScreen({ navigation }: any) {
               secureTextEntry={!showConfirmPassword}
             />
             <TouchableOpacity style={styles.eyeBtn} onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-              <Text style={styles.eyeIcon}>{showConfirmPassword ? '👁️' : '🙈'}</Text>
+              <Ionicons name={showConfirmPassword ? "eye-outline" : "eye-off-outline"} size={18} color="#7c8aa5" />
             </TouchableOpacity>
           </View>
 

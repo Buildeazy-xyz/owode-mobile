@@ -96,13 +96,13 @@ export default function KYCVerificationScreen({ navigation }: any) {
             <Text style={styles.whyTitle}>Why verify your identity?</Text>
             <View style={styles.whyRow}>
               {[
-                { icon: '🛡️', text: 'Join Guaranteed Ajo' },
-                { icon: '', text: 'Higher transfer limits' },
-                { icon: '', text: 'Higher trust score' },
-                { icon: '🔓', text: 'Full platform access' },
+                { icon: 'shield-checkmark', text: 'Join Guaranteed Ajo' },
+                { icon: 'trending-up', text: 'Higher transfer limits' },
+                { icon: 'ribbon', text: 'Higher trust score' },
+                { icon: 'lock-open', text: 'Full platform access' },
               ].map(item => (
                 <View key={item.text} style={styles.whyItem}>
-                  <Text style={styles.whyIcon}>{item.icon}</Text>
+                  <Ionicons name={item.icon as any} size={20} color="#25427a" style={{ marginBottom: 4 }} />
                   <Text style={styles.whyText}>{item.text}</Text>
                 </View>
               ))}
@@ -156,7 +156,7 @@ export default function KYCVerificationScreen({ navigation }: any) {
               </Text>
               <View style={styles.infoBox}>
                 <Text style={styles.infoBoxText}>
-                  💡 Dial *565*0# on your registered phone to get your BVN
+                  Dial *565*0# on your registered phone to get your BVN
                 </Text>
               </View>
               <Text style={styles.inputLabel}>Enter your 11-digit BVN</Text>
@@ -216,7 +216,7 @@ export default function KYCVerificationScreen({ navigation }: any) {
               </Text>
               <View style={styles.infoBox}>
                 <Text style={styles.infoBoxText}>
-                  💡 Dial *346# on your registered phone to get your NIN
+                  Dial *346# on your registered phone to get your NIN
                 </Text>
               </View>
               <Text style={styles.inputLabel}>Enter your 11-digit NIN</Text>

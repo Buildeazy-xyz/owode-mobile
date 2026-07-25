@@ -496,7 +496,7 @@ export default function SavingsScreen({ navigation }: any) {
 
             {goalAmount && targetDate ? (
               <View style={styles.summaryPreview}>
-                <Text style={styles.summaryPreviewTitle}>📋 Goal Summary</Text>
+                <Text style={styles.summaryPreviewTitle}>Goal Summary</Text>
                 {[
                   { label: 'Goal', value: title || 'Untitled' },
                   { label: 'Target Amount', value: `₦${Number(goalAmount).toLocaleString()}` },
@@ -624,7 +624,7 @@ export default function SavingsScreen({ navigation }: any) {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={22} color="#f5a623" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>🐷 My Savings</Text>
+        <Text style={styles.headerTitle}>My Savings</Text>
         <TouchableOpacity onPress={() => setScreen('create')}>
           <Text style={styles.newBtn}>+ New</Text>
         </TouchableOpacity>
@@ -762,7 +762,7 @@ export default function SavingsScreen({ navigation }: any) {
 
                   {/* Per Goal Analytics */}
                   <View style={styles.analyticsCard}>
-                    <Text style={styles.analyticsTitle}>📋 Goals Breakdown</Text>
+                    <Text style={styles.analyticsTitle}>Goals Breakdown</Text>
                     {goals.map(goal => (
                       <View key={goal.id} style={styles.goalAnalyticsRow}>
                         <View style={styles.goalAnalyticsLeft}>
@@ -788,7 +788,7 @@ export default function SavingsScreen({ navigation }: any) {
 
                   {/* Insights */}
                   <View style={styles.analyticsCard}>
-                    <Text style={styles.analyticsTitle}>💡 Savings Insights</Text>
+                    <Text style={styles.analyticsTitle}>Savings Insights</Text>
                     {[
                       goals.find(g => g.progress >= 75) && {
                         icon: '',
@@ -796,12 +796,12 @@ export default function SavingsScreen({ navigation }: any) {
                         color: '#e8f5e9'
                       },
                       activeGoals.filter(g => g.autoDebitAmount > 0).length > 0 && {
-                        icon: '🔄',
+                        icon: 'repeat',
                         text: `${activeGoals.filter(g => g.autoDebitAmount > 0).length} goal(s) are on auto-debit — great habit!`,
                         color: '#e3f2fd'
                       },
                       totalSaved > 0 && {
-                        icon: '🏆',
+                        icon: 'trophy',
                         text: `You've saved ₦${totalSaved.toLocaleString()} total across all goals. Amazing!`,
                         color: '#fff3e0'
                       },
@@ -812,7 +812,7 @@ export default function SavingsScreen({ navigation }: any) {
                       },
                     ].filter(Boolean).map((insight: any, i) => (
                       <View key={i} style={[styles.insightCard, { backgroundColor: insight.color }]}>
-                        <Text style={styles.insightIcon}>{insight.icon}</Text>
+                        {insight.icon ? <Ionicons name={insight.icon} size={20} color="#25427a" /> : null}
                         <Text style={styles.insightText}>{insight.text}</Text>
                       </View>
                     ))}
@@ -882,7 +882,7 @@ export default function SavingsScreen({ navigation }: any) {
                     {goal.autoDebitAmount > 0 && (
                       <View style={styles.autoDebitBadge}>
                         <Text style={styles.autoDebitBadgeText}>
-                          🔄 Auto-saving ₦{goal.autoDebitAmount?.toLocaleString()} {goal.autoDebitFreq?.toLowerCase()}
+                          Auto-saving ₦{goal.autoDebitAmount?.toLocaleString()} {goal.autoDebitFreq?.toLowerCase()}
                         </Text>
                       </View>
                     )}
@@ -893,7 +893,7 @@ export default function SavingsScreen({ navigation }: any) {
 
                     {!goal.canWithdrawFree && goal.status === 'ACTIVE' && (
                       <View style={styles.penaltyWarning}>
-                        <Text style={styles.penaltyWarningText}>⚠️ Early withdrawal: {goal.penaltyPercent}% penalty applies</Text>
+                        <Text style={styles.penaltyWarningText}>Early withdrawal: {goal.penaltyPercent}% penalty applies</Text>
                       </View>
                     )}
 

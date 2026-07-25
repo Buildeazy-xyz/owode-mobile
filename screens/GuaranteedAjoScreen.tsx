@@ -130,13 +130,13 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={22} color="#f5a623" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>🛡️ Guaranteed Ajo</Text>
+        <Text style={styles.headerTitle}>Guaranteed Ajo</Text>
         <View style={{ width: 40 }} />
       </LinearGradient>
 
       <View style={styles.searchContainer}>
         <View style={styles.searchBar}>
-          <Text style={styles.searchIcon}>🔍</Text>
+          <Ionicons name="search-outline" size={16} color="#9aa5b8" />
           <TextInput
             style={styles.searchInput}
             placeholder="Search guaranteed groups..."
@@ -153,7 +153,7 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
       </View>
 
       <View style={styles.infoBanner}>
-        <Text style={styles.infoBannerIcon}>🤖</Text>
+        <Ionicons name="hardware-chip-outline" size={28} color="#25427a" style={{ marginRight: 12 }} />
         <View style={styles.infoBannerText}>
           <Text style={styles.infoBannerTitle}>Owode Avatar Protection</Text>
           <Text style={styles.infoBannerDesc}>Your payout is guaranteed. If anyone defaults, the Owode Avatar instantly covers their share.</Text>
@@ -163,7 +163,7 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
       <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
         {filteredGroups.length === 0 ? (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyIcon}>🛡️</Text>
+            <Ionicons name="shield-checkmark" size={56} color="#d97706" style={{ marginBottom: 16 }} />
             <Text style={styles.emptyText}>No Guaranteed Ajo groups yet</Text>
             <Text style={styles.emptySubText}>Check back soon — OWODE admins are creating groups!</Text>
           </View>
@@ -174,7 +174,7 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
                 <View>
                   <Text style={styles.groupName}>{group.name}</Text>
                   <View style={styles.guaranteedBadge}>
-                    <Text style={styles.guaranteedBadgeText}>🛡️ Guaranteed</Text>
+                    <Text style={styles.guaranteedBadgeText}>Guaranteed</Text>
                   </View>
                 </View>
                 <Text style={styles.groupFrequency}>{group.frequency}</Text>
@@ -185,7 +185,7 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
 
               <View style={styles.avatarCoverage}>
                 <Text style={styles.avatarCoverageText}>
-                  🤖 Avatar Coverage: {group.avatarCoveredCount}/{group.maxAvatarCoverage} used
+                  Avatar Coverage: {group.avatarCoveredCount}/{group.maxAvatarCoverage} used
                 </Text>
                 <View style={styles.coverageBar}>
                   <View style={[
@@ -280,7 +280,7 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
                     </Text>
                   </View>
                   <View style={styles.avatarNote}>
-                    <Text style={styles.avatarNoteText}>🤖 Your payout is protected by the Owode Avatar</Text>
+                    <Text style={styles.avatarNoteText}>Your payout is protected by the Owode Avatar</Text>
                   </View>
                 </>
               )}
