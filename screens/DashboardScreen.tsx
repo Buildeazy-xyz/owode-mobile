@@ -36,6 +36,8 @@ const friendlyDate = (iso: string) => {
   return d.toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
+let pinPromptShown = false
+
 export default function DashboardScreen({ navigation }: any) {
   const { user } = useAuth()
   const [wallet, setWallet] = useState<any>(null)
@@ -51,6 +53,8 @@ export default function DashboardScreen({ navigation }: any) {
 
   const [copied, setCopied] = useState(false)
   const [bannerIndex, setBannerIndex] = useState(0)
+  const [dismissedBanners, setDismissedBanners] = useState<string[]>([])
+  const bannerScrollRef = useRef<any>(null)
 
   const banners = [
     ...(user && !user.hasTransactionPin ? [{
@@ -68,13 +72,12 @@ export default function DashboardScreen({ navigation }: any) {
       title: 'Add Your Email', desc: 'Get receipts and backup verification codes',
       screen: 'Profile'
     }] : []),
-  ]
+  ].filter(b => !dismissedBanners.includes(b.title))
 
   useEffect(() => {
     if (user && !user.hasTransactionPin) {
-      AsyncStorage.getItem('pin_prompt_seen').then(seen => {
-        if (seen === 'true') return
-        AsyncStorage.setItem('pin_prompt_seen', 'true')
+      if (!pinPromptShown) {
+        pinPromptShown = true
         Alert.alert(
           'Secure Your Account',
           'Set a 4-digit transaction PIN to protect your money. You will need it for every transfer, savings deposit and Ajo contribution.',
@@ -83,9 +86,21 @@ export default function DashboardScreen({ navigation }: any) {
             { text: 'Set PIN Now', onPress: () => navigation.navigate('SetTransactionPin') }
           ]
         )
-      }).catch(() => {})
+      }
     }
   }, [user?.hasTransactionPin])
+
+  useEffect(() => {
+    if (banners.length < 2) return
+    const timer = setInterval(() => {
+      setBannerIndex(prev => {
+        const next = (prev + 1) % banners.length
+        bannerScrollRef.current?.scrollTo({ x: next * (width - 32), animated: true })
+        return next
+      })
+    }, 6000)
+    return () => clearInterval(timer)
+  }, [banners.length])
 
   const copyAccount = () => {
     Clipboard.setString(user?.phone || '')
@@ -317,6 +332,7 @@ export default function DashboardScreen({ navigation }: any) {
         {banners.length > 0 && (
           <View>
             <ScrollView
+              ref={bannerScrollRef}
               horizontal
               pagingEnabled
               showsHorizontalScrollIndicator={false}
@@ -336,6 +352,17 @@ export default function DashboardScreen({ navigation }: any) {
                     <Text style={styles.alertBannerDesc}>{bn.desc}</Text>
                   </View>
                   <Ionicons name="chevron-forward" size={18} color={bn.color} />
+                  <TouchableOpacity
+                    onPress={() => {
+                      setDismissedBanners(prev => [...prev, bn.title])
+                      setBannerIndex(0)
+                      bannerScrollRef.current?.scrollTo({ x: 0, animated: true })
+                    }}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    style={styles.bannerClose}
+                  >
+                    <Ionicons name="close" size={16} color={bn.color} />
+                  </TouchableOpacity>
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -592,6 +619,7 @@ const styles = StyleSheet.create({
   tierPill: { flexDirection: 'row', alignItems: 'center', gap: 2, alignSelf: 'flex-start', backgroundColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 6, paddingVertical: 1, borderRadius: 100, marginTop: 2 },
   tierPillText: { color: '#f5a623', fontSize: 9, fontWeight: '700' },
   headerIcon: { width: 27, height: 27, justifyContent: 'center', alignItems: 'center' },
+  bannerClose: { marginLeft: 6, opacity: 0.55 },
   alertBanner: { flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderRadius: 14, padding: 16, marginTop: 12 },
   alertBannerTitle: { fontSize: 15, fontWeight: '700' },
   alertBannerDesc: { fontSize: 12.5, color: '#7c8aa5', marginTop: 2 },

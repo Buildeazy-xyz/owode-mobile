@@ -88,6 +88,17 @@ export default function AjoScreen({ navigation }: any) {
   }
 
   const handleContributeStandard = async (groupId: string, groupName: string, amount: number) => {
+    if (!user?.hasTransactionPin) {
+      Alert.alert(
+        'Set your PIN first',
+        'You need a 4-digit transaction PIN before you can do this.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Set PIN', onPress: () => navigation.navigate('SetTransactionPin') }
+        ]
+      )
+      return
+    }
     Alert.alert(
       'Confirm Contribution',
       `Contribute ₦${amount.toLocaleString()} to "${groupName}"?`,
@@ -129,6 +140,17 @@ export default function AjoScreen({ navigation }: any) {
   }
 
   const handleContributeGuaranteed = async (group: any) => {
+    if (!user?.hasTransactionPin) {
+      Alert.alert(
+        'Set your PIN first',
+        'You need a 4-digit transaction PIN before you can do this.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Set PIN', onPress: () => navigation.navigate('SetTransactionPin') }
+        ]
+      )
+      return
+    }
     setSelectedGroup(group)
     const bioEnabled = await isBiometricEnabled()
     if (bioEnabled) {

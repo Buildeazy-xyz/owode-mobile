@@ -9,6 +9,7 @@ import DateTimePicker from '@react-native-community/datetimepicker'
 import { Ionicons } from '@expo/vector-icons'
 import BottomNav from '../components/BottomNav'
 import { savingsAPI } from '../utils/api'
+import { useAuth } from '../context/AuthContext'
 import PinKeypad from '../components/PinKeypad'
 import { LineChart, ProgressChart } from 'react-native-chart-kit'
 
@@ -28,6 +29,7 @@ const GOAL_CATEGORIES = [
 ]
 
 export default function SavingsScreen({ navigation }: any) {
+  const { user } = useAuth()
   const [goals, setGoals] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -119,6 +121,17 @@ export default function SavingsScreen({ navigation }: any) {
   }
 
   const handleDeposit = async () => {
+    if (!user?.hasTransactionPin) {
+      Alert.alert(
+        'Set your PIN first',
+        'You need a 4-digit transaction PIN before you can do this.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Set PIN', onPress: () => navigation.navigate('SetTransactionPin') }
+        ]
+      )
+      return
+    }
     if (!depositAmount || Number(depositAmount) <= 0) {
       Alert.alert('Error', 'Enter a valid amount')
       return
@@ -158,6 +171,17 @@ export default function SavingsScreen({ navigation }: any) {
   }
 
   const handleWithdraw = async (goal: any) => {
+    if (!user?.hasTransactionPin) {
+      Alert.alert(
+        'Set your PIN first',
+        'You need a 4-digit transaction PIN before you can do this.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Set PIN', onPress: () => navigation.navigate('SetTransactionPin') }
+        ]
+      )
+      return
+    }
     const isEarly = new Date() < new Date(goal.targetDate)
     Alert.alert(
       isEarly ? 'Early Withdrawal' : 'Withdraw Savings',
