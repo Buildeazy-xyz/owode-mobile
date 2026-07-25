@@ -3,9 +3,9 @@ import {
   View, Text, StyleSheet, TouchableOpacity,
   ScrollView, Alert, RefreshControl,
   TextInput, ActivityIndicator, Dimensions
-, KeyboardAvoidingView, Platform
-} from 'react-native'
+, KeyboardAvoidingView, Platform, Modal, Switch} from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
+import DateTimePicker from '@react-native-community/datetimepicker'
 import { Ionicons } from '@expo/vector-icons'
 import BottomNav from '../components/BottomNav'
 import { savingsAPI } from '../utils/api'
@@ -42,11 +42,29 @@ export default function SavingsScreen({ navigation }: any) {
   const [goalAmount, setGoalAmount] = useState('')
   const [initialDeposit, setInitialDeposit] = useState('')
   const [targetDate, setTargetDate] = useState('')
-  const [autoDebitAmount, setAutoDebitAmount] = useState('')
-  const [autoDebitFreq, setAutoDebitFreq] = useState('WEEKLY')
+  const [autoDebitOn, setAutoDebitOn] = useState(false)
+  const [autoDebitFreq, setAutoDebitFreq] = useState('')
+  const [showDatePicker, setShowDatePicker] = useState(false)
+  const [dateChip, setDateChip] = useState('')
+  const [tempDate, setTempDate] = useState(new Date())
   const [selectedCategory, setSelectedCategory] = useState(GOAL_CATEGORIES[9])
   const [depositAmount, setDepositAmount] = useState('')
   const [pinAction, setPinAction] = useState<null | { type: 'deposit' | 'withdraw'; goal?: any }>(null)
+
+  const daysToTarget = targetDate
+    ? Math.max(1, Math.ceil((new Date(targetDate).getTime() - Date.now()) / 86400000))
+    : 0
+  const perDaySave = goalAmount && daysToTarget ? Math.ceil(Number(goalAmount) / daysToTarget) : 0
+
+  const autoDebitPeriods = (() => {
+    if (!targetDate || !autoDebitFreq) return 0
+    const days = Math.max(1, Math.ceil((new Date(targetDate).getTime() - Date.now()) / 86400000))
+    if (autoDebitFreq === 'DAILY') return days
+    if (autoDebitFreq === 'WEEKLY') return Math.max(1, Math.ceil(days / 7))
+    return Math.max(1, Math.ceil(days / 30))
+  })()
+  const autoDebitRemaining = Math.max(0, Number(goalAmount || 0) - Number(initialDeposit || 0))
+  const autoDebitCalc = autoDebitOn && autoDebitPeriods ? Math.ceil(autoDebitRemaining / autoDebitPeriods) : 0
 
   const loadGoals = async () => {
     try {
@@ -68,6 +86,10 @@ export default function SavingsScreen({ navigation }: any) {
   }
 
   const handleCreate = async () => {
+    if (autoDebitOn && !autoDebitFreq) {
+      Alert.alert('Choose a frequency', 'Select daily, weekly or monthly for auto-save')
+      return
+    }
     if (!title || !goalAmount || !targetDate) {
       Alert.alert('Error', 'Title, goal amount and target date are required')
       return
@@ -79,14 +101,14 @@ export default function SavingsScreen({ navigation }: any) {
         description,
         goalAmount: Number(goalAmount),
         initialDeposit: initialDeposit ? Number(initialDeposit) : undefined,
-        autoDebitAmount: autoDebitAmount ? Number(autoDebitAmount) : undefined,
-        autoDebitFreq: autoDebitAmount ? autoDebitFreq : undefined,
+        autoDebitAmount: autoDebitOn && autoDebitCalc > 0 ? autoDebitCalc : undefined,
+        autoDebitFreq: autoDebitOn && autoDebitFreq ? autoDebitFreq : undefined,
         targetDate
       })
       Alert.alert('Goal Created!', 'Your savings goal has been created!')
       setScreen('list')
       setTitle(''); setDescription(''); setGoalAmount('')
-      setInitialDeposit(''); setTargetDate(''); setAutoDebitAmount('')
+      setInitialDeposit(''); setTargetDate(''); setAutoDebitOn(false); setAutoDebitFreq('')
       setSelectedCategory(GOAL_CATEGORIES[9])
       await loadGoals()
     } catch (error: any) {
@@ -309,40 +331,142 @@ export default function SavingsScreen({ navigation }: any) {
             </View>
 
             <Text style={styles.fieldLabel}>Target Date *</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="YYYY-MM-DD (e.g. 2026-12-31)"
-              placeholderTextColor="#aaa"
-              value={targetDate}
-              onChangeText={setTargetDate}
-            />
+            <View style={styles.dateChipRow}>
+              {[{ label: '3 months', months: 3 }, { label: '6 months', months: 6 }, { label: '1 year', months: 12 }].map(opt => (
+                <TouchableOpacity
+                  key={opt.label}
+                  style={[styles.dateChip, dateChip === opt.label && styles.dateChipActive]}
+                  onPress={() => {
+                    const d = new Date()
+                    d.setMonth(d.getMonth() + opt.months)
+                    setTargetDate(d.toISOString().split('T')[0])
+                    setDateChip(opt.label)
+                  }}
+                >
+                  <Text style={[styles.dateChipText, dateChip === opt.label && styles.dateChipTextActive]} numberOfLines={1}>{opt.label}</Text>
+                </TouchableOpacity>
+              ))}
+              <TouchableOpacity
+                style={[styles.dateChip, styles.dateChipIcon, dateChip === 'Custom' && styles.dateChipActive]}
+                onPress={() => { setDateChip('Custom'); setTempDate(targetDate ? new Date(targetDate) : new Date()); setShowDatePicker(true) }}
+              >
+                <Ionicons name="calendar-outline" size={15} color={dateChip === 'Custom' ? '#fff' : '#25427a'} />
+              </TouchableOpacity>
+            </View>
 
+            {targetDate ? (
+              <TouchableOpacity style={styles.datePreview} onPress={() => { setTempDate(targetDate ? new Date(targetDate) : new Date()); setShowDatePicker(true) }} activeOpacity={0.8}>
+                <Ionicons name="calendar" size={16} color="#25427a" />
+                <Text style={styles.datePreviewText} numberOfLines={1}>
+                  {new Date(targetDate).toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' })}
+                </Text>
+                <Ionicons name="chevron-forward" size={16} color="#7c8aa5" />
+              </TouchableOpacity>
+            ) : null}
+
+            {goalAmount && targetDate && perDaySave > 0 ? (
+              <Text style={styles.perDayHint}>Save ~₦{perDaySave.toLocaleString()}/day to reach this goal</Text>
+            ) : null}
+
+            {showDatePicker && Platform.OS === 'android' && (
+              <DateTimePicker
+                value={tempDate}
+                mode="date"
+                display="spinner"
+                minimumDate={new Date()}
+                onChange={(event: any, d?: Date) => {
+                  setShowDatePicker(false)
+                  if (event?.type === 'set' && d) {
+                    setTargetDate(d.toISOString().split('T')[0])
+                    setDateChip('Custom')
+                  }
+                }}
+              />
+            )}
+
+            {Platform.OS === 'ios' && (
+              <Modal
+                visible={showDatePicker}
+                transparent
+                animationType="slide"
+                onRequestClose={() => setShowDatePicker(false)}
+              >
+                <View style={styles.dpBackdrop}>
+                  <View style={styles.dpSheet}>
+                    <View style={styles.dpHeader}>
+                      <TouchableOpacity onPress={() => setShowDatePicker(false)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                        <Text style={styles.dpCancel} numberOfLines={1}>Cancel</Text>
+                      </TouchableOpacity>
+                      <Text style={styles.dpTitle} numberOfLines={1}>Select target date</Text>
+                      <TouchableOpacity
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        onPress={() => {
+                          setTargetDate(tempDate.toISOString().split('T')[0])
+                          setDateChip('Custom')
+                          setShowDatePicker(false)
+                        }}
+                      >
+                        <Text style={styles.dpDone} numberOfLines={1}>Done</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <DateTimePicker
+                      value={tempDate}
+                      mode="date"
+                      display="spinner"
+                      minimumDate={new Date()}
+                      themeVariant="light"
+                      textColor="#1a2b4a"
+                      onChange={(e: any, d?: Date) => { if (d) setTempDate(d) }}
+                      style={styles.dpPicker}
+                    />
+                  </View>
+                </View>
+              </Modal>
+            )}
             <View style={styles.autoDebitSection}>
-              <Text style={styles.fieldLabel}>🔄 Auto-Debit Setup</Text>
-              <Text style={styles.autoDebitHint}>Automatically save from wallet</Text>
-              <View style={styles.inputWrapper}>
-                <Text style={styles.inputPrefix}>₦</Text>
-                <TextInput
-                  style={styles.inputWithPrefix}
-                  placeholder="Amount to auto-save"
-                  placeholderTextColor="#aaa"
-                  value={autoDebitAmount}
-                  onChangeText={setAutoDebitAmount}
-                  keyboardType="numeric"
+              <View style={styles.autoDebitHead}>
+                <View style={styles.autoDebitHeadText}>
+                  <Text style={styles.autoDebitTitle} numberOfLines={1}>Auto-save</Text>
+                  <Text style={styles.autoDebitHint}>We work out how much to move for you</Text>
+                </View>
+                <Switch
+                  value={autoDebitOn}
+                  onValueChange={v => { setAutoDebitOn(v); if (!v) setAutoDebitFreq('') }}
+                  trackColor={{ false: '#dfe5ef', true: '#25427a' }}
+                  thumbColor="#fff"
                 />
               </View>
-              {autoDebitAmount ? (
-                <View style={styles.freqRow}>
-                  {['DAILY', 'WEEKLY', 'MONTHLY'].map(f => (
-                    <TouchableOpacity
-                      key={f}
-                      style={[styles.freqBtn, autoDebitFreq === f && styles.freqBtnActive]}
-                      onPress={() => setAutoDebitFreq(f)}
-                    >
-                      <Text style={[styles.freqBtnText, autoDebitFreq === f && styles.freqBtnTextActive]}>{f}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
+
+              {autoDebitOn ? (
+                <>
+                  <Text style={styles.autoDebitSub}>How often should we save?</Text>
+                  <View style={styles.freqRow}>
+                    {['DAILY', 'WEEKLY', 'MONTHLY'].map(f => (
+                      <TouchableOpacity
+                        key={f}
+                        style={[styles.freqBtn, autoDebitFreq === f && styles.freqBtnActive]}
+                        onPress={() => setAutoDebitFreq(f)}
+                      >
+                        <Text style={[styles.freqBtnText, autoDebitFreq === f && styles.freqBtnTextActive]} numberOfLines={1}>
+                          {f.charAt(0) + f.slice(1).toLowerCase()}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+
+                  {!autoDebitFreq ? (
+                    <Text style={styles.autoDebitWarn}>Pick a frequency to continue</Text>
+                  ) : !goalAmount || !targetDate ? (
+                    <Text style={styles.autoDebitWarn}>Set a target amount and date to see your plan</Text>
+                  ) : (
+                    <View style={styles.autoDebitCalcCard}>
+                      <Ionicons name="repeat" size={18} color="#25427a" />
+                      <Text style={styles.autoDebitCalcText}>
+                        We'll move <Text style={styles.autoDebitCalcAmt}>₦{autoDebitCalc.toLocaleString()}</Text> {autoDebitFreq.toLowerCase()} from your wallet
+                      </Text>
+                    </View>
+                  )}
+                </>
               ) : null}
             </View>
 
@@ -354,7 +478,7 @@ export default function SavingsScreen({ navigation }: any) {
                   { label: 'Target Amount', value: `₦${Number(goalAmount).toLocaleString()}` },
                   initialDeposit ? { label: 'Starting with', value: `₦${Number(initialDeposit).toLocaleString()}` } : null,
                   { label: 'Target Date', value: targetDate },
-                  autoDebitAmount ? { label: 'Auto-save', value: `₦${Number(autoDebitAmount).toLocaleString()} ${autoDebitFreq.toLowerCase()}` } : null,
+                  autoDebitCalc > 0 ? { label: 'Auto-save', value: `₦${autoDebitCalc.toLocaleString()} ${autoDebitFreq.toLowerCase()}` } : null,
                   { label: 'Early withdrawal penalty', value: '5%' },
                 ].filter(Boolean).map((item: any, i) => (
                   <View key={i} style={styles.summaryPreviewRow}>
@@ -524,7 +648,7 @@ export default function SavingsScreen({ navigation }: any) {
       {loading ? (
         <ActivityIndicator size="large" color="#25427a" style={{ marginTop: 60 }} />
       ) : (
-        <ScrollView automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled"
+        <ScrollView contentContainerStyle={{ paddingBottom: 110 }} automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled"
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           showsVerticalScrollIndicator={false}
         >
@@ -785,6 +909,30 @@ export default function SavingsScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
+  autoDebitHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44 },
+  autoDebitHeadText: { flex: 1, flexShrink: 1, paddingRight: 12 },
+  autoDebitTitle: { flexShrink: 1, fontSize: 15, fontWeight: '700', color: '#1a2b4a' },
+  autoDebitSub: { fontSize: 12, color: '#7c8aa5', marginTop: 14, marginBottom: 8 },
+  autoDebitWarn: { fontSize: 12, color: '#7c8aa5', marginTop: 10, fontStyle: 'italic' },
+  autoDebitCalcCard: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#eaf2ff', borderRadius: 12, padding: 12, marginTop: 12, minHeight: 48 },
+  autoDebitCalcText: { flex: 1, flexShrink: 1, fontSize: 13, lineHeight: 19, color: '#1a2b4a' },
+  autoDebitCalcAmt: { fontWeight: '700', color: '#25427a' },
+  dpBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
+  dpSheet: { backgroundColor: '#fff', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingBottom: 28 },
+  dpHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#f0f2f7', minHeight: 56 },
+  dpTitle: { flex: 1, flexShrink: 1, textAlign: 'center', fontSize: 15, fontWeight: '700', color: '#1a2b4a' },
+  dpCancel: { flexShrink: 1, fontSize: 14, color: '#7c8aa5' },
+  dpDone: { flexShrink: 1, fontSize: 14, fontWeight: '700', color: '#25427a' },
+  dpPicker: { alignSelf: 'center', width: '100%' },
+  dateChipRow: { flexDirection: 'row', gap: 8, marginTop: 4 },
+  dateChip: { flex: 1, backgroundColor: '#fff', borderWidth: 1.5, borderColor: '#e6ebf4', borderRadius: 12, paddingVertical: 10, alignItems: 'center', justifyContent: 'center', minHeight: 40 },
+  dateChipIcon: { flex: 0, width: 46 },
+  dateChipActive: { backgroundColor: '#25427a', borderColor: '#25427a' },
+  dateChipText: { flexShrink: 1, fontSize: 12, fontWeight: '600', color: '#25427a' },
+  dateChipTextActive: { color: '#fff' },
+  datePreview: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#eaf2ff', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, marginTop: 10, minHeight: 44 },
+  datePreviewText: { flex: 1, flexShrink: 1, fontSize: 14, fontWeight: '600', color: '#25427a' },
+  perDayHint: { fontSize: 12, color: '#7c8aa5', marginTop: 8 },
   container: { flex: 1, backgroundColor: '#f4f6fb' },
   header: { padding: 24, paddingTop: 60, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   createHeader: { padding: 24, paddingTop: 60, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

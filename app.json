@@ -26,7 +26,7 @@
         "backgroundColor": "#0d47a1"
       },
       "package": "com.owode.alajo.app",
-      "versionCode": 25,
+      "versionCode": 26,
       "permissions": [
         "USE_BIOMETRIC",
         "USE_FINGERPRINT",
@@ -52,7 +52,8 @@
           "color": "#0d47a1",
           "defaultChannel": "owode-payments"
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "extra": {
       "eas": {
