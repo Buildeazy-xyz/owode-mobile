@@ -5,6 +5,7 @@ import {
   Modal, Dimensions, Image
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
+import DateTimePicker from '@react-native-community/datetimepicker'
 import { walletAPI } from '../utils/api'
 import { Ionicons } from '@expo/vector-icons'
 import BottomNav from '../components/BottomNav'
@@ -32,7 +33,11 @@ export default function WalletScreen({ navigation }: any) {
   const [showSearch, setShowSearch] = useState(false)
   const [selectedTx, setSelectedTx] = useState<any>(null)
   const [balanceVisible, setBalanceVisible] = useState(true)
-  const [period, setPeriod] = useState<'WEEK' | 'MONTH' | 'YEAR' | 'ALL'>('MONTH')
+  const [period, setPeriod] = useState<'WEEK' | 'MONTH' | 'YEAR' | 'ALL' | 'CUSTOM'>('MONTH')
+  const [showFilter, setShowFilter] = useState(false)
+  const [customStart, setCustomStart] = useState<Date | null>(null)
+  const [customEnd, setCustomEnd] = useState<Date | null>(null)
+  const [pickerFor, setPickerFor] = useState<'start' | 'end' | null>(null)
   const announcedRef = useRef(false)
   const lastTxRef = useRef<string | null>(null)
 
@@ -73,11 +78,20 @@ export default function WalletScreen({ navigation }: any) {
     if (period === 'ALL') return true
     const d = new Date(tx.createdAt)
     const now = new Date()
+    if (period === 'CUSTOM') {
+      const dd = new Date(d); dd.setHours(0, 0, 0, 0)
+      if (customStart) { const st = new Date(customStart); st.setHours(0, 0, 0, 0); if (dd < st) return false }
+      if (customEnd) { const en = new Date(customEnd); en.setHours(0, 0, 0, 0); if (dd > en) return false }
+      return true
+    }
     if (period === 'WEEK') { const w = new Date(now); w.setDate(now.getDate() - 7); return d >= w }
     if (period === 'MONTH') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
     if (period === 'YEAR') return d.getFullYear() === now.getFullYear()
     return true
   }
+
+  const activeFilterCount =
+    (period === 'CUSTOM' && (customStart || customEnd) ? 1 : 0) + (filter !== 'ALL' ? 1 : 0)
 
   const periodTx = wallet?.transactions?.filter(inPeriod) || []
 
@@ -120,9 +134,15 @@ export default function WalletScreen({ navigation }: any) {
               <Ionicons name="chevron-back" size={22} color="#f5a623" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>My Wallet</Text>
-            <TouchableOpacity onPress={() => setShowSearch(!showSearch)}>
-              <Ionicons name="search" size={16} color="#9aa5b8" />
-            </TouchableOpacity>
+            <View style={styles.headerActions}>
+              <TouchableOpacity onPress={() => setShowSearch(!showSearch)}>
+                <Ionicons name="search" size={16} color="#9aa5b8" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setShowFilter(true)} style={styles.headerFilterBtn}>
+                <Ionicons name="options-outline" size={18} color={activeFilterCount > 0 ? '#f5a623' : '#9aa5b8'} />
+                {activeFilterCount > 0 ? <View style={styles.filterDot} /> : null}
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Balance Card */}
@@ -147,6 +167,21 @@ export default function WalletScreen({ navigation }: any) {
                 </TouchableOpacity>
               ))}
             </View>
+
+            {period === 'CUSTOM' && (customStart || customEnd) ? (
+              <TouchableOpacity style={styles.rangePill} onPress={() => setShowFilter(true)} activeOpacity={0.8}>
+                <Ionicons name="calendar-outline" size={13} color="#fff" />
+                <Text style={styles.rangePillText} numberOfLines={1}>
+                  {customStart ? customStart.toLocaleDateString('en-NG', { day: 'numeric', month: 'short' }) : 'Start'} - {customEnd ? customEnd.toLocaleDateString('en-NG', { day: 'numeric', month: 'short' }) : 'End'}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => { setPeriod('MONTH'); setCustomStart(null); setCustomEnd(null) }}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons name="close" size={13} color="#fff" />
+                </TouchableOpacity>
+              </TouchableOpacity>
+            ) : null}
 
             {/* Stats Row */}
             <View style={styles.statsRow}>
@@ -412,6 +447,87 @@ export default function WalletScreen({ navigation }: any) {
           </View>
         </View>
       </Modal>
+      <Modal visible={showFilter} transparent animationType="slide" onRequestClose={() => setShowFilter(false)}>
+        <View style={styles.fsBackdrop}>
+          <View style={styles.fsSheet}>
+            <View style={styles.fsHeader}>
+              <Text style={styles.fsTitle} numberOfLines={1}>Filter transactions</Text>
+              <TouchableOpacity onPress={() => setShowFilter(false)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <Ionicons name="close" size={20} color="#7c8aa5" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 8 }}>
+              <Text style={styles.fsLabel}>Date range</Text>
+              <View style={styles.fsChipWrap}>
+                {([['WEEK', 'This week'], ['MONTH', 'This month'], ['YEAR', 'This year'], ['ALL', 'All time'], ['CUSTOM', 'Custom']] as const).map(([k, label]) => (
+                  <TouchableOpacity key={k} style={[styles.fsChip, period === k && styles.fsChipActive]} onPress={() => setPeriod(k)}>
+                    <Text style={[styles.fsChipText, period === k && styles.fsChipTextActive]} numberOfLines={1}>{label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {period === 'CUSTOM' ? (
+                <View style={styles.fsDateRow}>
+                  <TouchableOpacity style={styles.fsDateBox} onPress={() => setPickerFor('start')}>
+                    <Text style={styles.fsDateLabel}>From</Text>
+                    <Text style={styles.fsDateValue} numberOfLines={1}>
+                      {customStart ? customStart.toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Select'}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.fsDateBox} onPress={() => setPickerFor('end')}>
+                    <Text style={styles.fsDateLabel}>To</Text>
+                    <Text style={styles.fsDateValue} numberOfLines={1}>
+                      {customEnd ? customEnd.toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Select'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ) : null}
+
+              <Text style={styles.fsLabel}>Transaction type</Text>
+              <View style={styles.fsChipWrap}>
+                {([['ALL', 'All'], ['CREDIT', 'Money in'], ['DEBIT', 'Money out']] as const).map(([k, label]) => (
+                  <TouchableOpacity key={k} style={[styles.fsChip, filter === k && styles.fsChipActive]} onPress={() => setFilter(k)}>
+                    <Text style={[styles.fsChipText, filter === k && styles.fsChipTextActive]} numberOfLines={1}>{label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+
+            <View style={styles.fsFooter}>
+              <TouchableOpacity
+                style={styles.fsClear}
+                onPress={() => { setPeriod('MONTH'); setFilter('ALL'); setCustomStart(null); setCustomEnd(null) }}
+              >
+                <Text style={styles.fsClearText} numberOfLines={1}>Clear all</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.fsApply} onPress={() => setShowFilter(false)}>
+                <Text style={styles.fsApplyText} numberOfLines={1}>
+                  Apply filter{activeFilterCount > 0 ? ' (' + activeFilterCount + ')' : ''}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {pickerFor ? (
+        <DateTimePicker
+          value={(pickerFor === 'start' ? customStart : customEnd) || new Date()}
+          mode="date"
+          display="spinner"
+          maximumDate={new Date()}
+          onChange={(event: any, d?: Date) => {
+            const which = pickerFor
+            setPickerFor(null)
+            if (event?.type === 'set' && d) {
+              if (which === 'start') setCustomStart(d)
+              else setCustomEnd(d)
+            }
+          }}
+        />
+      ) : null}
+
       <BottomNav navigation={navigation} active="wallet" />
     </View>
   )
@@ -423,6 +539,30 @@ const styles = StyleSheet.create({
   actionsRow: { flexDirection: 'row', backgroundColor: '#fff', borderRadius: 18, marginHorizontal: 16, marginTop: 16, paddingVertical: 14, paddingHorizontal: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
   dayHeader: { paddingTop: 18, paddingBottom: 8, paddingHorizontal: 2 },
   dayHeaderText: { fontSize: 12.5, fontWeight: '700', color: '#7c8aa5' },
+  headerActions: { flexDirection: 'row', alignItems: 'center' },
+  headerFilterBtn: { marginLeft: 14 },
+  filterDot: { position: 'absolute', top: -2, right: -2, width: 7, height: 7, borderRadius: 4, backgroundColor: '#f5a623' },
+  rangePill: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6, marginTop: 8, minHeight: 28 },
+  rangePillText: { flexShrink: 1, color: '#fff', fontSize: 11.5, fontWeight: '600' },
+  fsBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
+  fsSheet: { backgroundColor: '#fff', maxHeight: '80%' },
+  fsHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16, minHeight: 56 },
+  fsTitle: { flex: 1, flexShrink: 1, fontSize: 16, fontWeight: '700', color: '#1a2b4a' },
+  fsLabel: { fontSize: 12, fontWeight: '600', color: '#7c8aa5', marginTop: 12, marginBottom: 10 },
+  fsChipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  fsChip: { backgroundColor: '#fff', borderWidth: 1.5, borderColor: '#e6ebf4', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 9, minHeight: 38, justifyContent: 'center' },
+  fsChipActive: { backgroundColor: '#25427a', borderColor: '#25427a' },
+  fsChipText: { flexShrink: 1, fontSize: 12.5, fontWeight: '600', color: '#25427a' },
+  fsChipTextActive: { color: '#fff' },
+  fsDateRow: { flexDirection: 'row', gap: 10, marginTop: 12 },
+  fsDateBox: { flex: 1, backgroundColor: '#fff', borderWidth: 1.5, borderColor: '#e6ebf4', borderRadius: 12, padding: 12, minHeight: 60 },
+  fsDateLabel: { fontSize: 11, color: '#7c8aa5', marginBottom: 3 },
+  fsDateValue: { flexShrink: 1, fontSize: 13.5, fontWeight: '600', color: '#1a2b4a' },
+  fsFooter: { flexDirection: 'row', gap: 10, padding: 20, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#e6ebf4' },
+  fsClear: { flex: 1, backgroundColor: '#fff', borderWidth: 1.5, borderColor: '#e6ebf4', borderRadius: 14, paddingVertical: 14, alignItems: 'center', minHeight: 48, justifyContent: 'center' },
+  fsClearText: { flexShrink: 1, fontSize: 14, fontWeight: '600', color: '#7c8aa5' },
+  fsApply: { flex: 2, backgroundColor: '#25427a', borderRadius: 14, paddingVertical: 14, alignItems: 'center', minHeight: 48, justifyContent: 'center' },
+  fsApplyText: { flexShrink: 1, fontSize: 14, fontWeight: '700', color: '#fff' },
   periodRow: { flexDirection: 'row', gap: 6, marginTop: 14, marginBottom: 6 },
   periodPill: { flex: 1, paddingVertical: 7, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center' },
   periodPillActive: { backgroundColor: '#f5a623' },

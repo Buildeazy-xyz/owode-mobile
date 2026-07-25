@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { authenticateWithBiometrics, isBiometricEnabled, getBiometricType } from '../utils/biometrics'
 
@@ -28,11 +29,11 @@ export default function BiometricGate({ children, reason }: BiometricGateProps) 
 
   return (
     <LinearGradient colors={['#1a2e55', '#25427a']} style={styles.container}>
-      <Text style={styles.icon}>🔒</Text>
+      <Ionicons name="lock-closed" size={64} color="#25427a" style={{ marginBottom: 20 }} />
       <Text style={styles.title}>Secure Content</Text>
       <Text style={styles.subtitle}>{reason || 'Verify your identity to view this'}</Text>
       <TouchableOpacity style={styles.btn} onPress={handleUnlock} disabled={loading}>
-        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>👆 Verify Identity</Text>}
+        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Verify Identity</Text>}
       </TouchableOpacity>
     </LinearGradient>
   )

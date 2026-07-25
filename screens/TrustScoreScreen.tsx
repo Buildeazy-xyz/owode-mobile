@@ -74,7 +74,7 @@ export default function TrustScoreScreen({ navigation }: any) {
             <Text style={styles.sectionTitle}>How to improve your score</Text>
             <View style={styles.breakdownCard}>
               <View style={styles.breakdownRow}>
-                <Text style={styles.breakdownIcon}>🪪</Text>
+                <Ionicons name="card-outline" size={24} color="#25427a" style={{ marginRight: 12 }} />
                 <View style={styles.breakdownText}>
                   <Text style={styles.breakdownLabel}>Submit BVN</Text>
                   <Text style={styles.breakdownValue}>+10 points</Text>
@@ -82,7 +82,7 @@ export default function TrustScoreScreen({ navigation }: any) {
               </View>
               <View style={styles.breakdownDivider} />
               <View style={styles.breakdownRow}>
-                <Text style={styles.breakdownIcon}>📋</Text>
+                <Ionicons name="document-text-outline" size={24} color="#25427a" style={{ marginRight: 12 }} />
                 <View style={styles.breakdownText}>
                   <Text style={styles.breakdownLabel}>Submit NIN</Text>
                   <Text style={styles.breakdownValue}>+10 points</Text>
@@ -90,7 +90,7 @@ export default function TrustScoreScreen({ navigation }: any) {
               </View>
               <View style={styles.breakdownDivider} />
               <View style={styles.breakdownRow}>
-                <Text style={styles.breakdownIcon}>✅</Text>
+                <Ionicons name="checkmark-circle" size={24} color="#22c55e" style={{ marginRight: 12 }} />
                 <View style={styles.breakdownText}>
                   <Text style={styles.breakdownLabel}>Get verified by admin</Text>
                   <Text style={styles.breakdownValue}>+10 points</Text>
@@ -106,7 +106,7 @@ export default function TrustScoreScreen({ navigation }: any) {
               </View>
               <View style={styles.breakdownDivider} />
               <View style={styles.breakdownRow}>
-                <Text style={styles.breakdownIcon}>⚠️</Text>
+                <Ionicons name="warning" size={24} color="#f5a623" style={{ marginRight: 12 }} />
                 <View style={styles.breakdownText}>
                   <Text style={styles.breakdownLabel}>Default on payment</Text>
                   <Text style={[styles.breakdownValue, { color: '#ef4444' }]}>-15 points</Text>
@@ -120,7 +120,7 @@ export default function TrustScoreScreen({ navigation }: any) {
             <Text style={styles.sectionTitle}>Guaranteed Ajo Eligibility</Text>
             <View style={styles.eligibilityCard}>
               <View style={styles.eligibilityRow}>
-                <Text style={styles.eligibilityIcon}>{trustData.score >= 35 ? '✅' : '❌'}</Text>
+                <Ionicons name={trustData.score >= 35 ? "checkmark-circle" : "close-circle"} size={20} color={trustData.score >= 35 ? "#22c55e" : "#ef4444"} style={{ marginRight: 12 }} />
                 <Text style={styles.eligibilityText}>Minimum trust score of 35</Text>
               </View>
               <View style={styles.eligibilityRow}>
@@ -143,7 +143,7 @@ export default function TrustScoreScreen({ navigation }: any) {
             style={styles.improveBtn}
             onPress={() => navigation.navigate('Profile')}
           >
-            <Text style={styles.improveBtnText}>📋 Submit KYC to improve score</Text>
+            <Text style={styles.improveBtnText}>Submit KYC to improve score</Text>
           </TouchableOpacity>
         </>
       ) : (

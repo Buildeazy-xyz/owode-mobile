@@ -82,11 +82,11 @@ export default function SplashScreenComponent({ onFinish }: { onFinish: () => vo
       {/* Bottom */}
       <Animated.View style={[styles.bottom, { opacity: fadeAnim }]}>
         <View style={styles.bottomBadges}>
-          <Text style={styles.bottomText}>🔒 Secure</Text>
+          <Text style={styles.bottomText}>Secure</Text>
           <Text style={styles.bottomDot}>•</Text>
-          <Text style={styles.bottomText}>📊 Transparent</Text>
+          <Text style={styles.bottomText}>Transparent</Text>
           <Text style={styles.bottomDot}>•</Text>
-          <Text style={styles.bottomText}>🚀 Scalable</Text>
+          <Text style={styles.bottomText}>Scalable</Text>
         </View>
         <Text style={styles.version}>v1.0.0 • OWODE Digital Services Limited</Text>
         <Text style={styles.tagline}>ALÀJÒ-ÀGBÁYÉ: THE GLOBAL THRIFT COLLECTOR</Text>

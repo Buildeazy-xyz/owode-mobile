@@ -130,7 +130,7 @@ export default function PinKeypad({
         {/* Error message */}
         {error ? (
           <View style={styles.errorCard}>
-            <Text style={styles.errorText}>❌ {error}</Text>
+            <Text style={styles.errorText}>{error}</Text>
           </View>
         ) : null}
 
@@ -199,7 +199,7 @@ export default function PinKeypad({
 
       {/* Secure badge */}
       <View style={styles.secureBadge}>
-        <Text style={styles.secureBadgeText}>🔒 256-bit encrypted • OWODE Security</Text>
+        <Text style={styles.secureBadgeText}>256-bit encrypted • OWODE Security</Text>
       </View>
     </View>
   )
