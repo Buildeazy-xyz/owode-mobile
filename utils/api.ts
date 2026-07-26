@@ -41,6 +41,8 @@ export const authAPI = {
 
 export const walletAPI = {
   getBalance: () => api.get('/wallet/balance'),
+  getTransactions: (params?: { from?: string; to?: string; type?: string }) =>
+    api.get('/wallet/transactions', { params }),
   credit: (amount: number, description: string) =>
     api.post('/wallet/credit', { amount, description }),
   debit: (amount: number, description: string) =>

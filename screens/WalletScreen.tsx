@@ -45,7 +45,7 @@ export default function WalletScreen({ navigation }: any) {
 
   const loadWallet = async () => {
     try {
-      const response = await walletAPI.getBalance()
+      const response = await walletAPI.getTransactions()
       setWallet(response.data.data)
       const latestTx = response.data.data?.transactions?.[0]
       if (latestTx && latestTx.type === 'CREDIT') {
