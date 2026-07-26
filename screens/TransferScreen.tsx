@@ -35,7 +35,7 @@ export default function TransferScreen({ navigation }: any) {
       await AsyncStorage.setItem('recent_recipients', JSON.stringify(next))
     } catch (e) {}
   }
-  const isProcessing = useRef(false) // ← prevents double transfer
+  const isProcessing = useRef(false) // prevents double transfer
   const quickAmounts = [500, 1000, 2000, 5000, 10000, 20000]
 
   const handlePinStep = async () => {
@@ -164,11 +164,12 @@ export default function TransferScreen({ navigation }: any) {
           title="Transaction PIN"
           subtitle={`Authorizing ₦${Number(amount).toLocaleString()} transfer`}
           pinLength={4}
+          requireConfirm={false}
           onComplete={executeTransfer}
         />
         <View style={{ position: 'absolute', bottom: 40, left: 0, right: 0, alignItems: 'center' }}>
           <TouchableOpacity onPress={() => setStep('form')}>
-            <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14 }}>← Cancel transfer</Text>
+            <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14 }}>Cancel transfer</Text>
           </TouchableOpacity>
         </View>
       </LinearGradient>
@@ -288,7 +289,7 @@ export default function TransferScreen({ navigation }: any) {
                 style={styles.pinWarningBtn}
                 onPress={() => navigation.navigate('SetTransactionPin')}
               >
-                <Text style={styles.pinWarningBtnText}>Set PIN Now →</Text>
+                <Text style={styles.pinWarningBtnText}>Set PIN Now</Text>
               </TouchableOpacity>
             </View>
           )}

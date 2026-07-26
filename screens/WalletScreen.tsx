@@ -2,11 +2,13 @@ import React, { useState, useEffect, useRef } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity,
   ScrollView, RefreshControl, Alert, TextInput,
-  Modal, Dimensions, Image
-} from 'react-native'
+  Modal, Dimensions, Image, Platform} from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { walletAPI, savingsAPI } from '../utils/api'
+import * as FileSystem from 'expo-file-system/legacy'
+import * as Sharing from 'expo-sharing'
+import * as Print from 'expo-print'
 import { Ionicons } from '@expo/vector-icons'
 import BottomNav from '../components/BottomNav'
 import AsyncStorage from '@react-native-async-storage/async-storage'
@@ -122,6 +124,107 @@ export default function WalletScreen({ navigation }: any) {
     .filter(Boolean)
     .sort((a: any, b: any) => a.next - b.next)
 
+  const handleExport = () => {
+    if (!filteredTransactions?.length) {
+      Alert.alert('Nothing to export', 'No transactions match the current filter.')
+      return
+    }
+    Alert.alert('Download statement', 'Choose a format', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'CSV', onPress: () => doExport('csv') },
+      { text: 'PDF', onPress: () => doExport('pdf') }
+    ])
+  }
+
+  const doExport = async (kind: 'csv' | 'pdf') => {
+    try {
+      const stamp = new Date().toISOString().slice(0, 10)
+      const name = 'owode-statement-' + stamp + '.' + kind
+      const mime = kind === 'pdf' ? 'application/pdf' : 'text/csv'
+      let target: string | null = null
+
+      if (Platform.OS === 'android') {
+        const perm = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync()
+        if (!perm.granted) {
+          Alert.alert('Permission needed', 'Choose a folder to save your statement.')
+          return
+        }
+        target = await FileSystem.StorageAccessFramework.createFileAsync(perm.directoryUri, name, mime)
+      }
+
+      if (kind === 'csv') {
+        const esc = (v: any) => '"' + String(v ?? '').replace(/"/g, '""') + '"'
+        const csv = [
+          ['Date', 'Description', 'Type', 'Amount', 'Balance', 'Reference', 'Status'].join(','),
+          ...filteredTransactions.map((t: any) => [
+            esc(new Date(t.createdAt).toLocaleString('en-NG')),
+            esc(t.description), esc(t.type), esc(t.amount),
+            esc(t.balance ?? ''), esc(t.reference), esc(t.status)
+          ].join(','))
+        ].join('\n')
+
+        if (target) {
+          await FileSystem.writeAsStringAsync(target, csv, { encoding: FileSystem.EncodingType.UTF8 })
+          Alert.alert('Statement saved', name + ' is in the folder you chose.')
+          return
+        }
+        const uri = FileSystem.documentDirectory + name
+        await FileSystem.writeAsStringAsync(uri, csv, { encoding: FileSystem.EncodingType.UTF8 })
+        if (await Sharing.isAvailableAsync()) await Sharing.shareAsync(uri, { mimeType: mime })
+        return
+      }
+
+      const money = (v: any) => '₦' + Number(v || 0).toLocaleString()
+      const rows = filteredTransactions.map((t: any) => (
+        '<tr>' +
+        '<td>' + new Date(t.createdAt).toLocaleDateString('en-NG', { day: '2-digit', month: 'short', year: 'numeric' }) + '</td>' +
+        '<td>' + String(t.description || '').replace(/</g, '&lt;') + '</td>' +
+        '<td class="' + (t.type === 'CREDIT' ? 'cr' : 'dr') + '">' + (t.type === 'CREDIT' ? '+' : '-') + money(t.amount) + '</td>' +
+        '<td class="bal">' + money(t.balance) + '</td>' +
+        '</tr>'
+      )).join('')
+
+      const html =
+        '<html><head><meta charset="utf-8"><style>' +
+        'body{font-family:Helvetica,Arial,sans-serif;color:#1a2b4a;padding:28px}' +
+        '.hd{background:#25427a;color:#fff;padding:20px 22px;border-radius:12px}' +
+        '.hd h1{margin:0;font-size:20px}.hd p{margin:4px 0 0;font-size:12px;opacity:.75}' +
+        '.sum{display:flex;gap:12px;margin:18px 0}' +
+        '.sum div{flex:1;background:#f4f6fb;border-radius:10px;padding:12px}' +
+        '.sum span{display:block;font-size:11px;color:#7c8aa5}' +
+        '.sum b{font-size:16px}' +
+        'table{width:100%;border-collapse:collapse;font-size:12px;margin-top:6px}' +
+        'th{text-align:left;color:#7c8aa5;font-size:11px;border-bottom:2px solid #e6ebf4;padding:8px 6px}' +
+        'td{padding:9px 6px;border-bottom:1px solid #f0f2f7}' +
+        '.cr{color:#22c55e;font-weight:bold}.dr{color:#ef4444;font-weight:bold}' +
+        '.bal{color:#7c8aa5}' +
+        '.ft{margin-top:22px;font-size:10px;color:#9aa5b8;text-align:center}' +
+        '</style></head><body>' +
+        '<div class="hd"><h1>OWODE Alajo — Account Statement</h1>' +
+        '<p>Generated ' + new Date().toLocaleString('en-NG') + '</p></div>' +
+        '<div class="sum">' +
+        '<div><span>Money in</span><b>' + money(totalCredit) + '</b></div>' +
+        '<div><span>Money out</span><b>' + money(totalDebit) + '</b></div>' +
+        '<div><span>Transactions</span><b>' + filteredTransactions.length + '</b></div>' +
+        '</div>' +
+        '<table><tr><th>Date</th><th>Description</th><th>Amount</th><th>Balance</th></tr>' +
+        rows + '</table>' +
+        '<div class="ft">Owode Digital Services Limited · support@owodealajo.com</div>' +
+        '</body></html>'
+
+      const printed = await Print.printToFileAsync({ html })
+      if (target) {
+        const b64 = await FileSystem.readAsStringAsync(printed.uri, { encoding: FileSystem.EncodingType.Base64 })
+        await FileSystem.writeAsStringAsync(target, b64, { encoding: FileSystem.EncodingType.Base64 })
+        Alert.alert('Statement saved', name + ' is in the folder you chose.')
+        return
+      }
+      if (await Sharing.isAvailableAsync()) await Sharing.shareAsync(printed.uri, { mimeType: mime })
+    } catch (e: any) {
+      Alert.alert('Export failed', e?.message || 'Could not create the statement')
+    }
+  }
+
   const activeFilterCount =
     (period === 'CUSTOM' && (customStart || customEnd) ? 1 : 0) + (filter !== 'ALL' ? 1 : 0)
 
@@ -169,6 +272,9 @@ export default function WalletScreen({ navigation }: any) {
             <View style={styles.headerActions}>
               <TouchableOpacity onPress={() => setShowSearch(!showSearch)}>
                 <Ionicons name="search" size={16} color="#9aa5b8" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleExport} style={styles.headerFilterBtn}>
+                <Ionicons name="download-outline" size={18} color="#9aa5b8" />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => setShowFilter(true)} style={styles.headerFilterBtn}>
                 <Ionicons name="options-outline" size={18} color={activeFilterCount > 0 ? '#f5a623' : '#9aa5b8'} />
@@ -438,11 +544,11 @@ export default function WalletScreen({ navigation }: any) {
                     <Ionicons name="time-outline" size={20} color="#7c8aa5" />
                   </View>
                   <View style={styles.txMiddle}>
-                    <Text style={styles.upDesc} numberOfLines={1}>Auto-save \u2014 {u.title}</Text>
-                    <Text style={styles.txTime}>{u.when} \u00b7 {u.freq}</Text>
+                    <Text style={styles.upDesc} numberOfLines={1}>Auto-save — {u.title}</Text>
+                    <Text style={styles.txTime}>{u.when} · {u.freq}</Text>
                   </View>
                   <View style={styles.txRight}>
-                    <Text style={styles.upAmount} numberOfLines={1}>\u20a6{u.amount.toLocaleString()}</Text>
+                    <Text style={styles.upAmount} numberOfLines={1}>₦{u.amount.toLocaleString()}</Text>
                     <Text style={styles.upLabel} numberOfLines={1}>Scheduled</Text>
                   </View>
                 </View>

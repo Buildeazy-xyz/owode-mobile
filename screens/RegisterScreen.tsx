@@ -462,7 +462,7 @@ export default function RegisterScreen({ navigation }: any) {
             }}
             disabled={!firstName || !lastName}
           >
-            <Text style={styles.buttonText}>Continue →</Text>
+            <Text style={styles.buttonText}>Continue</Text>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.loginLink}>
@@ -540,7 +540,7 @@ export default function RegisterScreen({ navigation }: any) {
             }}
             disabled={!day || !month || !year}
           >
-            <Text style={styles.buttonText}>Continue →</Text>
+            <Text style={styles.buttonText}>Continue</Text>
           </TouchableOpacity>
         </ScrollView>
       )}
@@ -620,7 +620,7 @@ export default function RegisterScreen({ navigation }: any) {
           >
             {loading
               ? <ActivityIndicator color="#fff" />
-              : <Text style={styles.buttonText}>Send OTP →</Text>
+              : <Text style={styles.buttonText}>Send OTP</Text>
             }
           </TouchableOpacity>
 
@@ -725,7 +725,7 @@ export default function RegisterScreen({ navigation }: any) {
               onPress={() => goNext()}
             >
               <Text style={{ color: '#f5a623', fontWeight: '700', fontSize: 15 }}>
-                Skip verification (testing) →
+                Skip verification (testing)
               </Text>
             </TouchableOpacity>
           )}
@@ -801,7 +801,7 @@ export default function RegisterScreen({ navigation }: any) {
             }}
             disabled={idNumber.length !== 11}
           >
-            <Text style={styles.buttonText}>Continue →</Text>
+            <Text style={styles.buttonText}>Continue</Text>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={goNext} style={styles.skipBtn}>

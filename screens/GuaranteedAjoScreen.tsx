@@ -285,7 +285,7 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
                 </>
               )}
               <TouchableOpacity style={styles.createGroupBtn} onPress={() => setPinStep(true)}>
-                <Text style={styles.createGroupBtnText}>Continue to PIN →</Text>
+                <Text style={styles.createGroupBtnText}>Continue to PIN</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={() => setContributeModal(false)}>
                 <Text style={styles.cancelText}>Cancel</Text>

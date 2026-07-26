@@ -87,6 +87,26 @@ export default function SavingsScreen({ navigation }: any) {
     setRefreshing(false)
   }
 
+  const PLAN_TEMPLATES = [
+    { title: 'Daily Starter', icon: 'leaf-outline', perDay: 300, days: 30, target: 9000, sub: '₦9,000 in 30 days' },
+    { title: 'Steady Saver', icon: 'trending-up-outline', perDay: 500, days: 30, target: 15000, sub: '₦15,000 in 30 days' },
+    { title: 'Rent Fund', icon: 'home-outline', perDay: 1000, days: 365, target: 365000, sub: '₦365,000 in a year' },
+    { title: 'Big Goal', icon: 'rocket-outline', perDay: 2000, days: 365, target: 730000, sub: '₦730,000 in a year' },
+  ]
+
+  const applyTemplate = (t: any) => {
+    const d = new Date()
+    d.setDate(d.getDate() + t.days)
+    setTitle(t.title)
+    setGoalAmount(String(t.target))
+    setTargetDate(d.toISOString().split('T')[0])
+    setDateChip('Custom')
+    setInitialDeposit('')
+    setAutoDebitOn(true)
+    setAutoDebitFreq('DAILY')
+    setScreen('create')
+  }
+
   const handleCreate = async () => {
     if (autoDebitOn && !autoDebitFreq) {
       Alert.alert('Choose a frequency', 'Select daily, weekly or monthly for auto-save')
@@ -262,16 +282,19 @@ export default function SavingsScreen({ navigation }: any) {
   // CREATE SCREEN
   if (pinAction) {
     return (
-      <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
+      <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={{ flex: 1 }}>
         <PinKeypad
-          title="Enter Transaction PIN"
+          title="Transaction PIN"
           subtitle={pinAction.type === 'deposit' ? 'Confirm your savings deposit' : 'Confirm your withdrawal'}
           pinLength={4}
+          requireConfirm={false}
           onComplete={(pin: string) => pinAction.type === 'deposit' ? executeDeposit(pin) : executeWithdraw(pin)}
         />
-        <TouchableOpacity onPress={() => setPinAction(null)} style={{ marginTop: 16 }}>
-          <Text style={{ color: '#f5a623', fontSize: 15, fontWeight: '600' }}>Cancel</Text>
-        </TouchableOpacity>
+        <View style={{ position: 'absolute', bottom: 40, left: 0, right: 0, alignItems: 'center' }}>
+          <TouchableOpacity onPress={() => setPinAction(null)}>
+            <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14 }}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
       </LinearGradient>
     )
   }
@@ -630,45 +653,6 @@ export default function SavingsScreen({ navigation }: any) {
         </TouchableOpacity>
       </LinearGradient>
 
-      {/* Summary Card */}
-      <LinearGradient colors={['#25427a', '#385c9e']} style={styles.summaryCard}>
-        <Text style={styles.summaryLabel}>Total Saved Across All Goals</Text>
-        <Text style={styles.summaryAmount}>₦{totalSaved.toLocaleString()}</Text>
-        <View style={styles.summaryRow}>
-          {[
-            { value: activeGoals.length, label: 'Active Goals' },
-            { value: completedGoals.length, label: 'Completed' },
-            { value: `₦${totalTarget.toLocaleString()}`, label: 'Total Target' },
-          ].map((item, i) => (
-            <React.Fragment key={item.label}>
-              {i > 0 && <View style={styles.summaryDivider} />}
-              <View style={styles.summaryItem}>
-                <Text style={styles.summaryItemValue}>{item.value}</Text>
-                <Text style={styles.summaryItemLabel}>{item.label}</Text>
-              </View>
-            </React.Fragment>
-          ))}
-        </View>
-      </LinearGradient>
-
-      {/* Tabs */}
-      <View style={styles.tabRow}>
-        {[
-          { key: 'goals', label: 'My Goals' },
-          { key: 'analytics', label: 'Analytics' },
-        ].map(tab => (
-          <TouchableOpacity
-            key={tab.key}
-            style={[styles.tab, activeTab === tab.key && styles.tabActive]}
-            onPress={() => setActiveTab(tab.key as any)}
-          >
-            <Text style={[styles.tabText, activeTab === tab.key && styles.tabTextActive]}>
-              {tab.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
       {loading ? (
         <ActivityIndicator size="large" color="#25427a" style={{ marginTop: 60 }} />
       ) : (
@@ -676,6 +660,45 @@ export default function SavingsScreen({ navigation }: any) {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           showsVerticalScrollIndicator={false}
         >
+          {/* Summary Card */}
+          <LinearGradient colors={['#25427a', '#385c9e']} style={styles.summaryCard}>
+            <Text style={styles.summaryLabel}>Total Saved Across All Goals</Text>
+            <Text style={styles.summaryAmount}>₦{totalSaved.toLocaleString()}</Text>
+            <View style={styles.summaryRow}>
+              {[
+                { value: activeGoals.length, label: 'Active Goals' },
+                { value: completedGoals.length, label: 'Completed' },
+                { value: `₦${totalTarget.toLocaleString()}`, label: 'Total Target' },
+              ].map((item, i) => (
+                <React.Fragment key={item.label}>
+                  {i > 0 && <View style={styles.summaryDivider} />}
+                  <View style={styles.summaryItem}>
+                    <Text style={styles.summaryItemValue}>{item.value}</Text>
+                    <Text style={styles.summaryItemLabel}>{item.label}</Text>
+                  </View>
+                </React.Fragment>
+              ))}
+            </View>
+          </LinearGradient>
+
+          {/* Tabs */}
+          <View style={styles.tabRow}>
+            {[
+              { key: 'goals', label: 'My Goals' },
+              { key: 'analytics', label: 'Analytics' },
+            ].map(tab => (
+              <TouchableOpacity
+                key={tab.key}
+                style={[styles.tab, activeTab === tab.key && styles.tabActive]}
+                onPress={() => setActiveTab(tab.key as any)}
+              >
+                <Text style={[styles.tabText, activeTab === tab.key && styles.tabTextActive]}>
+                  {tab.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
           {/* ANALYTICS TAB */}
           {activeTab === 'analytics' && (
             <View>
@@ -825,6 +848,30 @@ export default function SavingsScreen({ navigation }: any) {
           {/* GOALS TAB */}
           {activeTab === 'goals' && (
             <View>
+              <Text style={styles.tplHeading}>Get started with these plans</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.tplRow}
+              >
+                {PLAN_TEMPLATES.map(t => (
+                  <TouchableOpacity
+                    key={t.title}
+                    style={styles.tplCard}
+                    onPress={() => applyTemplate(t)}
+                    activeOpacity={0.85}
+                  >
+                    <View style={styles.tplIcon}>
+                      <Ionicons name={t.icon as any} size={18} color="#25427a" />
+                    </View>
+                    <Text style={styles.tplTitle} numberOfLines={1}>{t.title}</Text>
+                    <Text style={styles.tplRate} numberOfLines={1}>
+                      ₦{t.perDay.toLocaleString()}/day
+                    </Text>
+                    <Text style={styles.tplSub} numberOfLines={1}>{t.sub}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
               {goals.length === 0 ? (
                 <View style={styles.emptyState}>
                   <Ionicons name="wallet-outline" size={48} color="#9aa5b8" />
@@ -933,6 +980,13 @@ export default function SavingsScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
+  tplHeading: { fontSize: 13, fontWeight: '700', color: '#1a2b4a', marginHorizontal: 14, marginTop: 4, marginBottom: 10 },
+  tplRow: { paddingHorizontal: 14, gap: 10, paddingBottom: 4 },
+  tplCard: { width: 140, backgroundColor: '#fff', borderRadius: 14, padding: 12, borderWidth: 1, borderColor: '#eef1f6', minHeight: 108 },
+  tplIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#eaf2ff', alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
+  tplTitle: { flexShrink: 1, fontSize: 13, fontWeight: '700', color: '#1a2b4a' },
+  tplRate: { flexShrink: 1, fontSize: 14, fontWeight: '700', color: '#25427a', marginTop: 3 },
+  tplSub: { flexShrink: 1, fontSize: 10.5, color: '#7c8aa5', marginTop: 2 },
   autoDebitHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44 },
   autoDebitHeadText: { flex: 1, flexShrink: 1, paddingRight: 12 },
   autoDebitTitle: { flexShrink: 1, fontSize: 15, fontWeight: '700', color: '#1a2b4a' },
@@ -958,32 +1012,32 @@ const styles = StyleSheet.create({
   datePreviewText: { flex: 1, flexShrink: 1, fontSize: 14, fontWeight: '600', color: '#25427a' },
   perDayHint: { fontSize: 12, color: '#7c8aa5', marginTop: 8 },
   container: { flex: 1, backgroundColor: '#f4f6fb' },
-  header: { padding: 24, paddingTop: 60, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  createHeader: { padding: 24, paddingTop: 60, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  back: { color: '#f5a623', fontSize: 16 },
-  headerTitle: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-  newBtn: { color: '#f5a623', fontSize: 16, fontWeight: 'bold' },
-  summaryCard: { margin: 16, borderRadius: 20, padding: 20 },
-  summaryLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 12, marginBottom: 4 },
-  summaryAmount: { color: '#fff', fontSize: 32, fontWeight: 'bold', marginBottom: 16 },
+  header: { paddingHorizontal: 16, paddingTop: 52, paddingBottom: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  createHeader: { paddingHorizontal: 16, paddingTop: 52, paddingBottom: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  back: { color: '#f5a623', fontSize: 14 },
+  headerTitle: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  newBtn: { color: '#f5a623', fontSize: 14, fontWeight: '700' },
+  summaryCard: { marginHorizontal: 14, marginTop: 14, marginBottom: 10, borderRadius: 16, padding: 16 },
+  summaryLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 11, marginBottom: 3 },
+  summaryAmount: { color: '#fff', fontSize: 24, fontWeight: '700', marginBottom: 12 },
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   summaryItem: { alignItems: 'center', flex: 1 },
-  summaryItemValue: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-  summaryItemLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 11, marginTop: 2 },
+  summaryItemValue: { color: '#fff', fontSize: 14, fontWeight: '700' },
+  summaryItemLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 10, marginTop: 2 },
   summaryDivider: { width: 1, height: 30, backgroundColor: 'rgba(255,255,255,0.2)' },
-  tabRow: { flexDirection: 'row', marginHorizontal: 16, marginBottom: 8, backgroundColor: '#f0f2f7', borderRadius: 14, padding: 4 },
-  tab: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 10 },
+  tabRow: { flexDirection: 'row', marginHorizontal: 14, marginBottom: 8, backgroundColor: '#f0f2f7', borderRadius: 12, padding: 4 },
+  tab: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 9 },
   tabActive: { backgroundColor: '#fff', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
-  tabText: { fontSize: 14, fontWeight: '600', color: '#7c8aa5' },
+  tabText: { fontSize: 13, fontWeight: '600', color: '#7c8aa5' },
   tabTextActive: { color: '#25427a' },
   // Analytics
-  analyticsCard: { backgroundColor: '#fff', margin: 16, marginBottom: 8, borderRadius: 20, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 10, elevation: 3 },
-  analyticsTitle: { fontSize: 16, fontWeight: 'bold', color: '#25427a', marginBottom: 4 },
+  analyticsCard: { backgroundColor: '#fff', marginHorizontal: 14, marginTop: 14, marginBottom: 8, borderRadius: 16, padding: 15, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 10, elevation: 3 },
+  analyticsTitle: { fontSize: 14, fontWeight: '700', color: '#25427a', marginBottom: 4 },
   analyticsSubtitle: { fontSize: 12, color: '#7c8aa5', marginBottom: 12 },
   chart: { borderRadius: 16, marginTop: 8 },
   overallProgressRow: { flexDirection: 'row', alignItems: 'center', gap: 16, marginBottom: 16 },
   overallProgressCircle: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#eaf2ff', justifyContent: 'center', alignItems: 'center', borderWidth: 4, borderColor: '#25427a' },
-  overallProgressPercent: { fontSize: 18, fontWeight: 'bold', color: '#25427a' },
+  overallProgressPercent: { fontSize: 16, fontWeight: '700', color: '#25427a' },
   overallProgressLabel: { fontSize: 10, color: '#7c8aa5' },
   overallProgressStats: { flex: 1, gap: 8 },
   overallStat: {},
@@ -1005,13 +1059,13 @@ const styles = StyleSheet.create({
   // Goals
   emptyState: { alignItems: 'center', padding: 60 },
   emptyIcon: { fontSize: 64, marginBottom: 16 },
-  emptyText: { fontSize: 18, fontWeight: 'bold', color: '#1a2b4a', marginBottom: 8 },
-  emptySubText: { fontSize: 14, color: '#7c8aa5', textAlign: 'center', lineHeight: 22, marginBottom: 24 },
+  emptyText: { fontSize: 15, fontWeight: '700', color: '#1a2b4a', marginBottom: 6 },
+  emptySubText: { fontSize: 13, color: '#7c8aa5', textAlign: 'center', lineHeight: 19, marginBottom: 20 },
   createFirstBtn: { backgroundColor: '#25427a', borderRadius: 16, paddingHorizontal: 32, paddingVertical: 16 },
-  createFirstBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-  goalCard: { backgroundColor: '#fff', margin: 16, marginBottom: 8, borderRadius: 20, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 10, elevation: 3 },
+  createFirstBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+  goalCard: { backgroundColor: '#fff', marginHorizontal: 14, marginTop: 14, marginBottom: 8, borderRadius: 16, padding: 15, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 10, elevation: 3 },
   goalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 },
-  goalTitle: { fontSize: 17, fontWeight: 'bold', color: '#25427a', marginBottom: 4 },
+  goalTitle: { fontSize: 15, fontWeight: '700', color: '#25427a', marginBottom: 3 },
   goalDesc: { fontSize: 12, color: '#7c8aa5' },
   statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
   statusBadgeText: { fontSize: 11, fontWeight: 'bold' },
@@ -1040,7 +1094,7 @@ const styles = StyleSheet.create({
   withdrawCompletedBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
   // Create/Deposit
   createContent: { padding: 20 },
-  fieldLabel: { fontSize: 14, fontWeight: '600', color: '#25427a', marginBottom: 8, marginTop: 16 },
+  fieldLabel: { fontSize: 13, fontWeight: '600', color: '#25427a', marginBottom: 8, marginTop: 14 },
   categoryRow: { marginBottom: 8 },
   categoryChip: { alignItems: 'center', marginRight: 12, backgroundColor: '#fff', borderRadius: 16, padding: 12, borderWidth: 2, borderColor: '#e6eaf2', width: 80 },
   categoryChipActive: { borderColor: '#25427a', backgroundColor: '#eaf2ff' },
@@ -1048,9 +1102,9 @@ const styles = StyleSheet.create({
   categoryLabel: { fontSize: 11, color: '#7c8aa5', fontWeight: '600' },
   categoryLabelActive: { color: '#25427a' },
   inputWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 14, borderWidth: 1.5, borderColor: '#e6eaf2', paddingHorizontal: 16, marginBottom: 4 },
-  inputPrefix: { fontSize: 18, color: '#25427a', fontWeight: 'bold', marginRight: 8 },
-  inputWithPrefix: { flex: 1, fontSize: 16, color: '#1a2b4a', paddingVertical: 16 },
-  input: { backgroundColor: '#fff', borderRadius: 14, borderWidth: 1.5, borderColor: '#e6eaf2', paddingHorizontal: 16, paddingVertical: 16, fontSize: 16, color: '#1a2b4a' },
+  inputPrefix: { fontSize: 16, color: '#25427a', fontWeight: '700', marginRight: 8 },
+  inputWithPrefix: { flex: 1, fontSize: 15, color: '#1a2b4a', paddingVertical: 13 },
+  input: { backgroundColor: '#fff', borderRadius: 14, borderWidth: 1.5, borderColor: '#e6eaf2', paddingHorizontal: 16, paddingVertical: 13, fontSize: 15, color: '#1a2b4a' },
   textArea: { height: 80, textAlignVertical: 'top' },
   autoDebitSection: { backgroundColor: '#f4f6fb', borderRadius: 16, padding: 16, marginTop: 8 },
   autoDebitHint: { fontSize: 12, color: '#7c8aa5', marginTop: 2, marginBottom: 8 },
@@ -1066,9 +1120,9 @@ const styles = StyleSheet.create({
   summaryPreviewValue: { fontSize: 13, color: '#1a2b4a', fontWeight: '600' },
   createGoalBtn: { marginTop: 24, borderRadius: 16, overflow: 'hidden' },
   createGoalBtnGradient: { padding: 18, alignItems: 'center' },
-  createGoalBtnText: { color: '#fff', fontSize: 17, fontWeight: 'bold' },
+  createGoalBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
   depositGoalInfo: { backgroundColor: '#eaf2ff', borderRadius: 16, padding: 16, marginBottom: 24 },
-  depositGoalTitle: { fontSize: 16, fontWeight: 'bold', color: '#25427a', marginBottom: 8 },
+  depositGoalTitle: { fontSize: 14, fontWeight: '700', color: '#25427a', marginBottom: 8 },
   depositGoalProgress: { fontSize: 13, color: '#7c8aa5', marginBottom: 8 },
   depositProgressBar: { height: 8, backgroundColor: '#c5d8f0', borderRadius: 4, marginBottom: 4, overflow: 'hidden' },
   depositProgressFill: { height: 8, backgroundColor: '#25427a', borderRadius: 4 },

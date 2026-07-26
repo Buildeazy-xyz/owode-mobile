@@ -192,7 +192,7 @@ export default function KYCVerificationScreen({ navigation }: any) {
               >
                 {loading
                   ? <ActivityIndicator color="#fff" />
-                  : <Text style={styles.submitBtnText}>Verify BVN →</Text>
+                  : <Text style={styles.submitBtnText}>Verify BVN</Text>
                 }
               </TouchableOpacity>
             </View>
@@ -252,7 +252,7 @@ export default function KYCVerificationScreen({ navigation }: any) {
               >
                 {loading
                   ? <ActivityIndicator color="#fff" />
-                  : <Text style={styles.submitBtnText}>Verify NIN →</Text>
+                  : <Text style={styles.submitBtnText}>Verify NIN</Text>
                 }
               </TouchableOpacity>
             </View>

@@ -159,7 +159,7 @@ export default function FaceVerificationScreen({ navigation }: any) {
                 style={styles.warningBtn}
                 onPress={() => navigation.navigate('Profile')}
               >
-                <Text style={styles.warningBtnText}>Submit BVN/NIN →</Text>
+                <Text style={styles.warningBtnText}>Submit BVN/NIN</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -267,7 +267,7 @@ export default function FaceVerificationScreen({ navigation }: any) {
             style={styles.doneBtn}
             onPress={() => navigation.navigate('Dashboard')}
           >
-            <Text style={styles.doneBtnText}>Continue to Dashboard →</Text>
+            <Text style={styles.doneBtnText}>Continue to Dashboard</Text>
           </TouchableOpacity>
         </View>
       </LinearGradient>
