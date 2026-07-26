@@ -6,7 +6,7 @@ import {
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import DateTimePicker from '@react-native-community/datetimepicker'
-import { walletAPI } from '../utils/api'
+import { walletAPI, savingsAPI } from '../utils/api'
 import { Ionicons } from '@expo/vector-icons'
 import BottomNav from '../components/BottomNav'
 import AsyncStorage from '@react-native-async-storage/async-storage'
@@ -27,6 +27,8 @@ const dayLabel = (iso: string) => {
 
 export default function WalletScreen({ navigation }: any) {
   const [wallet, setWallet] = useState<any>(null)
+  const [goals, setGoals] = useState<any[]>([])
+  const [activeTab, setActiveTab] = useState<'past' | 'upcoming'>('past')
   const [refreshing, setRefreshing] = useState(false)
   const [filter, setFilter] = useState<'ALL' | 'CREDIT' | 'DEBIT'>('ALL')
   const [search, setSearch] = useState('')
@@ -66,7 +68,14 @@ export default function WalletScreen({ navigation }: any) {
     }
   }
 
-  useEffect(() => { loadWallet() }, [])
+  const loadGoals = async () => {
+    try {
+      const res = await savingsAPI.getGoals()
+      setGoals(res.data?.data || [])
+    } catch {}
+  }
+
+  useEffect(() => { loadWallet(); loadGoals() }, [])
 
   const onRefresh = async () => {
     setRefreshing(true)
@@ -89,6 +98,29 @@ export default function WalletScreen({ navigation }: any) {
     if (period === 'YEAR') return d.getFullYear() === now.getFullYear()
     return true
   }
+
+  const UP_FREQ_DAYS: Record<string, number> = { DAILY: 1, WEEKLY: 7, MONTHLY: 30 }
+  const upcoming = (goals || [])
+    .filter((g: any) => g.status === 'ACTIVE' && g.autoDebitAmount > 0 && g.autoDebitFreq)
+    .map((g: any) => {
+      const days = UP_FREQ_DAYS[g.autoDebitFreq] || 7
+      const next = g.lastAutoDebitAt
+        ? new Date(g.lastAutoDebitAt).getTime() + days * 86400000
+        : Date.now()
+      const remaining = (g.goalAmount || 0) - (g.currentAmount || 0)
+      if (remaining <= 0) return null
+      if (next > new Date(g.targetDate).getTime()) return null
+      return {
+        id: g.id,
+        title: g.title,
+        amount: Math.min(g.autoDebitAmount, remaining),
+        freq: String(g.autoDebitFreq).toLowerCase(),
+        next,
+        when: new Date(next).toLocaleDateString('en-NG', { weekday: 'short', day: 'numeric', month: 'short' })
+      }
+    })
+    .filter(Boolean)
+    .sort((a: any, b: any) => a.next - b.next)
 
   const activeFilterCount =
     (period === 'CUSTOM' && (customStart || customEnd) ? 1 : 0) + (filter !== 'ALL' ? 1 : 0)
@@ -272,10 +304,28 @@ export default function WalletScreen({ navigation }: any) {
           <View style={styles.historyHeader}>
             <Text style={styles.historyTitle}>Transaction History</Text>
             <Text style={styles.historyCount}>
-              {filteredTransactions?.length || 0} transactions
+              {activeTab === 'past'
+                ? `${filteredTransactions?.length || 0} transactions`
+                : `${upcoming.length} scheduled`}
             </Text>
           </View>
 
+          <View style={styles.puTabRow}>
+            {([['past', 'Past'], ['upcoming', 'Upcoming']] as const).map(([k, label]) => (
+              <TouchableOpacity
+                key={k}
+                style={[styles.puTab, activeTab === k && styles.puTabActive]}
+                onPress={() => setActiveTab(k)}
+              >
+                <Text style={[styles.puTabText, activeTab === k && styles.puTabTextActive]} numberOfLines={1}>
+                  {label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {activeTab === 'past' ? (
+          <>
           {/* Filter Tabs */}
           <View style={styles.filterRow}>
             {[
@@ -351,7 +401,7 @@ export default function WalletScreen({ navigation }: any) {
                             styles.txStatusText,
                             { color: tx.status === 'SUCCESS' ? '#22c55e' : '#f5a623' }
                           ]}>
-                            {tx.status === 'SUCCESS' ? 'Success' : '⏳ Pending'}
+                            {tx.status === 'SUCCESS' ? 'Success' : 'Pending'}
                           </Text>
                         </View>
                       </View>
@@ -371,6 +421,32 @@ export default function WalletScreen({ navigation }: any) {
                   </View>
                 )
               })}
+            </View>
+          )}
+          </>
+          ) : upcoming.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Ionicons name="time-outline" size={44} color="#9aa5b8" />
+              <Text style={styles.emptyText}>No upcoming transactions</Text>
+              <Text style={styles.emptySubText}>Scheduled auto-saves will appear here</Text>
+            </View>
+          ) : (
+            <View style={styles.txList}>
+              {upcoming.map((u: any) => (
+                <View key={u.id} style={styles.upCard}>
+                  <View style={styles.upIconCircle}>
+                    <Ionicons name="time-outline" size={20} color="#7c8aa5" />
+                  </View>
+                  <View style={styles.txMiddle}>
+                    <Text style={styles.upDesc} numberOfLines={1}>Auto-save \u2014 {u.title}</Text>
+                    <Text style={styles.txTime}>{u.when} \u00b7 {u.freq}</Text>
+                  </View>
+                  <View style={styles.txRight}>
+                    <Text style={styles.upAmount} numberOfLines={1}>\u20a6{u.amount.toLocaleString()}</Text>
+                    <Text style={styles.upLabel} numberOfLines={1}>Scheduled</Text>
+                  </View>
+                </View>
+              ))}
             </View>
           )}
         </View>
@@ -599,6 +675,16 @@ const styles = StyleSheet.create({
   clearSearchText: { color: '#7c8aa5', fontSize: 16 },
   historySection: { marginTop: 16, paddingHorizontal: 16 },
   historyHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  puTabRow: { flexDirection: 'row', gap: 8, marginBottom: 14 },
+  puTab: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 10, borderRadius: 12, backgroundColor: '#fff', minHeight: 40 },
+  puTabActive: { backgroundColor: '#25427a' },
+  puTabText: { flexShrink: 1, fontSize: 13, fontWeight: '600', color: '#7c8aa5' },
+  puTabTextActive: { color: '#fff' },
+  upCard: { flexDirection: 'row', alignItems: 'center', gap: 11, backgroundColor: '#fff', borderRadius: 14, padding: 11, marginBottom: 8, borderWidth: 1, borderColor: '#eef1f6', minHeight: 64 },
+  upIconCircle: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#f4f6fb', alignItems: 'center', justifyContent: 'center' },
+  upDesc: { flexShrink: 1, fontSize: 13.5, fontWeight: '600', color: '#7c8aa5' },
+  upAmount: { flexShrink: 1, fontSize: 14, fontWeight: '700', color: '#7c8aa5' },
+  upLabel: { flexShrink: 1, fontSize: 10, color: '#9aa5b8' },
   historyTitle: { fontSize: 15, fontWeight: '700', color: '#1a2b4a' },
   historyCount: { fontSize: 12, color: '#7c8aa5' },
   filterRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },

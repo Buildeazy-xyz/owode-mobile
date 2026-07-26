@@ -34,7 +34,9 @@ export const authAPI = {
   setAppPin: (appPin: string, currentPin?: string) =>
     api.post('/users/app-pin/set', { appPin, currentPin }),
   verifyAppPin: (appPin: string) =>
-    api.post('/users/app-pin/verify', { appPin })
+    api.post('/users/app-pin/verify', { appPin }),
+  lookupRecipient: (phone: string) =>
+    api.post('/users/lookup', { phone })
 }
 
 export const walletAPI = {

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ActivityInd
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { walletAPI } from '../utils/api'
+import { authAPI, walletAPI } from '../utils/api'
 import PinKeypad from '../components/PinKeypad'
 import { useAuth } from '../context/AuthContext'
 import { announcePayment } from '../utils/speech'
@@ -17,6 +17,9 @@ export default function TransferScreen({ navigation }: any) {
   const [loading, setLoading] = useState(false)
   const [step, setStep] = useState<'form' | 'pin'>('form')
   const [recents, setRecents] = useState<any[]>([])
+  const [recipientName, setRecipientName] = useState('')
+  const [lookingUp, setLookingUp] = useState(false)
+  const [lookupError, setLookupError] = useState('')
 
   useEffect(() => {
     AsyncStorage.getItem('recent_recipients')
@@ -59,7 +62,31 @@ export default function TransferScreen({ navigation }: any) {
     }
   }
 
+  useEffect(() => {
+    setRecipientName('')
+    setLookupError('')
+    const digits = recipientPhone.replace(/\D/g, '')
+    if (digits.length !== 11) return
+    let cancelled = false
+    setLookingUp(true)
+    const timer = setTimeout(async () => {
+      try {
+        const res = await authAPI.lookupRecipient(digits)
+        if (!cancelled) setRecipientName(res.data?.data?.fullName || '')
+      } catch (e: any) {
+        if (!cancelled) setLookupError(e?.response?.data?.message || 'Could not check this number')
+      } finally {
+        if (!cancelled) setLookingUp(false)
+      }
+    }, 400)
+    return () => { cancelled = true; clearTimeout(timer) }
+  }, [recipientPhone])
+
   const handleContinue = () => {
+    if (recipientPhone.replace(/\D/g, '').length === 11 && !recipientName) {
+      Alert.alert('Recipient not confirmed', 'We could not confirm an OWODE account for that number. Check it and try again.')
+      return
+    }
     if (!recipientPhone || !amount || !description) {
       Alert.alert('Error', 'All fields are required')
       return
@@ -85,7 +112,7 @@ export default function TransferScreen({ navigation }: any) {
     }
     Alert.alert(
       'Confirm Transfer',
-      `Send ₦${Number(amount).toLocaleString()} to ${recipientPhone}?`,
+      `Send ₦${Number(amount).toLocaleString()} to ${recipientName || recipientPhone}?`,
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Confirm & Authorize', onPress: handlePinStep }
@@ -195,6 +222,23 @@ export default function TransferScreen({ navigation }: any) {
               keyboardType="phone-pad"
               maxLength={11}
             />
+
+            {lookingUp ? (
+              <View style={styles.lookupRow}>
+                <ActivityIndicator size="small" color="#25427a" />
+                <Text style={styles.lookupText} numberOfLines={1}>Checking account...</Text>
+              </View>
+            ) : recipientName ? (
+              <View style={styles.lookupOk}>
+                <Ionicons name="checkmark-circle" size={18} color="#22c55e" />
+                <Text style={styles.lookupOkText} numberOfLines={1}>{recipientName}</Text>
+              </View>
+            ) : lookupError ? (
+              <View style={styles.lookupBad}>
+                <Ionicons name="alert-circle" size={18} color="#ef4444" />
+                <Text style={styles.lookupBadText} numberOfLines={2}>{lookupError}</Text>
+              </View>
+            ) : null}
           </View>
 
           <View style={styles.card}>
@@ -270,6 +314,12 @@ export default function TransferScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
+  lookupRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10, minHeight: 24 },
+  lookupText: { flexShrink: 1, fontSize: 13, color: '#7c8aa5' },
+  lookupOk: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10, backgroundColor: '#e9f9ef', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, minHeight: 40 },
+  lookupOkText: { flex: 1, flexShrink: 1, fontSize: 14, fontWeight: '700', color: '#1a2b4a' },
+  lookupBad: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10, backgroundColor: '#fdecec', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, minHeight: 40 },
+  lookupBadText: { flex: 1, flexShrink: 1, fontSize: 13, color: '#ef4444' },
   recentItem: { alignItems: 'center', width: 58 },
   recentAvatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: '#25427a', justifyContent: 'center', alignItems: 'center', marginBottom: 5 },
   recentAvatarText: { color: '#fff', fontSize: 18, fontWeight: '700' },
