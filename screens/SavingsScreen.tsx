@@ -922,7 +922,7 @@ export default function SavingsScreen({ navigation }: any) {
                       {[
                         { label: 'Saved', value: `₦${goal.currentAmount?.toLocaleString()}` },
                         { label: 'Target', value: `₦${goal.goalAmount?.toLocaleString()}` },
-                        { label: 'Days Left', value: goal.daysLeft === 0 ? '' : `${goal.daysLeft}d`, color: goal.daysLeft < 30 ? '#f5a623' : '#25427a' },
+                        { label: 'Days Left', value: goal.daysLeft === 0 ? 'Done' : `${goal.daysLeft}d`, color: goal.daysLeft < 30 ? '#f5a623' : '#25427a' },
                       ].map(item => (
                         <View key={item.label} style={styles.amountBox}>
                           <Text style={styles.amountBoxLabel}>{item.label}</Text>
