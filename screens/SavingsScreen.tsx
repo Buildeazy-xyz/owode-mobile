@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity,
   ScrollView, Alert, RefreshControl,
@@ -52,6 +52,7 @@ export default function SavingsScreen({ navigation }: any) {
   const [selectedCategory, setSelectedCategory] = useState(GOAL_CATEGORIES[9])
   const [depositAmount, setDepositAmount] = useState('')
   const [pinAction, setPinAction] = useState<null | { type: 'deposit' | 'withdraw'; goal?: any }>(null)
+  const isProcessing = useRef(false)
 
   const daysToTarget = targetDate
     ? Math.max(1, Math.ceil((new Date(targetDate).getTime() - Date.now()) / 86400000))
@@ -90,7 +91,7 @@ export default function SavingsScreen({ navigation }: any) {
   const PLAN_TEMPLATES = [
     { title: 'Daily Starter', icon: 'leaf-outline', perDay: 300, days: 30, target: 9000, sub: '₦9,000 in 30 days' },
     { title: 'Steady Saver', icon: 'trending-up-outline', perDay: 500, days: 30, target: 15000, sub: '₦15,000 in 30 days' },
-    { title: 'Rent Fund', icon: 'home-outline', perDay: 1000, days: 365, target: 365000, sub: '₦365,000 in a year' },
+    { title: 'House rent Target', icon: 'home-outline', perDay: 1000, days: 365, target: 365000, sub: '₦365,000 in a year' },
     { title: 'Big Goal', icon: 'rocket-outline', perDay: 2000, days: 365, target: 730000, sub: '₦730,000 in a year' },
   ]
 
@@ -160,6 +161,8 @@ export default function SavingsScreen({ navigation }: any) {
   }
 
   const executeDeposit = async (transactionPin: string) => {
+    if (isProcessing.current) return
+    isProcessing.current = true
     try {
       setSaving(true)
       const response = await savingsAPI.deposit(selectedGoal.id, Number(depositAmount), transactionPin)
@@ -179,7 +182,10 @@ export default function SavingsScreen({ navigation }: any) {
   const executeWithdraw = async (transactionPin: string) => {
     const goal = pinAction?.goal
     if (!goal) { setPinAction(null); return }
+    if (isProcessing.current) return
+    isProcessing.current = true
     try {
+      setSaving(true)
       const response = await savingsAPI.withdraw(goal.id, transactionPin)
       setPinAction(null)
       Alert.alert('Withdrawn!', response.data.message)
@@ -187,6 +193,9 @@ export default function SavingsScreen({ navigation }: any) {
     } catch (error: any) {
       setPinAction(null)
       Alert.alert('Error', error.response?.data?.message || 'Something went wrong')
+    } finally {
+      setSaving(false)
+      isProcessing.current = false
     }
   }
 
@@ -283,15 +292,24 @@ export default function SavingsScreen({ navigation }: any) {
   if (pinAction) {
     return (
       <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={{ flex: 1 }}>
-        <PinKeypad
-          title="Transaction PIN"
-          subtitle={pinAction.type === 'deposit' ? 'Confirm your savings deposit' : 'Confirm your withdrawal'}
-          pinLength={4}
-          requireConfirm={false}
-          onComplete={(pin: string) => pinAction.type === 'deposit' ? executeDeposit(pin) : executeWithdraw(pin)}
-        />
-        <View style={{ position: 'absolute', bottom: 40, left: 0, right: 0, alignItems: 'center' }}>
-          <TouchableOpacity onPress={() => setPinAction(null)}>
+        {saving ? (
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <ActivityIndicator size="large" color="#f5a623" />
+            <Text style={{ color: '#fff', marginTop: 14, fontSize: 14 }}>
+              {pinAction.type === 'deposit' ? 'Processing deposit...' : 'Processing withdrawal...'}
+            </Text>
+          </View>
+        ) : (
+          <PinKeypad
+            title="Transaction PIN"
+            subtitle={pinAction.type === 'deposit' ? 'Confirm your savings deposit' : 'Confirm your withdrawal'}
+            pinLength={4}
+            requireConfirm={false}
+            onComplete={(pin: string) => pinAction.type === 'deposit' ? executeDeposit(pin) : executeWithdraw(pin)}
+          />
+        )}
+        <View style={{ position: 'absolute', bottom: 40, left: 0, right: 0, alignItems: 'center', opacity: saving ? 0 : 1 }}>
+          <TouchableOpacity onPress={() => setPinAction(null)} disabled={saving}>
             <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14 }}>Cancel</Text>
           </TouchableOpacity>
         </View>
