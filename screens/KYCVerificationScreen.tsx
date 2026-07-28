@@ -15,12 +15,12 @@ export default function KYCVerificationScreen({ navigation }: any) {
   const [bvn, setBvn] = useState('')
   const [nin, setNin] = useState('')
   const [loading, setLoading] = useState(false)
-  const [kycStatusState, setKycStatusState] = useState<{hasBVN?: boolean; hasNIN?: boolean}>({})
+  const [kycStatusState, setKycStatusState] = useState<{hasBVN?: boolean; hasNIN?: boolean; isVerified?: boolean}>({})
 
   React.useEffect(() => {
     authAPI.getMe().then((r: any) => {
       const d = r.data?.data
-      if (d) setKycStatusState({ hasBVN: d.hasBVN, hasNIN: d.hasNIN })
+      if (d) setKycStatusState({ hasBVN: d.hasBVN, hasNIN: d.hasNIN, isVerified: d.isVerified })
     }).catch(() => {})
   }, [])
 
@@ -115,7 +115,9 @@ export default function KYCVerificationScreen({ navigation }: any) {
             <Ionicons name="checkmark-circle" size={22} color="#2e7d32" />
             <View style={{ marginLeft: 10, flex: 1 }}>
               <Text style={{ color: '#22c55e', fontWeight: '700', fontSize: 14 }}>
-                {kycStatusState.hasBVN && kycStatusState.hasNIN ? 'BVN & NIN submitted' : kycStatusState.hasBVN ? 'BVN submitted' : 'NIN submitted'} — under review
+                {kycStatusState.isVerified
+                  ? 'Identity verified'
+                  : (kycStatusState.hasBVN && kycStatusState.hasNIN ? 'BVN & NIN submitted' : kycStatusState.hasBVN ? 'BVN submitted' : 'NIN submitted') + ' \u2014 under review'}
               </Text>
               <Text style={{ color: '#4b6b4d', fontSize: 12, marginTop: 2 }}>Your details are saved. No need to resubmit.</Text>
             </View>
@@ -143,7 +145,7 @@ export default function KYCVerificationScreen({ navigation }: any) {
         {activeTab === 'bvn' && kycStatusState.hasBVN && (
           <View style={{ marginHorizontal: 20, backgroundColor: '#fff8e1', borderRadius: 14, padding: 20, alignItems: 'center' }}>
             <Ionicons name="time-outline" size={34} color="#f5a623" />
-            <Text style={{ fontWeight: '800', fontSize: 16, color: '#1a2b4a', marginTop: 8 }}>BVN Under Review</Text>
+            <Text style={{ fontWeight: '800', fontSize: 16, color: '#1a2b4a', marginTop: 8 }}>{kycStatusState.isVerified ? 'BVN Verified' : 'BVN Under Review'}</Text>
             <Text style={{ color: '#7c8aa5', fontSize: 13, textAlign: 'center', marginTop: 6 }}>Your BVN has been submitted and is being verified. You will be notified once it is approved.</Text>
           </View>
         )}
@@ -203,7 +205,7 @@ export default function KYCVerificationScreen({ navigation }: any) {
         {activeTab === 'nin' && kycStatusState.hasNIN && (
           <View style={{ marginHorizontal: 20, backgroundColor: '#fff8e1', borderRadius: 14, padding: 20, alignItems: 'center' }}>
             <Ionicons name="time-outline" size={34} color="#f5a623" />
-            <Text style={{ fontWeight: '800', fontSize: 16, color: '#1a2b4a', marginTop: 8 }}>NIN Under Review</Text>
+            <Text style={{ fontWeight: '800', fontSize: 16, color: '#1a2b4a', marginTop: 8 }}>{kycStatusState.isVerified ? 'NIN Verified' : 'NIN Under Review'}</Text>
             <Text style={{ color: '#7c8aa5', fontSize: 13, textAlign: 'center', marginTop: 6 }}>Your NIN has been submitted and is being verified. You will be notified once it is approved.</Text>
           </View>
         )}

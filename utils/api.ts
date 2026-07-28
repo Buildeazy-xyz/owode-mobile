@@ -63,6 +63,16 @@ export const ajoAPI = {
     api.post('/ajo/contribute', { groupId, transactionPin })
 }
 
+export const userAjoAPI = {
+  create: (data: { name: string; amount: number; frequency: string; totalMembers: number }) =>
+    api.post('/user-ajo/create', data),
+  preview: (code: string) => api.get(`/user-ajo/preview/${code}`),
+  join: (code: string) => api.post('/user-ajo/join', { code }),
+  setOrder: (groupId: string, order: string[]) =>
+    api.post('/user-ajo/order', { groupId, order }),
+  mine: () => api.get('/user-ajo/mine')
+}
+
 export const guaranteedAjoAPI = {
   getAllGroups: () => api.get('/guaranteed-ajo/groups'),
   getGroup: (id: string) => api.get(`/guaranteed-ajo/groups/${id}`),

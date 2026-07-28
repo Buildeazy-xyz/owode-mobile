@@ -38,7 +38,7 @@ jobs:
       - name: Build Signed AAB
         run: |
           cd android
-          ./gradlew bundleRelease \
+          ./gradlew bundleRelease assembleRelease \
             -Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/android/app/upload-keystore.jks \
             -Pandroid.injected.signing.store.password=${{ secrets.KEY_STORE_PASSWORD }} \
             -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} \
@@ -49,3 +49,9 @@ jobs:
         with:
           name: owode-release
           path: android/app/build/outputs/bundle/release/app-release.aab
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: owode-apk
+          path: android/app/build/outputs/apk/release/app-release.apk

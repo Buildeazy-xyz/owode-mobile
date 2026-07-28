@@ -20,6 +20,10 @@ export default function AjoScreen({ navigation }: any) {
   const [refreshing, setRefreshing] = useState(false)
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [showJoinCode, setShowJoinCode] = useState(false)
+  const [joinCode, setJoinCode] = useState('')
+  const [preview, setPreview] = useState<any>(null)
+  const [joining, setJoining] = useState(false)
   const [activeTab, setActiveTab] = useState<'all' | 'standard' | 'guaranteed'>('all')
   const [contributeModal, setContributeModal] = useState(false)
   const [pinStep, setPinStep] = useState(false)
@@ -228,7 +232,9 @@ export default function AjoScreen({ navigation }: any) {
           <Ionicons name="chevron-back" size={22} color="#f5a623" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Ajo Groups</Text>
-        <View style={{ width: 40 }} />
+        <TouchableOpacity onPress={() => navigation.navigate('CreateAjo')}>
+          <Ionicons name="add-circle-outline" size={24} color="#f5a623" />
+        </TouchableOpacity>
       </LinearGradient>
 
       {/* Search Bar */}
@@ -249,6 +255,12 @@ export default function AjoScreen({ navigation }: any) {
           ) : null}
         </View>
       </View>
+
+      <TouchableOpacity style={styles.joinCodeBar} onPress={() => setShowJoinCode(true)}>
+        <Ionicons name="key-outline" size={17} color="#25427a" />
+        <Text style={styles.joinCodeText}>Have an invite code? Join a group</Text>
+        <Ionicons name="chevron-forward" size={16} color="#7c8aa5" />
+      </TouchableOpacity>
 
       {/* Filter Tabs */}
       <View style={styles.tabsContainer}>
@@ -564,6 +576,8 @@ export default function AjoScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
+  joinCodeBar: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#eaf2ff', marginHorizontal: 14, marginBottom: 12, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, minHeight: 46 },
+  joinCodeText: { flex: 1, flexShrink: 1, fontSize: 13, fontWeight: '600', color: '#25427a' },
   container: { flex: 1, backgroundColor: '#f4f6fb' },
   header: { paddingHorizontal: 16, paddingTop: 52, paddingBottom: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   back: { color: '#f5a623', fontSize: 14 },
