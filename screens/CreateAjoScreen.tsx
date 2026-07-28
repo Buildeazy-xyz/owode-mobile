@@ -50,14 +50,10 @@ export default function CreateAjoScreen({ navigation }: any) {
     if (!created) return
     await Share.share({
       message:
-        `Join my Ajo group on OWODE\n\n` +
-        `Group: ${created.name}\n` +
-        `Contribution: \u20a6${Number(created.amount).toLocaleString()} ${String(created.frequency).toLowerCase()}\n` +
-        `Members: ${created.totalMembers}\n\n` +
-        `Invite code: ${created.inviteCode}\n\n` +
-        `Tap to join: https://owodeagent.com/join/${created.inviteCode}
-
-Or open OWODE, go to Ajo, tap "Join with code" and enter ${created.inviteCode}`
+        'https://owodeagent.com/join/' + created.inviteCode + '\n\n' +
+        'Join my Ajo group "' + created.name + '" on OWODE Alajo.\n' +
+        '\u20a6' + Number(created.amount).toLocaleString() + ' ' + String(created.frequency).toLowerCase() +
+        ' \u00b7 ' + created.totalMembers + ' members'
     })
   }
 

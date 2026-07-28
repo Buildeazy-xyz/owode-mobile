@@ -127,10 +127,12 @@ export default function AjoScreen({ navigation }: any) {
   const confirmJoin = async () => {
     try {
       setJoining(true)
-      const res = await userAjoAPI.join(joinCode.trim().toUpperCase())
-      const pos = res.data?.data?.position
+      await userAjoAPI.join(joinCode.trim().toUpperCase())
       setShowJoinCode(false); setJoinCode(''); setPreview(null)
-      Alert.alert('Joined', `You are number ${pos} in the payout order. The group starts once it is full and approved.`)
+      Alert.alert(
+        'Request sent',
+        'The person who created this group will review your request. You will be notified once they respond.'
+      )
       loadGroups()
     } catch (e: any) {
       Alert.alert('Could not join', e.response?.data?.message || 'Something went wrong')
@@ -662,7 +664,7 @@ export default function AjoScreen({ navigation }: any) {
                     ['Contribution', '\u20a6' + Number(preview.amount).toLocaleString() + ' ' + String(preview.frequency).toLowerCase()],
                     ['You collect', '\u20a6' + (Number(preview.amount) * preview.totalMembers).toLocaleString()],
                     ['Members', preview.joined + ' of ' + preview.totalMembers],
-                    ['Your position', preview.alreadyIn ? 'Already joined' : String(preview.joined + 1)]
+                    ['Status', preview.alreadyIn ? 'Request already sent' : 'Creator must approve']
                   ].map(([k, v]) => (
                     <View key={k} style={styles.jcRow}>
                       <Text style={styles.jcRowKey} numberOfLines={1}>{k}</Text>
@@ -686,11 +688,11 @@ export default function AjoScreen({ navigation }: any) {
 
                 {preview.alreadyIn ? (
                   <View style={[styles.jcBtn, { backgroundColor: '#e6eaf2' }]}>
-                    <Text style={[styles.jcBtnText, { color: '#7c8aa5' }]}>You are already in this group</Text>
+                    <Text style={[styles.jcBtnText, { color: '#7c8aa5' }]}>Request already sent</Text>
                   </View>
                 ) : (
                   <TouchableOpacity style={styles.jcBtn} onPress={confirmJoin} disabled={joining}>
-                    {joining ? <ActivityIndicator color="#fff" /> : <Text style={styles.jcBtnText}>Join this group</Text>}
+                    {joining ? <ActivityIndicator color="#fff" /> : <Text style={styles.jcBtnText}>Request to join</Text>}
                   </TouchableOpacity>
                 )}
                 <TouchableOpacity onPress={() => setPreview(null)} style={{ alignItems: 'center', paddingVertical: 12 }}>

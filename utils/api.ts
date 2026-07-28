@@ -70,7 +70,11 @@ export const userAjoAPI = {
   join: (code: string) => api.post('/user-ajo/join', { code }),
   setOrder: (groupId: string, order: string[]) =>
     api.post('/user-ajo/order', { groupId, order }),
-  mine: () => api.get('/user-ajo/mine')
+  mine: () => api.get('/user-ajo/mine'),
+  getRequests: (groupId: string) => api.get(`/user-ajo/requests/${groupId}`),
+  respondToRequest: (memberId: string, accept: boolean) =>
+    api.post(`/user-ajo/requests/${memberId}/respond`, { accept }),
+  removeMember: (memberId: string) => api.delete(`/user-ajo/member/${memberId}`)
 }
 
 export const guaranteedAjoAPI = {
