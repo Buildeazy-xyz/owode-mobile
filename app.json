@@ -26,7 +26,7 @@
         "backgroundColor": "#0d47a1"
       },
       "package": "com.owode.alajo.app",
-      "versionCode": 29,
+      "versionCode": 30,
       "permissions": [
         "USE_BIOMETRIC",
         "USE_FINGERPRINT",
@@ -34,6 +34,23 @@
         "VIBRATE",
         "RECEIVE_BOOT_COMPLETED",
         "SCHEDULE_EXACT_ALARM"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "owodeagent.com",
+              "pathPrefix": "/join"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
       ]
     },
     "plugins": [
@@ -59,6 +76,7 @@
       "eas": {
         "projectId": "9a3481c5-e161-47e5-844e-d608cbe23738"
       }
-    }
+    },
+    "scheme": "owode"
   }
 }

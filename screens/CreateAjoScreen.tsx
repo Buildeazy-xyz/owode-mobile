@@ -55,7 +55,9 @@ export default function CreateAjoScreen({ navigation }: any) {
         `Contribution: \u20a6${Number(created.amount).toLocaleString()} ${String(created.frequency).toLowerCase()}\n` +
         `Members: ${created.totalMembers}\n\n` +
         `Invite code: ${created.inviteCode}\n\n` +
-        `Open OWODE, go to Ajo, tap "Join with code" and enter it.`
+        `Tap to join: https://owodeagent.com/join/${created.inviteCode}
+
+Or open OWODE, go to Ajo, tap "Join with code" and enter ${created.inviteCode}`
     })
   }
 

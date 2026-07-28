@@ -5,6 +5,7 @@ import {
   TextInput, Share, Modal
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
+import * as Linking from 'expo-linking'
 import BottomNav from '../components/BottomNav'
 import { LinearGradient } from 'expo-linear-gradient'
 import { userAjoAPI, ajoAPI, guaranteedAjoAPI } from '../utils/api'
@@ -90,6 +91,25 @@ export default function AjoScreen({ navigation }: any) {
       Alert.alert('Error', error.response?.data?.message || 'Something went wrong')
     }
   }
+
+  // Someone tapped an invite link: owodeagent.com/join/ABC123 or owode://join/ABC123
+  const handleDeepLink = (url: string | null) => {
+    if (!url) return
+    const m = url.match(/\/join\/([A-Za-z0-9]{6})/)
+    if (!m) return
+    const code = m[1].toUpperCase()
+    setJoinCode(code)
+    setShowJoinCode(true)
+    userAjoAPI.preview(code)
+      .then(res => setPreview(res.data.data))
+      .catch(() => Alert.alert('Not found', 'That invite link is no longer valid'))
+  }
+
+  useEffect(() => {
+    Linking.getInitialURL().then(handleDeepLink)
+    const sub = Linking.addEventListener('url', e => handleDeepLink(e.url))
+    return () => sub.remove()
+  }, [])
 
   const lookupCode = async () => {
     const code = joinCode.trim().toUpperCase()
