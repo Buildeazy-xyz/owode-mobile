@@ -7,7 +7,7 @@ import {
 import { Ionicons } from '@expo/vector-icons'
 import BottomNav from '../components/BottomNav'
 import { LinearGradient } from 'expo-linear-gradient'
-import { ajoAPI, guaranteedAjoAPI } from '../utils/api'
+import { userAjoAPI, ajoAPI, guaranteedAjoAPI } from '../utils/api'
 import { useAuth } from '../context/AuthContext'
 import { announceAjoPayout, announceContribution } from '../utils/speech'
 import PinKeypad from '../components/PinKeypad'
@@ -89,6 +89,32 @@ export default function AjoScreen({ navigation }: any) {
     } catch (error: any) {
       Alert.alert('Error', error.response?.data?.message || 'Something went wrong')
     }
+  }
+
+  const lookupCode = async () => {
+    const code = joinCode.trim().toUpperCase()
+    if (code.length !== 6) { Alert.alert('Check the code', 'Invite codes are 6 characters'); return }
+    try {
+      setJoining(true)
+      const res = await userAjoAPI.preview(code)
+      setPreview(res.data.data)
+    } catch (e: any) {
+      Alert.alert('Not found', e.response?.data?.message || 'No group found with that code')
+      setPreview(null)
+    } finally { setJoining(false) }
+  }
+
+  const confirmJoin = async () => {
+    try {
+      setJoining(true)
+      const res = await userAjoAPI.join(joinCode.trim().toUpperCase())
+      const pos = res.data?.data?.position
+      setShowJoinCode(false); setJoinCode(''); setPreview(null)
+      Alert.alert('Joined', `You are number ${pos} in the payout order. The group starts once it is full and approved.`)
+      loadGroups()
+    } catch (e: any) {
+      Alert.alert('Could not join', e.response?.data?.message || 'Something went wrong')
+    } finally { setJoining(false) }
   }
 
   const handleContributeStandard = async (groupId: string, groupName: string, amount: number) => {
@@ -570,12 +596,114 @@ export default function AjoScreen({ navigation }: any) {
           </View>
         )}
       </Modal>
+      <Modal
+        visible={showJoinCode}
+        transparent
+        animationType="slide"
+        onRequestClose={() => { setShowJoinCode(false); setPreview(null) }}
+      >
+        <View style={styles.jcBackdrop}>
+          <View style={styles.jcSheet}>
+            <View style={styles.jcHeader}>
+              <Text style={styles.jcTitle} numberOfLines={1}>Join with invite code</Text>
+              <TouchableOpacity onPress={() => { setShowJoinCode(false); setJoinCode(''); setPreview(null) }}>
+                <Ionicons name="close" size={20} color="#7c8aa5" />
+              </TouchableOpacity>
+            </View>
+
+            {!preview ? (
+              <View style={{ padding: 20 }}>
+                <Text style={styles.jcLabel}>Enter the 6 character code</Text>
+                <TextInput
+                  style={styles.jcInput}
+                  placeholder="ABC123"
+                  placeholderTextColor="#9aa5b8"
+                  value={joinCode}
+                  onChangeText={t => setJoinCode(t.toUpperCase())}
+                  autoCapitalize="characters"
+                  maxLength={6}
+                />
+                <View style={styles.jcWarn}>
+                  <Ionicons name="information-circle" size={17} color="#d97706" />
+                  <Text style={styles.jcWarnText}>
+                    This is a standard Ajo. If a member fails to contribute, OWODE does not cover it.
+                    Only join groups with people you trust.
+                  </Text>
+                </View>
+                <TouchableOpacity style={styles.jcBtn} onPress={lookupCode} disabled={joining}>
+                  {joining ? <ActivityIndicator color="#fff" /> : <Text style={styles.jcBtnText}>Find group</Text>}
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={{ padding: 20 }}>
+                <Text style={styles.jcGroupName} numberOfLines={2}>{preview.name}</Text>
+                <View style={styles.jcRows}>
+                  {[
+                    ['Contribution', '\u20a6' + Number(preview.amount).toLocaleString() + ' ' + String(preview.frequency).toLowerCase()],
+                    ['You collect', '\u20a6' + (Number(preview.amount) * preview.totalMembers).toLocaleString()],
+                    ['Members', preview.joined + ' of ' + preview.totalMembers],
+                    ['Your position', preview.alreadyIn ? 'Already joined' : String(preview.joined + 1)]
+                  ].map(([k, v]) => (
+                    <View key={k} style={styles.jcRow}>
+                      <Text style={styles.jcRowKey} numberOfLines={1}>{k}</Text>
+                      <Text style={styles.jcRowVal} numberOfLines={1}>{v}</Text>
+                    </View>
+                  ))}
+                </View>
+
+                {preview.memberNames?.length ? (
+                  <Text style={styles.jcMembers} numberOfLines={3}>
+                    Already in: {preview.memberNames.join(', ')}
+                  </Text>
+                ) : null}
+
+                <View style={styles.jcWarn}>
+                  <Ionicons name="information-circle" size={17} color="#d97706" />
+                  <Text style={styles.jcWarnText}>
+                    If a member fails to contribute, OWODE does not cover it.
+                  </Text>
+                </View>
+
+                {preview.alreadyIn ? (
+                  <View style={[styles.jcBtn, { backgroundColor: '#e6eaf2' }]}>
+                    <Text style={[styles.jcBtnText, { color: '#7c8aa5' }]}>You are already in this group</Text>
+                  </View>
+                ) : (
+                  <TouchableOpacity style={styles.jcBtn} onPress={confirmJoin} disabled={joining}>
+                    {joining ? <ActivityIndicator color="#fff" /> : <Text style={styles.jcBtnText}>Join this group</Text>}
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity onPress={() => setPreview(null)} style={{ alignItems: 'center', paddingVertical: 12 }}>
+                  <Text style={{ color: '#7c8aa5', fontSize: 13 }}>Use a different code</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
+
       <BottomNav navigation={navigation} active="ajo" />
     </View>
   )
 }
 
 const styles = StyleSheet.create({
+  jcBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
+  jcSheet: { backgroundColor: '#fff', maxHeight: '85%' },
+  jcHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#f0f2f7' },
+  jcTitle: { flex: 1, flexShrink: 1, fontSize: 15, fontWeight: '700', color: '#1a2b4a' },
+  jcLabel: { fontSize: 13, fontWeight: '600', color: '#25427a', marginBottom: 10 },
+  jcInput: { backgroundColor: '#f4f6fb', borderRadius: 12, borderWidth: 1.5, borderColor: '#e6eaf2', paddingHorizontal: 16, paddingVertical: 14, fontSize: 20, fontWeight: '700', color: '#1a2b4a', textAlign: 'center' },
+  jcWarn: { flexDirection: 'row', gap: 9, backgroundColor: '#fef4e3', borderRadius: 12, padding: 12, marginTop: 16 },
+  jcWarnText: { flex: 1, flexShrink: 1, fontSize: 12, lineHeight: 17, color: '#8a5a00' },
+  jcBtn: { backgroundColor: '#25427a', borderRadius: 14, paddingVertical: 15, alignItems: 'center', justifyContent: 'center', marginTop: 18, minHeight: 50 },
+  jcBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
+  jcGroupName: { fontSize: 18, fontWeight: '700', color: '#1a2b4a', marginBottom: 14 },
+  jcRows: { backgroundColor: '#f4f6fb', borderRadius: 12, paddingHorizontal: 14 },
+  jcRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: '#e6eaf2' },
+  jcRowKey: { flexShrink: 1, fontSize: 13, color: '#7c8aa5' },
+  jcRowVal: { flexShrink: 1, fontSize: 13.5, fontWeight: '700', color: '#1a2b4a' },
+  jcMembers: { fontSize: 12, lineHeight: 17, color: '#7c8aa5', marginTop: 12 },
   joinCodeBar: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#eaf2ff', marginHorizontal: 14, marginBottom: 12, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, minHeight: 46 },
   joinCodeText: { flex: 1, flexShrink: 1, fontSize: 13, fontWeight: '600', color: '#25427a' },
   container: { flex: 1, backgroundColor: '#f4f6fb' },

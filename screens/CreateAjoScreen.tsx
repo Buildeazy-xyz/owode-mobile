@@ -1,17 +1,25 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   ScrollView, ActivityIndicator, Alert, Share, KeyboardAvoidingView, Platform
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
-import { userAjoAPI } from '../utils/api'
-import { useAuth } from '../context/AuthContext'
+import { userAjoAPI, kycAPI } from '../utils/api'
 
 const MIN_AMOUNT = 10000
 
 export default function CreateAjoScreen({ navigation }: any) {
-  const { user } = useAuth()
+  const [kyc, setKyc] = useState<{ checked: boolean; ok: boolean }>({ checked: false, ok: false })
+
+  useEffect(() => {
+    kycAPI.getStatus()
+      .then(res => {
+        const d = res.data?.data
+        setKyc({ checked: true, ok: !!(d?.hasBVN && d?.hasNIN && d?.isVerified) })
+      })
+      .catch(() => setKyc({ checked: true, ok: false }))
+  }, [])
   const [name, setName] = useState('')
   const [amount, setAmount] = useState('')
   const [frequency, setFrequency] = useState<'WEEKLY' | 'MONTHLY'>('MONTHLY')
@@ -19,7 +27,7 @@ export default function CreateAjoScreen({ navigation }: any) {
   const [loading, setLoading] = useState(false)
   const [created, setCreated] = useState<any>(null)
 
-  const kycDone = !!(user as any)?.bvn && !!(user as any)?.nin && user?.isVerified
+  const kycDone = kyc.ok
 
   const create = async () => {
     if (name.trim().length < 3) { Alert.alert('Name your group', 'Give the group a name people will recognise'); return }
@@ -49,6 +57,14 @@ export default function CreateAjoScreen({ navigation }: any) {
         `Invite code: ${created.inviteCode}\n\n` +
         `Open OWODE, go to Ajo, tap "Join with code" and enter it.`
     })
+  }
+
+  if (!kyc.checked) {
+    return (
+      <View style={[styles.screen, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator color="#25427a" />
+      </View>
+    )
   }
 
   if (!kycDone) {
