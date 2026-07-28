@@ -25,6 +25,10 @@ export const authAPI = {
   updateEmail: (email: string) => api.put('/users/update-email', { email }),
   sendOTP: (phone: string, dialCode?: string, email?: string) =>
     api.post('/users/send-otp', { phone, dialCode, email }),
+  forgotPassword: (phone: string) =>
+    api.post('/users/forgot-password', { phone }),
+  resetPassword: (phone: string, otp: string, newPassword: string) =>
+    api.post('/users/reset-password', { phone, otp, newPassword }),
   verifyOTP: (phone: string, otp: string) =>
     api.post('/users/verify-otp', { phone, otp }),
   setTransactionPin: (transactionPin: string, currentPin?: string) =>

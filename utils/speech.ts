@@ -1,27 +1,22 @@
-import * as Speech from 'expo-speech'
-import AsyncStorage from '@react-native-async-storage/async-storage'
+// Voice alerts are OFF.
+//
+// Nigerian-English text-to-speech mispronounces "OWODE" (it reads it as
+// "Owo"), and no spelling workaround gets it right. Rather than ship a
+// robot saying the company name wrong, these are no-ops until we replace
+// them with recorded audio played through expo-av.
+//
+// The push notifications themselves are unaffected - only the speech is off.
 
-const OWODE = 'Owode'
-let speaking = false
-const say = (msg: string) => {
-  if (speaking) return
-  speaking = true
-  Speech.stop()
-  Speech.speak(msg, { language: 'en-NG', pitch: 1.0, rate: 0.85,
-    onDone: () => { speaking = false }, onError: () => { speaking = false } })
-}
-export const announceNewCredit = async (txId?: string) => {
-  try {
-    if (!txId) return
-    const last = await AsyncStorage.getItem('owode_last_announced_tx')
-    if (last === txId) return
-    const firstEver = last === null
-    await AsyncStorage.setItem('owode_last_announced_tx', txId)
-    if (firstEver) return
-    say('Payment received in ' + OWODE)
-  } catch (e) {}
-}
-export const speakAlert = (msg: string) => say(msg)
-export const announcePayment = (..._args: any[]) => {}
-export const announceAjoPayout = (..._args: any[]) => { say('Payment received in ' + OWODE) }
-export const announceContribution = (..._args: any[]) => { say('Contribution successful in ' + OWODE) }
+export const speakAlert = (_message: string) => {}
+
+export const announcePayment = (_data: {
+  type: 'CREDIT' | 'DEBIT'
+  amount: number
+  sender?: string
+}) => {}
+
+export const announceAjoPayout = (_amount: number, _groupName: string) => {}
+
+export const announceContribution = (_amount: number, _groupName: string) => {}
+
+export const announceNewCredit = (_amount?: number, _sender?: string) => {}

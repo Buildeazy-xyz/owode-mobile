@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { useAuth } from '../context/AuthContext'
 import LoginScreen from '../screens/LoginScreen'
+import ForgotPasswordScreen from '../screens/ForgotPasswordScreen'
 import NotificationsScreen from '../screens/NotificationsScreen'
 import RegisterScreen from '../screens/RegisterScreen'
 import DashboardScreen from '../screens/DashboardScreen'
@@ -58,6 +59,7 @@ export default function AppNavigator() {
 ) : (
   <>
     <Stack.Screen name="Login" component={LoginScreen} />
+    <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} options={{ headerShown: false }} />
     <Stack.Screen name="Register" component={RegisterScreen} />
     <Stack.Screen name="SetAppPin" component={SetAppPinScreen} />
     <Stack.Screen name="SetTransactionPin" component={SetTransactionPinScreen} />

@@ -88,6 +88,13 @@ export default function LoginScreen({ navigation }: any) {
           {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Login</Text>}
         </TouchableOpacity>
 
+        <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')} style={{ alignSelf: 'flex-end', marginBottom: 18 }}>
+
+          <Text style={{ color: '#25427a', fontSize: 13, fontWeight: '600' }}>Forgot password?</Text>
+
+        </TouchableOpacity>
+
+
         <TouchableOpacity onPress={() => navigation.navigate('Register')}>
           <Text style={styles.link}>
             Don't have an account? <Text style={styles.linkBold}>Register</Text>
