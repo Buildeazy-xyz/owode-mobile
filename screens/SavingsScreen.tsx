@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity,
   ScrollView, Alert, RefreshControl,
-  TextInput, ActivityIndicator, Dimensions
+  TextInput, Dimensions
 , KeyboardAvoidingView, Platform, Modal, Switch} from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import DateTimePicker from '@react-native-community/datetimepicker'
@@ -12,6 +12,7 @@ import { savingsAPI } from '../utils/api'
 import { useAuth } from '../context/AuthContext'
 import PinKeypad from '../components/PinKeypad'
 import { LineChart, ProgressChart } from 'react-native-chart-kit'
+import OwodeLoader from '../components/OwodeLoader'
 
 const { width } = Dimensions.get('window')
 
@@ -294,7 +295,7 @@ export default function SavingsScreen({ navigation }: any) {
       <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={{ flex: 1 }}>
         {saving ? (
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <ActivityIndicator size="large" color="#f5a623" />
+            <OwodeLoader size="large" color="#f5a623" />
             <Text style={{ color: '#fff', marginTop: 14, fontSize: 14 }}>
               {pinAction.type === 'deposit' ? 'Processing deposit...' : 'Processing withdrawal...'}
             </Text>
@@ -560,7 +561,7 @@ export default function SavingsScreen({ navigation }: any) {
               disabled={saving}
             >
               <LinearGradient colors={['#25427a', '#385c9e']} style={styles.createGoalBtnGradient}>
-                {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.createGoalBtnText}>Create Savings Goal</Text>}
+                {saving ? <OwodeLoader color="#fff" /> : <Text style={styles.createGoalBtnText}>Create Savings Goal</Text>}
               </LinearGradient>
             </TouchableOpacity>
 
@@ -647,7 +648,7 @@ export default function SavingsScreen({ navigation }: any) {
                 disabled={saving}
               >
                 <LinearGradient colors={['#22c55e', '#16a34a']} style={styles.createGoalBtnGradient}>
-                  {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.createGoalBtnText}>Deposit to Savings</Text>}
+                  {saving ? <OwodeLoader color="#fff" /> : <Text style={styles.createGoalBtnText}>Deposit to Savings</Text>}
                 </LinearGradient>
               </TouchableOpacity>
             </>
@@ -672,7 +673,7 @@ export default function SavingsScreen({ navigation }: any) {
       </LinearGradient>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#25427a" style={{ marginTop: 60 }} />
+        <OwodeLoader size="large" color="#25427a" style={{ marginTop: 60 }} />
       ) : (
         <ScrollView contentContainerStyle={{ paddingBottom: 110 }} automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled"
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}

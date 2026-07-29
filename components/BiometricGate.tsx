@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { authenticateWithBiometrics, isBiometricEnabled, getBiometricType } from '../utils/biometrics'
+import OwodeLoader from './OwodeLoader'
 
 interface BiometricGateProps {
   children: React.ReactNode
@@ -33,7 +34,7 @@ export default function BiometricGate({ children, reason }: BiometricGateProps) 
       <Text style={styles.title}>Secure Content</Text>
       <Text style={styles.subtitle}>{reason || 'Verify your identity to view this'}</Text>
       <TouchableOpacity style={styles.btn} onPress={handleUnlock} disabled={loading}>
-        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Verify Identity</Text>}
+        {loading ? <OwodeLoader color="#fff" /> : <Text style={styles.btnText}>Verify Identity</Text>}
       </TouchableOpacity>
     </LinearGradient>
   )

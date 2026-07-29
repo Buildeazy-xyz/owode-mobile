@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { trustAPI } from '../utils/api'
+import OwodeLoader from '../components/OwodeLoader'
 
 export default function TrustScoreScreen({ navigation }: any) {
   const [trustData, setTrustData] = useState<any>(null)
@@ -49,7 +50,7 @@ export default function TrustScoreScreen({ navigation }: any) {
       </LinearGradient>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#25427a" style={{ marginTop: 60 }} />
+        <OwodeLoader size="large" color="#25427a" style={{ marginTop: 60 }} />
       ) : trustData ? (
         <>
           {/* Score Circle */}

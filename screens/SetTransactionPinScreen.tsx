@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, Alert, ActivityIndicator, TouchableOpacity, TextInput } from 'react-native'
+import { View, Text, StyleSheet, Alert, TouchableOpacity, TextInput } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Ionicons } from '@expo/vector-icons'
 import PinKeypad from '../components/PinKeypad'
 import { authAPI } from '../utils/api'
 import { useAuth } from '../context/AuthContext'
+import OwodeLoader from '../components/OwodeLoader'
 
 export default function SetTransactionPinScreen({ navigation, route }: any) {
   const { user, refreshUser } = useAuth()
@@ -128,7 +129,7 @@ export default function SetTransactionPinScreen({ navigation, route }: any) {
         <Text style={styles.stepBadgeText}>Step {stepIndex} of {totalSteps}</Text>
       </View>
       {loading ? (
-        <ActivityIndicator size="large" color="#f5a623" />
+        <OwodeLoader size="large" color="#f5a623" />
       ) : (
         <PinKeypad
           key={keypadKey}

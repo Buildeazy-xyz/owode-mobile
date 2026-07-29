@@ -1,12 +1,13 @@
 import React, { useCallback, useState } from 'react'
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  ActivityIndicator, Alert, Share, RefreshControl
+   Alert, Share, RefreshControl
 } from 'react-native'
 import { useFocusEffect } from '@react-navigation/native'
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { userAjoAPI } from '../utils/api'
+import OwodeLoader from '../components/OwodeLoader'
 
 export default function ManageAjoScreen({ navigation, route }: any) {
   const { groupId, groupName, inviteCode, amount, frequency } = route.params || {}
@@ -80,7 +81,7 @@ export default function ManageAjoScreen({ navigation, route }: any) {
       </LinearGradient>
 
       {loading ? (
-        <ActivityIndicator color="#25427a" style={{ marginTop: 40 }} />
+        <OwodeLoader color="#25427a" style={{ marginTop: 40 }} />
       ) : (
         <ScrollView
           contentContainerStyle={styles.body}
@@ -129,7 +130,7 @@ export default function ManageAjoScreen({ navigation, route }: any) {
                       disabled={busy === m.id}
                     >
                       {busy === m.id
-                        ? <ActivityIndicator color="#fff" size="small" />
+                        ? <OwodeLoader color="#fff" size="small" />
                         : <Text style={styles.acceptText}>Accept</Text>}
                     </TouchableOpacity>
                     <TouchableOpacity

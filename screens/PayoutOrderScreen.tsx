@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Alert } from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { userAjoAPI } from '../utils/api'
+import OwodeLoader from '../components/OwodeLoader'
 
 export default function PayoutOrderScreen({ navigation, route }: any) {
   const { groupId } = route.params || {}
@@ -53,7 +54,7 @@ export default function PayoutOrderScreen({ navigation, route }: any) {
         <View style={{ width: 22 }} />
       </LinearGradient>
 
-      {loading ? <ActivityIndicator size="large" color="#25427a" style={{ marginTop: 60 }} /> : (
+      {loading ? <OwodeLoader size="large" color="#25427a" style={{ marginTop: 60 }} /> : (
         <ScrollView contentContainerStyle={styles.body}>
           <View style={styles.noteCard}>
             <Ionicons name={locked ? 'lock-closed' : 'swap-vertical'} size={17} color="#25427a" />
@@ -86,7 +87,7 @@ export default function PayoutOrderScreen({ navigation, route }: any) {
 
           {!locked && order.length > 0 && (
             <TouchableOpacity style={styles.btn} onPress={save} disabled={saving}>
-              {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Save payout order</Text>}
+              {saving ? <OwodeLoader color="#fff" /> : <Text style={styles.btnText}>Save payout order</Text>}
             </TouchableOpacity>
           )}
           <View style={{ height: 30 }} />

@@ -249,6 +249,8 @@ export default function WalletScreen({ navigation }: any) {
   const getTxIcon = (description: string) => {
     const d = description?.toLowerCase() || ''
     if (d.includes('ajo')) return 'people'
+    if (d.includes('transfer to')) return 'arrow-up'
+    if (d.includes('transfer from')) return 'arrow-down'
     if (d.includes('transfer')) return 'swap-horizontal'
     if (d.includes('savings')) return 'wallet'
     if (d.includes('welcome')) return 'gift'

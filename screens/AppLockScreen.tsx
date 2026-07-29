@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, Alert, ActivityIndicator, TouchableOpacity, Image } from 'react-native'
+import { View, Text, StyleSheet, Alert, TouchableOpacity, Image } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import PinKeypad from '../components/PinKeypad'
 import { authAPI } from '../utils/api'
 import { useAuth } from '../context/AuthContext'
 import { authenticateWithBiometrics, isBiometricEnabled, getBiometricType } from '../utils/biometrics'
+import OwodeLoader from '../components/OwodeLoader'
 
 export default function AppLockScreen({ onUnlock }: { onUnlock: () => void }) {
   const { logout, user } = useAuth()
@@ -54,7 +55,7 @@ export default function AppLockScreen({ onUnlock }: { onUnlock: () => void }) {
           style={styles.loadingLogo}
           resizeMode="contain"
         />
-        <ActivityIndicator size="large" color="#f5a623" style={{ marginTop: 24 }} />
+        <OwodeLoader size="large" color="#f5a623" style={{ marginTop: 24 }} />
         <Text style={styles.loadingText}>Verifying...</Text>
       </LinearGradient>
     )

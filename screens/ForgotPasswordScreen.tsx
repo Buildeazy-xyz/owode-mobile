@@ -1,11 +1,12 @@
 import React, { useState } from 'react'
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView
+   Alert, KeyboardAvoidingView, Platform, ScrollView
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { authAPI } from '../utils/api'
+import OwodeLoader from '../components/OwodeLoader'
 
 export default function ForgotPasswordScreen({ navigation }: any) {
   const [step, setStep] = useState<1 | 2 | 3>(1)
@@ -71,7 +72,7 @@ export default function ForgotPasswordScreen({ navigation }: any) {
               maxLength={11}
             />
             <TouchableOpacity style={styles.btn} onPress={requestCode} disabled={loading}>
-              {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Send code</Text>}
+              {loading ? <OwodeLoader color="#fff" /> : <Text style={styles.btnText}>Send code</Text>}
             </TouchableOpacity>
           </>
         ) : (
@@ -121,7 +122,7 @@ export default function ForgotPasswordScreen({ navigation }: any) {
             ) : null}
 
             <TouchableOpacity style={styles.btn} onPress={submit} disabled={loading}>
-              {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Change password</Text>}
+              {loading ? <OwodeLoader color="#fff" /> : <Text style={styles.btnText}>Change password</Text>}
             </TouchableOpacity>
 
             <TouchableOpacity onPress={requestCode} disabled={loading} style={{ marginTop: 16, alignItems: 'center' }}>

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, Alert, ActivityIndicator, TouchableOpacity } from 'react-native'
+import { View, Text, StyleSheet, Alert, TouchableOpacity } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Ionicons } from '@expo/vector-icons'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import PinKeypad from '../components/PinKeypad'
 import { authAPI } from '../utils/api'
+import OwodeLoader from '../components/OwodeLoader'
 
 export default function SetAppPinScreen({ navigation, route }: any) {
   const fromRegister = route?.params?.fromRegister
@@ -79,7 +80,7 @@ export default function SetAppPinScreen({ navigation, route }: any) {
 
   if (!ready) return (
     <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.container}>
-      <ActivityIndicator size="large" color="#f5a623" />
+      <OwodeLoader size="large" color="#f5a623" />
     </LinearGradient>
   )
 
@@ -104,7 +105,7 @@ export default function SetAppPinScreen({ navigation, route }: any) {
         <Text style={styles.stepBadgeText}>Step {stepIndex} of {totalSteps}</Text>
       </View>
       {loading ? (
-        <ActivityIndicator size="large" color="#f5a623" />
+        <OwodeLoader size="large" color="#f5a623" />
       ) : (
         <PinKeypad
           key={keypadKey}

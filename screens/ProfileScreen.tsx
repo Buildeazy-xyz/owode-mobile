@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity, Alert,
-  ScrollView, ActivityIndicator, Image, Dimensions,
+  ScrollView, Image, Dimensions,
   Linking, TextInput, Modal
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -10,6 +10,7 @@ import BottomNav from '../components/BottomNav'
 import { useAuth } from '../context/AuthContext'
 import { authAPI } from '../utils/api'
 import { isBiometricEnabled, getBiometricType } from '../utils/biometrics'
+import OwodeLoader from '../components/OwodeLoader'
 
 const { width } = Dimensions.get('window')
 
@@ -83,7 +84,7 @@ export default function ProfileScreen({ navigation }: any) {
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f4f6fb' }}>
-        <ActivityIndicator size="large" color="#25427a" />
+        <OwodeLoader size="large" color="#25427a" />
       </View>
     )
   }
@@ -438,7 +439,7 @@ export default function ProfileScreen({ navigation }: any) {
               </TouchableOpacity>
               <TouchableOpacity style={styles.modalSaveBtn} onPress={handleSaveEmail} disabled={emailLoading}>
                 {emailLoading
-                  ? <ActivityIndicator color="#fff" size="small" />
+                  ? <OwodeLoader color="#fff" size="small" />
                   : <Text style={styles.modalSaveText}>Save</Text>
                 }
               </TouchableOpacity>

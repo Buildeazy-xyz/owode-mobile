@@ -1,12 +1,13 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Share, Alert, ActivityIndicator,
+  Share, Alert,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { formatAccountNumber, hasProvisionedAccount } from '../utils/account';
+import OwodeLoader from '../components/OwodeLoader'
 
 const C = {
   bg: '#0a0e1a',
@@ -63,7 +64,7 @@ export default function AddMoneyScreen() {
     if (isLoading) {
       return (
         <View style={[styles.card, styles.cardCentered]}>
-          <ActivityIndicator color={C.gold} size="large" />
+          <OwodeLoader color={C.gold} size="large" />
           <Text style={styles.phText}>Loading your account details...</Text>
         </View>
       );

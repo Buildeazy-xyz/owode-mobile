@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  ScrollView, Alert, RefreshControl, ActivityIndicator,
-  TextInput, Share, Modal
+  ScrollView, Alert, RefreshControl,
+  TextInput, Share, Modal, Keyboard, Dimensions, Platform
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import * as Linking from 'expo-linking'
@@ -13,6 +13,9 @@ import { useAuth } from '../context/AuthContext'
 import { announceAjoPayout, announceContribution } from '../utils/speech'
 import PinKeypad from '../components/PinKeypad'
 import { authenticateWithBiometrics, isBiometricEnabled, getBiometricType } from '../utils/biometrics'
+import OwodeLoader from '../components/OwodeLoader'
+
+const SCREEN_H = Dimensions.get('window').height
 
 export default function AjoScreen({ navigation }: any) {
   const { user } = useAuth()
@@ -22,6 +25,7 @@ export default function AjoScreen({ navigation }: any) {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [showJoinCode, setShowJoinCode] = useState(false)
+  const [kbHeight, setKbHeight] = useState(0)
   const [joinCode, setJoinCode] = useState('')
   const [preview, setPreview] = useState<any>(null)
   const [joining, setJoining] = useState(false)
@@ -110,6 +114,12 @@ export default function AjoScreen({ navigation }: any) {
     Linking.getInitialURL().then(handleDeepLink)
     const sub = Linking.addEventListener('url', e => handleDeepLink(e.url))
     return () => sub.remove()
+  }, [])
+
+  useEffect(() => {
+    const show = Keyboard.addListener('keyboardDidShow', e => setKbHeight(e.endCoordinates.height))
+    const hide = Keyboard.addListener('keyboardDidHide', () => setKbHeight(0))
+    return () => { show.remove(); hide.remove() }
   }, [])
 
   const lookupCode = async () => {
@@ -340,7 +350,7 @@ export default function AjoScreen({ navigation }: any) {
       )}
 
       {loading ? (
-        <ActivityIndicator size="large" color="#25427a" style={{ marginTop: 60 }} />
+        <OwodeLoader size="large" color="#25427a" style={{ marginTop: 60 }} />
       ) : (
         <ScrollView contentContainerStyle={{ paddingBottom: 110 }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
@@ -585,7 +595,7 @@ export default function AjoScreen({ navigation }: any) {
         {pinStep ? (
           <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.pinContainer}>
             {contributing ? (
-              <ActivityIndicator size="large" color="#f5a623" />
+              <OwodeLoader size="large" color="#f5a623" />
             ) : (
               <>
                 <PinKeypad
@@ -647,7 +657,7 @@ export default function AjoScreen({ navigation }: any) {
         onRequestClose={() => { setShowJoinCode(false); setPreview(null) }}
       >
         <View style={styles.jcBackdrop}>
-          <View style={styles.jcSheet}>
+          <View style={[styles.jcSheet, { maxHeight: SCREEN_H - kbHeight - 40 }]}>
             <View style={styles.jcHeader}>
               <Text style={styles.jcTitle} numberOfLines={1}>Join with invite code</Text>
               <TouchableOpacity onPress={() => { setShowJoinCode(false); setJoinCode(''); setPreview(null) }}>
@@ -656,7 +666,7 @@ export default function AjoScreen({ navigation }: any) {
             </View>
 
             {!preview ? (
-              <View style={{ padding: 20 }}>
+              <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 20 }}>
                 <Text style={styles.jcLabel}>Enter the 6 character code</Text>
                 <TextInput
                   style={styles.jcInput}
@@ -675,9 +685,9 @@ export default function AjoScreen({ navigation }: any) {
                   </Text>
                 </View>
                 <TouchableOpacity style={styles.jcBtn} onPress={lookupCode} disabled={joining}>
-                  {joining ? <ActivityIndicator color="#fff" /> : <Text style={styles.jcBtnText}>Find group</Text>}
+                  {joining ? <OwodeLoader color="#fff" /> : <Text style={styles.jcBtnText}>Find group</Text>}
                 </TouchableOpacity>
-              </View>
+              </ScrollView>
             ) : (
               <View style={{ padding: 20 }}>
                 <Text style={styles.jcGroupName} numberOfLines={2}>{preview.name}</Text>
@@ -714,7 +724,7 @@ export default function AjoScreen({ navigation }: any) {
                   </View>
                 ) : (
                   <TouchableOpacity style={styles.jcBtn} onPress={confirmJoin} disabled={joining}>
-                    {joining ? <ActivityIndicator color="#fff" /> : <Text style={styles.jcBtnText}>Request to join</Text>}
+                    {joining ? <OwodeLoader color="#fff" /> : <Text style={styles.jcBtnText}>Request to join</Text>}
                   </TouchableOpacity>
                 )}
                 <TouchableOpacity onPress={() => setPreview(null)} style={{ alignItems: 'center', paddingVertical: 12 }}>
@@ -733,7 +743,7 @@ export default function AjoScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   jcBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
-  jcSheet: { backgroundColor: '#fff', maxHeight: '85%' },
+  jcSheet: { backgroundColor: '#fff', borderTopLeftRadius: 18, borderTopRightRadius: 18, overflow: 'hidden' },
   jcHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#f0f2f7' },
   jcTitle: { flex: 1, flexShrink: 1, fontSize: 15, fontWeight: '700', color: '#1a2b4a' },
   jcLabel: { fontSize: 13, fontWeight: '600', color: '#25427a', marginBottom: 10 },

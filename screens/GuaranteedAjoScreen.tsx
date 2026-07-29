@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity,
   ScrollView, Alert, RefreshControl, Modal,
-  TextInput, ActivityIndicator, Share
+  TextInput, Share
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -10,6 +10,7 @@ import { guaranteedAjoAPI } from '../utils/api'
 import PinKeypad from '../components/PinKeypad'
 import { useAuth } from '../context/AuthContext'
 import { authenticateWithBiometrics, isBiometricEnabled, getBiometricType } from '../utils/biometrics'
+import OwodeLoader from '../components/OwodeLoader'
 
 export default function GuaranteedAjoScreen({ navigation }: any) {
   const { user } = useAuth()
@@ -240,7 +241,7 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
         {pinStep ? (
           <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.pinContainer}>
             {loading ? (
-              <ActivityIndicator size="large" color="#f5a623" />
+              <OwodeLoader size="large" color="#f5a623" />
             ) : (
               <>
                 <PinKeypad

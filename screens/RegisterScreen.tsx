@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  ActivityIndicator, Alert, KeyboardAvoidingView, Platform,
+   Alert, KeyboardAvoidingView, Platform,
   ScrollView, Image, Dimensions, Animated, FlatList, Modal
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
@@ -19,6 +19,7 @@ const TOTAL_STEPS = 9
 const SKIP_OTP_FOR_TESTING = false
 
 import { COUNTRIES } from '../utils/countries'
+import OwodeLoader from '../components/OwodeLoader'
 
 export default function RegisterScreen({ navigation }: any) {
   const { login } = useAuth()
@@ -365,7 +366,7 @@ export default function RegisterScreen({ navigation }: any) {
       <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={{ flex: 1 }}>
         {faceStep === 'processing' ? (
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <ActivityIndicator size="large" color="#f5a623" />
+            <OwodeLoader size="large" color="#f5a623" />
             <Text style={styles.faceTitle}>Verifying Identity...</Text>
             <Text style={styles.faceSubtitle}>Comparing with government records</Text>
           </View>
@@ -619,7 +620,7 @@ export default function RegisterScreen({ navigation }: any) {
             disabled={phone.length < selectedCountry.digits - 1 || loading}
           >
             {loading
-              ? <ActivityIndicator color="#fff" />
+              ? <OwodeLoader color="#fff" />
               : <Text style={styles.buttonText}>Send OTP</Text>
             }
           </TouchableOpacity>
@@ -714,7 +715,7 @@ export default function RegisterScreen({ navigation }: any) {
             disabled={otp.length !== 6 || loading}
           >
             {loading
-              ? <ActivityIndicator color="#fff" />
+              ? <OwodeLoader color="#fff" />
               : <Text style={styles.buttonText}>Verify OTP</Text>
             }
           </TouchableOpacity>
@@ -887,7 +888,7 @@ export default function RegisterScreen({ navigation }: any) {
             disabled={!password || !confirmPassword || loading}
           >
             {loading
-              ? <ActivityIndicator color="#fff" />
+              ? <OwodeLoader color="#fff" />
               : <Text style={styles.buttonText}>Create Account</Text>
             }
           </TouchableOpacity>

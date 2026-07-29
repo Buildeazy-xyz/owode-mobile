@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  ScrollView, ActivityIndicator, Share, Clipboard, Dimensions
+  ScrollView, Share, Clipboard, Dimensions
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Ionicons } from '@expo/vector-icons'
 import { authAPI } from '../utils/api'
+import OwodeLoader from '../components/OwodeLoader'
 
 const { width } = Dimensions.get('window')
 
@@ -74,7 +75,7 @@ export default function ReferralScreen({ navigation }: any) {
   if (loading) {
     return (
       <View style={styles.loader}>
-        <ActivityIndicator size="large" color="#25427a" />
+        <OwodeLoader size="large" color="#25427a" />
       </View>
     )
   }

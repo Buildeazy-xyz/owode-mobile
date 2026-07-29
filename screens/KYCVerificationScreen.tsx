@@ -1,12 +1,13 @@
 import React, { useState } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  TextInput, ActivityIndicator, Alert, ScrollView,
+  TextInput, Alert, ScrollView,
   Image, Dimensions, KeyboardAvoidingView, Platform
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { kycAPI, authAPI } from '../utils/api'
 import { Ionicons } from '@expo/vector-icons'
+import OwodeLoader from '../components/OwodeLoader'
 
 const { width } = Dimensions.get('window')
 
@@ -193,7 +194,7 @@ export default function KYCVerificationScreen({ navigation }: any) {
                 disabled={bvn.length !== 11 || loading}
               >
                 {loading
-                  ? <ActivityIndicator color="#fff" />
+                  ? <OwodeLoader color="#fff" />
                   : <Text style={styles.submitBtnText}>Verify BVN</Text>
                 }
               </TouchableOpacity>
@@ -253,7 +254,7 @@ export default function KYCVerificationScreen({ navigation }: any) {
                 disabled={nin.length !== 11 || loading}
               >
                 {loading
-                  ? <ActivityIndicator color="#fff" />
+                  ? <OwodeLoader color="#fff" />
                   : <Text style={styles.submitBtnText}>Verify NIN</Text>
                 }
               </TouchableOpacity>

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  Alert, ActivityIndicator, Dimensions
+  Alert, Dimensions
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { CameraView, useCameraPermissions } from 'expo-camera'
@@ -10,6 +10,7 @@ import * as ImageManipulator from 'expo-image-manipulator'
 import { LinearGradient as LG } from 'expo-linear-gradient'
 import { kycAPI } from '../utils/api'
 import { useAuth } from '../context/AuthContext'
+import OwodeLoader from '../components/OwodeLoader'
 
 const { width, height } = Dimensions.get('window')
 
@@ -231,7 +232,7 @@ export default function FaceVerificationScreen({ navigation }: any) {
     return (
       <LinearGradient colors={['#1a2e55', '#25427a']} style={styles.container}>
         <View style={styles.processingContent}>
-          <ActivityIndicator size="large" color="#f5a623" />
+          <OwodeLoader size="large" color="#f5a623" />
           <Text style={styles.processingTitle}>Verifying Identity</Text>
           <Text style={styles.processingDesc}>
             Comparing your face with government records via YouVerify...

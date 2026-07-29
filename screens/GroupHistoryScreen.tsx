@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { guaranteedAjoAPI } from '../utils/api'
+import OwodeLoader from '../components/OwodeLoader'
 
 export default function GroupHistoryScreen({ route, navigation }: any) {
   const { groupId } = route.params
@@ -34,7 +35,7 @@ export default function GroupHistoryScreen({ route, navigation }: any) {
       </LinearGradient>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#25427a" style={{ marginTop: 40 }} />
+        <OwodeLoader size="large" color="#25427a" style={{ marginTop: 40 }} />
       ) : group ? (
         <>
           <View style={styles.groupInfo}>

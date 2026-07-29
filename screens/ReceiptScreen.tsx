@@ -30,8 +30,8 @@ export default function ReceiptScreen({ route, navigation }: any) {
     <ScrollView style={styles.container}>
       <ViewShot ref={receiptRef} options={{ format: 'png', quality: 1 }}>
         <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.header}>
-          <View style={[styles.statusCircle, { backgroundColor: isCredit ? '#22c55e' : '#f5a623' }]}>
-            {isCredit ? <Ionicons name="checkmark-circle" size={36} color="#22c55e" /> : null}
+          <View style={styles.statusCircle}>
+            <Ionicons name="shield-checkmark" size={46} color={isCredit ? '#22c55e' : '#25427a'} />
           </View>
           <Text style={styles.statusText}>{isCredit ? 'Money Received!' : 'Transfer Successful!'}</Text>
           <Text style={styles.amount}>₦{transaction.amount?.toLocaleString()}</Text>
@@ -103,7 +103,7 @@ export default function ReceiptScreen({ route, navigation }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f4f6fb' },
   header: { padding: 40, alignItems: 'center', paddingTop: 80 },
-  statusCircle: { width: 80, height: 80, borderRadius: 40, justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
+  statusCircle: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center', marginBottom: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.18, shadowRadius: 10, elevation: 6 },
   statusIcon: { fontSize: 36 },
   statusText: { color: '#fff', fontSize: 20, fontWeight: 'bold', marginBottom: 8 },
   amount: { color: '#fff', fontSize: 40, fontWeight: 'bold' },

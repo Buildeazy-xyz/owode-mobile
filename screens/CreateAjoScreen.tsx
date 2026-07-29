@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  ScrollView, ActivityIndicator, Alert, Share, KeyboardAvoidingView, Platform
+  ScrollView, Alert, Share, KeyboardAvoidingView, Platform
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { userAjoAPI, kycAPI } from '../utils/api'
+import OwodeLoader from '../components/OwodeLoader'
 
 const MIN_AMOUNT = 10000
 
@@ -60,7 +61,7 @@ export default function CreateAjoScreen({ navigation }: any) {
   if (!kyc.checked) {
     return (
       <View style={[styles.screen, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator color="#25427a" />
+        <OwodeLoader color="#25427a" />
       </View>
     )
   }
@@ -240,7 +241,7 @@ export default function CreateAjoScreen({ navigation }: any) {
         ) : null}
 
         <TouchableOpacity style={styles.btn} onPress={create} disabled={loading}>
-          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Create group</Text>}
+          {loading ? <OwodeLoader color="#fff" /> : <Text style={styles.btnText}>Create group</Text>}
         </TouchableOpacity>
         <View style={{ height: 30 }} />
       </ScrollView>

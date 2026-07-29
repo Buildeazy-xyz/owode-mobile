@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  Alert, ActivityIndicator, Animated
+  Alert, Animated
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { getBiometricType, authenticateWithBiometrics } from '../utils/biometrics'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import OwodeLoader from '../components/OwodeLoader'
 
 export default function BiometricSetupScreen({ navigation }: any) {
   const [biometricInfo, setBiometricInfo] = useState<any>(null)
@@ -96,7 +97,7 @@ export default function BiometricSetupScreen({ navigation }: any) {
       </TouchableOpacity>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#f5a623" />
+        <OwodeLoader size="large" color="#f5a623" />
       ) : !biometricInfo?.hasAny ? (
         <View style={styles.content}>
           <Ionicons name="sad-outline" size={64} color="#9aa5b8" style={{ marginBottom: 16 }} />
@@ -160,7 +161,7 @@ export default function BiometricSetupScreen({ navigation }: any) {
               disabled={setting}
             >
               {setting ? (
-                <ActivityIndicator color="#fff" />
+                <OwodeLoader color="#fff" />
               ) : (
                 <Text style={styles.enableBtnText}>
                   {biometricInfo.hasFaceID ? 'Enable Face ID' : 'Enable Fingerprint'}

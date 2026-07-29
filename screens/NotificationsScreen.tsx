@@ -1,13 +1,14 @@
 import React, { useCallback, useState } from 'react'
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  RefreshControl, Alert, ActivityIndicator,
+  RefreshControl, Alert,
 } from 'react-native'
 import { useNavigation, useFocusEffect } from '@react-navigation/native'
 import { Ionicons } from '@expo/vector-icons'
 import {
   getNotifications, clearNotifications, markAllRead, OwodeNotification,
 } from '../utils/notificationStore'
+import OwodeLoader from '../components/OwodeLoader'
 
 const C = {
   navy: '#0d47a1',
@@ -92,7 +93,7 @@ export default function NotificationsScreen() {
       </View>
 
       {loading ? (
-        <ActivityIndicator color={C.navy} style={{ marginTop: 60 }} />
+        <OwodeLoader color={C.navy} style={{ marginTop: 60 }} />
       ) : items.length === 0 ? (
         <View style={styles.empty}>
           <View style={styles.emptyIconWrap}>

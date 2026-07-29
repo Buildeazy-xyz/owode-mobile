@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ScrollView, KeyboardAvoidingView, Platform } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import AsyncStorage from '@react-native-async-storage/async-storage'
@@ -8,6 +8,7 @@ import PinKeypad from '../components/PinKeypad'
 import { useAuth } from '../context/AuthContext'
 import { announcePayment } from '../utils/speech'
 import { authenticateWithBiometrics, isBiometricEnabled, getBiometricType } from '../utils/biometrics'
+import OwodeLoader from '../components/OwodeLoader'
 
 export default function TransferScreen({ navigation }: any) {
   const { user } = useAuth()
@@ -191,7 +192,7 @@ export default function TransferScreen({ navigation }: any) {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#25427a" />
+          <OwodeLoader size="large" color="#25427a" />
           <Text style={styles.loadingText}>Processing transfer...</Text>
         </View>
       ) : (
@@ -226,7 +227,7 @@ export default function TransferScreen({ navigation }: any) {
 
             {lookingUp ? (
               <View style={styles.lookupRow}>
-                <ActivityIndicator size="small" color="#25427a" />
+                <OwodeLoader size="small" color="#25427a" />
                 <Text style={styles.lookupText} numberOfLines={1}>Checking account...</Text>
               </View>
             ) : recipientName ? (
