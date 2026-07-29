@@ -74,7 +74,9 @@ export default function ManageAjoScreen({ navigation, route }: any) {
           <Ionicons name="chevron-back" size={22} color="#f5a623" />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>{groupName}</Text>
-        <View style={{ width: 22 }} />
+        <TouchableOpacity onPress={() => navigation.navigate('PayoutOrder', { groupId })}>
+          <Ionicons name="swap-vertical" size={20} color="#f5a623" />
+        </TouchableOpacity>
       </LinearGradient>
 
       {loading ? (

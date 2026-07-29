@@ -12,6 +12,7 @@ import WalletScreen from '../screens/WalletScreen'
 import AjoScreen from '../screens/AjoScreen'
 import CreateAjoScreen from '../screens/CreateAjoScreen'
 import ManageAjoScreen from '../screens/ManageAjoScreen'
+import PayoutOrderScreen from '../screens/PayoutOrderScreen'
 import ProfileScreen from '../screens/ProfileScreen'
 import SettingsScreen from '../screens/SettingsScreen'
 import HelpSupportScreen from '../screens/HelpSupportScreen'
@@ -45,6 +46,7 @@ export default function AppNavigator() {
     <Stack.Screen name="Ajo" component={AjoScreen} />
     <Stack.Screen name="CreateAjo" component={CreateAjoScreen} options={{ headerShown: false }} />
     <Stack.Screen name="ManageAjo" component={ManageAjoScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="PayoutOrder" component={PayoutOrderScreen} options={{ headerShown: false }} />
     <Stack.Screen name="TrustScore" component={TrustScoreScreen} />
     <Stack.Screen name="Profile" component={ProfileScreen} />
     <Stack.Screen name="Settings" component={SettingsScreen} />
