@@ -34,8 +34,9 @@ export default function AjoScreen({ navigation }: any) {
 
   const loadGroups = async () => {
     try {
+      // Standard ajo is invite-only - only show groups you are actually in.
       const [standardRes, guaranteedRes] = await Promise.all([
-        ajoAPI.getAllGroups(),
+        userAjoAPI.mine(),
         guaranteedAjoAPI.getAllGroups()
       ])
       setStandardGroups(standardRes.data.data || [])
@@ -408,7 +409,7 @@ export default function AjoScreen({ navigation }: any) {
                             {m.isAvatar ? 'Avatar' : m.userId === user?.id ? 'You' : m.user?.fullName?.split(' ')[0]}
                           </Text>
                           <Text style={{ fontSize: 10, color: m.hasPaid ? '#22c55e' : '#ccc' }}>
-                            {m.hasPaid ? '' : '⏳'}
+                            {m.hasPaid ? '' : 'Due'}
                           </Text>
                         </View>
                       ))}
@@ -506,7 +507,7 @@ export default function AjoScreen({ navigation }: any) {
                           {m.userId === user?.id ? 'You' : m.user?.fullName?.split(' ')[0]}
                         </Text>
                         <Text style={{ fontSize: 10, color: m.hasPaid ? '#22c55e' : '#ccc' }}>
-                          {m.hasPaid ? '' : '⏳'}
+                          {m.hasPaid ? '' : 'Due'}
                         </Text>
                       </View>
                     ))}
@@ -519,6 +520,27 @@ export default function AjoScreen({ navigation }: any) {
                       </View>
                     ))}
                   </ScrollView>
+
+                  {group.createdBy === user?.id && group.approvalStatus !== 'APPROVED' ? (
+                    <TouchableOpacity
+                      style={styles.manageBtn}
+                      onPress={() => navigation.navigate('ManageAjo', {
+                        groupId: group.id,
+                        groupName: group.name,
+                        inviteCode: group.inviteCode,
+                        amount: group.amount,
+                        frequency: group.frequency
+                      })}
+                    >
+                      <Ionicons name="settings-outline" size={15} color="#25427a" />
+                      <Text style={styles.manageBtnText} numberOfLines={1}>
+                        {group.members?.filter((m: any) => m.status === 'PENDING').length
+                          ? 'Manage group \u00b7 ' + group.members.filter((m: any) => m.status === 'PENDING').length + ' waiting'
+                          : 'Manage group'}
+                      </Text>
+                      <Ionicons name="chevron-forward" size={15} color="#7c8aa5" />
+                    </TouchableOpacity>
+                  ) : null}
 
                   <View style={styles.groupActions}>
                     {!isMember ? (
@@ -783,6 +805,8 @@ const styles = StyleSheet.create({
   groupActions: { gap: 8 },
   actionBtn: { borderRadius: 12, padding: 14, alignItems: 'center' },
   actionBtnDisabled: { opacity: 0.5 },
+  manageBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#eaf2ff', borderRadius: 11, paddingHorizontal: 13, paddingVertical: 10, marginBottom: 10, minHeight: 42 },
+  manageBtnText: { flex: 1, flexShrink: 1, fontSize: 13, fontWeight: '700', color: '#25427a' },
   joinBtn: { backgroundColor: '#25427a' },
   joinBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
   contributeBtn: { backgroundColor: '#22c55e' },
