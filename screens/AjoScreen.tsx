@@ -34,8 +34,9 @@ export default function AjoScreen({ navigation }: any) {
 
   const loadGroups = async () => {
     try {
+      // Standard ajo is invite-only, so only show groups you are actually in.
       const [standardRes, guaranteedRes] = await Promise.all([
-        ajoAPI.getAllGroups(),
+        userAjoAPI.mine(),
         guaranteedAjoAPI.getAllGroups()
       ])
       setStandardGroups(standardRes.data.data || [])
@@ -522,7 +523,29 @@ export default function AjoScreen({ navigation }: any) {
 
                   <View style={styles.groupActions}>
                     {!isMember ? (
+                      <TouchableOpacity                    {group.createdBy === user?.id && group.approvalStatus !== 'APPROVED' ? (
                       <TouchableOpacity
+                        style={styles.manageBtn}
+                        onPress={() => navigation.navigate('ManageAjo', {
+                          groupId: group.id,
+                          groupName: group.name,
+                          inviteCode: group.inviteCode,
+                          amount: group.amount,
+                          frequency: group.frequency
+                        })}
+                      >
+                        <Ionicons name="settings-outline" size={15} color="#25427a" />
+                        <Text style={styles.manageBtnText} numberOfLines={1}>
+                          Manage group
+                          {group.members?.filter((m: any) => m.status === 'PENDING').length
+                            ? ' \u00b7 ' + group.members.filter((m: any) => m.status === 'PENDING').length + ' waiting'
+                            : ''}
+                        </Text>
+                        <Ionicons name="chevron-forward" size={15} color="#7c8aa5" />
+                      </TouchableOpacity>
+                    ) : null}
+
+
                         style={[styles.actionBtn, styles.joinBtn, isFull && styles.actionBtnDisabled]}
                         onPress={() => !isFull && handleJoinStandard(group.id)}
                         disabled={isFull}
@@ -783,6 +806,8 @@ const styles = StyleSheet.create({
   groupActions: { gap: 8 },
   actionBtn: { borderRadius: 12, padding: 14, alignItems: 'center' },
   actionBtnDisabled: { opacity: 0.5 },
+  manageBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#eaf2ff', borderRadius: 11, paddingHorizontal: 13, paddingVertical: 10, marginBottom: 10, minHeight: 42 },
+  manageBtnText: { flex: 1, flexShrink: 1, fontSize: 13, fontWeight: '700', color: '#25427a' },
   joinBtn: { backgroundColor: '#25427a' },
   joinBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
   contributeBtn: { backgroundColor: '#22c55e' },
