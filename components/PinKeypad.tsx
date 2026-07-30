@@ -1,9 +1,9 @@
 import React, { useState, useRef } from 'react'
 import {
-import OwodeLoader from './OwodeLoader'
   View, Text, StyleSheet, TouchableOpacity,
   Animated, Vibration, Image, Dimensions
 } from 'react-native'
+import OwodeLoader from './OwodeLoader'
 
 const { width } = Dimensions.get('window')
 
@@ -178,9 +178,8 @@ export default function PinKeypad({
                 key === '' && styles.keyEmpty,
                 key === 'del' && styles.keyDel,
               ]}
-              disabled={busy}
+              disabled={busy || key === ''}
               onPress={() => key !== '' && !busy && handlePress(key)}
-              disabled={key === ''}
               activeOpacity={0.6}
             >
               {key === 'del' ? (

@@ -15,6 +15,23 @@ api.interceptors.request.use(async (config) => {
   return config
 })
 
+// A dead session must log the user out, never leave a phantom account on screen.
+let onSessionExpired: (() => void) | null = null
+export const setSessionExpiredHandler = (fn: () => void) => { onSessionExpired = fn }
+
+api.interceptors.response.use(
+  r => r,
+  async (error) => {
+    const status = error.response?.status
+    const msg = String(error.response?.data?.message || '')
+    if (status === 401 || /user not found/i.test(msg)) {
+      await AsyncStorage.multiRemove(['owode_token', 'owode_user'])
+      if (onSessionExpired) onSessionExpired()
+    }
+    return Promise.reject(error)
+  }
+)
+
 export const authAPI = {
   register: (data: { fullName: string; phone: string; email?: string; password: string; dateOfBirth?: string; country?: string }) =>
     api.post('/users/register', data),
