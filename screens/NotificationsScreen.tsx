@@ -93,7 +93,7 @@ export default function NotificationsScreen() {
       </View>
 
       {loading ? (
-        <OwodeLoader color={C.navy} style={{ marginTop: 60 }} />
+        <OwodeLoader color={C.navy}  />
       ) : items.length === 0 ? (
         <View style={styles.empty}>
           <View style={styles.emptyIconWrap}>

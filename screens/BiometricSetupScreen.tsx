@@ -97,7 +97,7 @@ export default function BiometricSetupScreen({ navigation }: any) {
       </TouchableOpacity>
 
       {loading ? (
-        <OwodeLoader size="large" color="#f5a623" />
+        <OwodeLoader size="large" fullscreen color="#f5a623" />
       ) : !biometricInfo?.hasAny ? (
         <View style={styles.content}>
           <Ionicons name="sad-outline" size={64} color="#9aa5b8" style={{ marginBottom: 16 }} />

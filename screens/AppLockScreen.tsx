@@ -55,7 +55,7 @@ export default function AppLockScreen({ onUnlock }: { onUnlock: () => void }) {
           style={styles.loadingLogo}
           resizeMode="contain"
         />
-        <OwodeLoader size="large" color="#f5a623" style={{ marginTop: 24 }} />
+        <OwodeLoader size="large" fullscreen color="#f5a623"  />
         <Text style={styles.loadingText}>Verifying...</Text>
       </LinearGradient>
     )

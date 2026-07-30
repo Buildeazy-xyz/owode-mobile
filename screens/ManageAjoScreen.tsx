@@ -81,7 +81,7 @@ export default function ManageAjoScreen({ navigation, route }: any) {
       </LinearGradient>
 
       {loading ? (
-        <OwodeLoader color="#25427a" style={{ marginTop: 40 }} />
+        <OwodeLoader color="#25427a"  />
       ) : (
         <ScrollView
           contentContainerStyle={styles.body}

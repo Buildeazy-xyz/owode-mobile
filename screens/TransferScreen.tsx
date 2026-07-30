@@ -192,7 +192,7 @@ export default function TransferScreen({ navigation }: any) {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <OwodeLoader size="large" color="#25427a" />
+          <OwodeLoader size="large" fullscreen color="#25427a" />
           <Text style={styles.loadingText}>Processing transfer...</Text>
         </View>
       ) : (

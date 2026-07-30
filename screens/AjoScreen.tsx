@@ -350,7 +350,7 @@ export default function AjoScreen({ navigation }: any) {
       )}
 
       {loading ? (
-        <OwodeLoader size="large" color="#25427a" style={{ marginTop: 60 }} />
+        <OwodeLoader size="large" fullscreen color="#25427a"  />
       ) : (
         <ScrollView contentContainerStyle={{ paddingBottom: 110 }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
@@ -595,7 +595,7 @@ export default function AjoScreen({ navigation }: any) {
         {pinStep ? (
           <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.pinContainer}>
             {contributing ? (
-              <OwodeLoader size="large" color="#f5a623" />
+              <OwodeLoader size="large" fullscreen color="#f5a623" />
             ) : (
               <>
                 <PinKeypad

@@ -75,7 +75,7 @@ export default function ReferralScreen({ navigation }: any) {
   if (loading) {
     return (
       <View style={styles.loader}>
-        <OwodeLoader size="large" color="#25427a" />
+        <OwodeLoader size="large" fullscreen color="#25427a" />
       </View>
     )
   }

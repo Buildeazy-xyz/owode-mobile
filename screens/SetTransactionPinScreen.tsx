@@ -129,7 +129,7 @@ export default function SetTransactionPinScreen({ navigation, route }: any) {
         <Text style={styles.stepBadgeText}>Step {stepIndex} of {totalSteps}</Text>
       </View>
       {loading ? (
-        <OwodeLoader size="large" color="#f5a623" />
+        <OwodeLoader size="large" fullscreen color="#f5a623" />
       ) : (
         <PinKeypad
           key={keypadKey}

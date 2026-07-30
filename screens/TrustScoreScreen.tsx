@@ -50,7 +50,7 @@ export default function TrustScoreScreen({ navigation }: any) {
       </LinearGradient>
 
       {loading ? (
-        <OwodeLoader size="large" color="#25427a" style={{ marginTop: 60 }} />
+        <OwodeLoader size="large" fullscreen color="#25427a"  />
       ) : trustData ? (
         <>
           {/* Score Circle */}

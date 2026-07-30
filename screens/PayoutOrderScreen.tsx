@@ -54,7 +54,7 @@ export default function PayoutOrderScreen({ navigation, route }: any) {
         <View style={{ width: 22 }} />
       </LinearGradient>
 
-      {loading ? <OwodeLoader size="large" color="#25427a" style={{ marginTop: 60 }} /> : (
+      {loading ? <OwodeLoader size="large" fullscreen color="#25427a"  /> : (
         <ScrollView contentContainerStyle={styles.body}>
           <View style={styles.noteCard}>
             <Ionicons name={locked ? 'lock-closed' : 'swap-vertical'} size={17} color="#25427a" />

@@ -13,7 +13,7 @@ import { useAuth } from '../context/AuthContext'
 import PinKeypad from '../components/PinKeypad'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 const { width, height } = Dimensions.get('window')
-const TOTAL_STEPS = 9
+const TOTAL_STEPS = 8
 
 // ⚠️ TESTING ONLY — set back to false once Termii SMS is approved
 const SKIP_OTP_FOR_TESTING = false
@@ -298,24 +298,8 @@ export default function RegisterScreen({ navigation }: any) {
     </LinearGradient>
   )
 
-  // Step 7 & 8 — full screen PIN (no header needed)
+  // Step 7 — Transaction PIN (App Lock removed from registration)
   if (step === 7) {
-    return (
-      <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={{ flex: 1 }}>
-        <PinKeypad
-          title="Set App Lock PIN"
-          subtitle="Create a 6-digit PIN to lock your app"
-          pinLength={6}
-          onComplete={handleSetAppPin}
-        />
-        <TouchableOpacity onPress={goBack} style={styles.pinBack}>
-          <Ionicons name="chevron-back" size={22} color="#f5a623" />
-        </TouchableOpacity>
-      </LinearGradient>
-    )
-  }
-
-  if (step === 8) {
     return (
       <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={{ flex: 1 }}>
         <PinKeypad
@@ -331,8 +315,8 @@ export default function RegisterScreen({ navigation }: any) {
     )
   }
 
-  // Step 9 — Face Verification
-  if (step === 9) {
+  // Step 8 — Face Verification
+  if (step === 8) {
     if (faceStep === 'camera') {
       return (
         <View style={{ flex: 1, backgroundColor: '#000' }}>
@@ -366,7 +350,7 @@ export default function RegisterScreen({ navigation }: any) {
       <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={{ flex: 1 }}>
         {faceStep === 'processing' ? (
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <OwodeLoader size="large" color="#f5a623" />
+            <OwodeLoader size="large" fullscreen color="#f5a623" />
             <Text style={styles.faceTitle}>Verifying Identity...</Text>
             <Text style={styles.faceSubtitle}>Comparing with government records</Text>
           </View>

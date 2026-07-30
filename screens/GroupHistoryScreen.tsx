@@ -35,7 +35,7 @@ export default function GroupHistoryScreen({ route, navigation }: any) {
       </LinearGradient>
 
       {loading ? (
-        <OwodeLoader size="large" color="#25427a" style={{ marginTop: 40 }} />
+        <OwodeLoader size="large" fullscreen color="#25427a"  />
       ) : group ? (
         <>
           <View style={styles.groupInfo}>

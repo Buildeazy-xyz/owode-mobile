@@ -241,7 +241,7 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
         {pinStep ? (
           <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.pinContainer}>
             {loading ? (
-              <OwodeLoader size="large" color="#f5a623" />
+              <OwodeLoader size="large" fullscreen color="#f5a623" />
             ) : (
               <>
                 <PinKeypad

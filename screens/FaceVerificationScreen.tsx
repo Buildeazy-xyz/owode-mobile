@@ -232,7 +232,7 @@ export default function FaceVerificationScreen({ navigation }: any) {
     return (
       <LinearGradient colors={['#1a2e55', '#25427a']} style={styles.container}>
         <View style={styles.processingContent}>
-          <OwodeLoader size="large" color="#f5a623" />
+          <OwodeLoader size="large" fullscreen color="#f5a623" />
           <Text style={styles.processingTitle}>Verifying Identity</Text>
           <Text style={styles.processingDesc}>
             Comparing your face with government records via YouVerify...

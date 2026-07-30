@@ -80,7 +80,7 @@ export default function SetAppPinScreen({ navigation, route }: any) {
 
   if (!ready) return (
     <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.container}>
-      <OwodeLoader size="large" color="#f5a623" />
+      <OwodeLoader size="large" fullscreen color="#f5a623" />
     </LinearGradient>
   )
 
@@ -105,7 +105,7 @@ export default function SetAppPinScreen({ navigation, route }: any) {
         <Text style={styles.stepBadgeText}>Step {stepIndex} of {totalSteps}</Text>
       </View>
       {loading ? (
-        <OwodeLoader size="large" color="#f5a623" />
+        <OwodeLoader size="large" fullscreen color="#f5a623" />
       ) : (
         <PinKeypad
           key={keypadKey}

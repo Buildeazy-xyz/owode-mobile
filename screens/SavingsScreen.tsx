@@ -295,7 +295,7 @@ export default function SavingsScreen({ navigation }: any) {
       <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={{ flex: 1 }}>
         {saving ? (
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <OwodeLoader size="large" color="#f5a623" />
+            <OwodeLoader size="large" fullscreen color="#f5a623" />
             <Text style={{ color: '#fff', marginTop: 14, fontSize: 14 }}>
               {pinAction.type === 'deposit' ? 'Processing deposit...' : 'Processing withdrawal...'}
             </Text>
@@ -673,7 +673,7 @@ export default function SavingsScreen({ navigation }: any) {
       </LinearGradient>
 
       {loading ? (
-        <OwodeLoader size="large" color="#25427a" style={{ marginTop: 60 }} />
+        <OwodeLoader size="large" fullscreen color="#25427a"  />
       ) : (
         <ScrollView contentContainerStyle={{ paddingBottom: 110 }} automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled"
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}

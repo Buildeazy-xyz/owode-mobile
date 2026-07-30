@@ -84,7 +84,7 @@ export default function ProfileScreen({ navigation }: any) {
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f4f6fb' }}>
-        <OwodeLoader size="large" color="#25427a" />
+        <OwodeLoader size="large" fullscreen color="#25427a" />
       </View>
     )
   }

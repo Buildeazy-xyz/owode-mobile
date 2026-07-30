@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react'
 import {
+import OwodeLoader from './OwodeLoader'
   View, Text, StyleSheet, TouchableOpacity,
   Animated, Vibration, Image, Dimensions
 } from 'react-native'
@@ -25,6 +26,7 @@ export default function PinKeypad({
   const [confirmedPin, setConfirmedPin] = useState('')
   const [isConfirming, setIsConfirming] = useState(false)
   const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
   const shakeAnim = useRef(new Animated.Value(0)).current
 
   const shake = () => {
@@ -41,6 +43,7 @@ export default function PinKeypad({
   const currentPin = isConfirming ? confirmedPin : pin
 
   const handlePress = (value: string) => {
+    if (busy) return
     setError('')
 
     if (value === 'del') {
@@ -65,6 +68,7 @@ export default function PinKeypad({
           setPin('')
           setConfirmedPin('')
           setIsConfirming(false)
+          setBusy(true)
           onComplete(newConfirm)
         } else {
           // ❌ No match — reset immediately
@@ -84,6 +88,7 @@ export default function PinKeypad({
           // Switch to confirm immediately no delay
           setIsConfirming(true)
         } else {
+          setBusy(true)
           onComplete(newPin)
           setPin('')
         }
@@ -92,6 +97,8 @@ export default function PinKeypad({
   }
 
   const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'del']
+
+  if (busy) return <OwodeLoader size="large" fullscreen />
 
   return (
     <View style={styles.container}>
@@ -171,7 +178,8 @@ export default function PinKeypad({
                 key === '' && styles.keyEmpty,
                 key === 'del' && styles.keyDel,
               ]}
-              onPress={() => key !== '' && handlePress(key)}
+              disabled={busy}
+              onPress={() => key !== '' && !busy && handlePress(key)}
               disabled={key === ''}
               activeOpacity={0.6}
             >
