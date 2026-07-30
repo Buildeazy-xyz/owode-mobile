@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { authAPI } from '../utils/api'
+import { setSessionExpiredHandler } from '../utils/api'
 
 interface User {
   id: string
@@ -73,6 +74,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(user)
     setToken(token)
   }
+
+  // If the server rejects our session, drop it here too so the UI cannot
+  // keep showing an account that no longer exists.
+  useEffect(() => {
+    setSessionExpiredHandler(() => { setUser(null); setToken(null) })
+  }, [])
 
   const logout = async () => {
     await AsyncStorage.removeItem('owode_token')
