@@ -13,7 +13,7 @@ import { useAuth } from '../context/AuthContext'
 import PinKeypad from '../components/PinKeypad'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 const { width, height } = Dimensions.get('window')
-const TOTAL_STEPS = 8
+const TOTAL_STEPS = 7
 
 // ⚠️ TESTING ONLY — set back to false once Termii SMS is approved
 const SKIP_OTP_FOR_TESTING = false
@@ -199,7 +199,8 @@ export default function RegisterScreen({ navigation }: any) {
     try {
       setLoading(true)
       await authAPI.setTransactionPin(pin)
-      goNext()
+      Alert.alert('Account Ready', 'Your account is set up. You can verify your face later from Profile.',
+        [{ text: 'Login Now', onPress: () => navigation.navigate('Login') }])
     } catch (error: any) {
       Alert.alert('Error', error.response?.data?.message || 'Could not set Transaction PIN')
     } finally {
@@ -311,89 +312,6 @@ export default function RegisterScreen({ navigation }: any) {
         <TouchableOpacity onPress={goBack} style={styles.pinBack}>
           <Ionicons name="chevron-back" size={22} color="#f5a623" />
         </TouchableOpacity>
-      </LinearGradient>
-    )
-  }
-
-  // Step 8 — Face Verification
-  if (step === 8) {
-    if (faceStep === 'camera') {
-      return (
-        <View style={{ flex: 1, backgroundColor: '#000' }}>
-          <CameraView ref={cameraRef} style={{ flex: 1 }} facing="front">
-            <View style={StyleSheet.absoluteFillObject}>
-              <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' }} />
-              <View style={{ flexDirection: 'row', height: OVAL_HEIGHT }}>
-                <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' }} />
-                <View style={{ width: OVAL_WIDTH, height: OVAL_HEIGHT, borderRadius: OVAL_WIDTH / 2, borderWidth: 3, borderColor: '#f5a623' }} />
-                <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' }} />
-              </View>
-              <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' }} />
-            </View>
-            <View style={{ position: 'absolute', bottom: 120, left: 0, right: 0, alignItems: 'center' }}>
-              <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold', backgroundColor: 'rgba(0,0,0,0.6)', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20, textAlign: 'center' }}>
-                {faceInstruction}
-              </Text>
-            </View>
-            <TouchableOpacity
-              style={{ position: 'absolute', top: 60, right: 24 }}
-              onPress={() => setFaceStep('intro')}
-            >
-              <Text style={{ color: '#fff', fontSize: 16 }}>Cancel</Text>
-            </TouchableOpacity>
-          </CameraView>
-        </View>
-      )
-    }
-
-    return (
-      <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={{ flex: 1 }}>
-        {faceStep === 'processing' ? (
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <OwodeLoader size="large" fullscreen color="#f5a623" />
-            <Text style={styles.faceTitle}>Verifying Identity...</Text>
-            <Text style={styles.faceSubtitle}>Comparing with government records</Text>
-          </View>
-        ) : faceStep === 'success' ? (
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 }}>
-            <Ionicons name="checkmark-circle" size={80} color="#22c55e" style={{ marginBottom: 20 }} />
-            <Text style={styles.faceTitle}>Identity Verified!</Text>
-            <Text style={styles.faceSubtitle}>Welcome to OWODE! Your account is fully set up.</Text>
-          </View>
-        ) : (
-          <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 32 }}>
-            <View style={styles.faceIconCircle}>
-              <Text style={styles.faceIcon}></Text>
-            </View>
-            <Text style={styles.faceTitle}>Face Verification</Text>
-            <Text style={styles.faceSubtitle}>
-              Final step! We'll verify your face against your BVN/NIN records via YouVerify
-            </Text>
-            <View style={styles.faceTips}>
-              <Text style={styles.faceTipsTitle}>For best results:</Text>
-              {['Find a well-lit area', 'Remove glasses if possible', 'Hold phone at eye level', 'Keep neutral expression'].map((tip, i) => (
-                <Text key={i} style={styles.faceTip}>{tip}</Text>
-              ))}
-            </View>
-            <TouchableOpacity
-              style={styles.faceStartBtn}
-              onPress={() => {
-                if (!cameraPermission?.granted) requestCameraPermission()
-                isCapturing.current = false
-                setFaceStep('camera')
-                setTimeout(startLivenessInstructions, 1000)
-              }}
-            >
-              <Text style={styles.faceStartBtnText}>Start Face Verification</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={finishRegistration} style={styles.skipBtn}>
-              <Text style={styles.skipText}>Skip for now — do it later from profile</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={goBack} style={{ alignItems: 'center', marginTop: 8 }}>
-              <Ionicons name="chevron-back" size={18} color="rgba(255,255,255,0.4)" />
-            </TouchableOpacity>
-          </ScrollView>
-        )}
       </LinearGradient>
     )
   }

@@ -631,7 +631,7 @@ export default function SavingsScreen({ navigation }: any) {
                 <View style={styles.summaryPreview}>
                   {[
                     { label: 'Current savings', value: `₦${selectedGoal.currentAmount?.toLocaleString()}` },
-                    { label: 'Adding', value: `+₦${Number(depositAmount).toLocaleString()}`, color: '#22c55e' },
+                    { label: 'Adding', value: `+₦${Number(depositAmount).toLocaleString()}`, color: '#25427a' },
                     { label: 'New total', value: `₦${(selectedGoal.currentAmount + Number(depositAmount)).toLocaleString()}`, bold: true },
                   ].map((item: any, i) => (
                     <View key={i} style={[styles.summaryPreviewRow, i === 2 && { borderBottomWidth: 0 }]}>
@@ -647,7 +647,7 @@ export default function SavingsScreen({ navigation }: any) {
                 onPress={handleDeposit}
                 disabled={saving}
               >
-                <LinearGradient colors={['#22c55e', '#16a34a']} style={styles.createGoalBtnGradient}>
+                <LinearGradient colors={['#25427a', '#1a2e55']} style={styles.createGoalBtnGradient}>
                   {saving ? <OwodeLoader color="#fff" /> : <Text style={styles.createGoalBtnText}>Deposit to Savings</Text>}
                 </LinearGradient>
               </TouchableOpacity>

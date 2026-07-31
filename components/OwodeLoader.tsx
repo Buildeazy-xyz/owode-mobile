@@ -36,7 +36,7 @@ export default function OwodeLoader({ size = 'large', fullscreen = false, style 
   return (
     <View style={[fullscreen ? styles.fullscreen : styles.wrap, style]}>
       <View style={[styles.card, { width: cardW, height: cardH, borderRadius: radius }]}>
-        <Animated.View style={{ transform: [{ scale }], opacity: glow }}>
+        <Animated.View style={{ transform: [{ scale }] }}>
           <Image
             source={require('../assets/owode-shield.png')}
             style={{ width: shieldW, height: shieldH }}

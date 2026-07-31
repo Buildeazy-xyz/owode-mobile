@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
   cardCentered: { alignItems: 'center', justifyContent: 'center', minHeight: 200 },
   cardHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
   cardLabel: { fontSize: 11, fontWeight: '700', color: C.muted, letterSpacing: 2, textTransform: 'uppercase' },
-  liveDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#22c55e' },
+  liveDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#f5a623' },
   acct: { fontSize: 32, fontWeight: '800', color: C.gold, letterSpacing: 3 },
   divider: { height: 1, backgroundColor: C.border, marginVertical: 16 },
   metaRow: { flexDirection: 'row', alignItems: 'center', minHeight: 20 },
