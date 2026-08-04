@@ -69,7 +69,21 @@
           "defaultChannel": "owode-payments"
         }
       ],
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableProguardInReleaseBuilds": false,
+            "packagingOptions": {
+              "pickFirst": [
+                "**/libc++_shared.so"
+              ]
+            },
+            "ndkVersion": "27.1.12297006"
+          }
+        }
+      ]
     ],
     "extra": {
       "eas": {
