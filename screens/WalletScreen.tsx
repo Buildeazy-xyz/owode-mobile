@@ -413,7 +413,9 @@ export default function WalletScreen({ navigation }: any) {
             <Text style={styles.historyTitle}>Transaction History</Text>
             <Text style={styles.historyCount}>
               {activeTab === 'past'
-                ? `${filteredTransactions?.length || 0} transactions`
+                ? `${(filter === 'ALL'
+                      ? (wallet?.transactions?.length || 0)
+                      : (wallet?.transactions?.filter((t: any) => t.type === filter).length || 0))} transactions`
                 : `${upcoming.length} scheduled`}
             </Text>
           </View>
