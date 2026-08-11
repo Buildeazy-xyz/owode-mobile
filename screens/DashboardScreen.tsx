@@ -135,8 +135,15 @@ export default function DashboardScreen({ navigation }: any) {
           })
         }
       }
-    } catch {
-      Alert.alert('Error', 'Could not load wallet')
+    } catch (e: any) {
+      // A dropped connection is the customer's network, not our platform.
+      const offline = !e?.response
+      Alert.alert(
+        offline ? 'No Internet Connection' : 'Could Not Load',
+        offline
+          ? 'No internet connection. Pull down to refresh.'
+          : 'We could not load your wallet just now. Pull down to try again.'
+      )
     }
   }
 
