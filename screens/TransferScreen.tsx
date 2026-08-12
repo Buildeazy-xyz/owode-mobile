@@ -67,7 +67,9 @@ export default function TransferScreen({ navigation }: any) {
   useEffect(() => {
     setRecipientName('')
     setLookupError('')
-    const digits = recipientPhone.replace(/\D/g, '')
+    let digits = recipientPhone.replace(/\D/g, '')
+    // Some people leave off the leading zero. Treat 8085806038 as 08085806038.
+    if (digits.length === 10 && digits[0] !== '0') digits = '0' + digits
     if (digits.length !== 11) return
     let cancelled = false
     setLookingUp(true)
@@ -76,7 +78,16 @@ export default function TransferScreen({ navigation }: any) {
         const res = await authAPI.lookupRecipient(digits)
         if (!cancelled) setRecipientName(res.data?.data?.fullName || '')
       } catch (e: any) {
-        if (!cancelled) setLookupError(e?.response?.data?.message || 'Could not check this number')
+        if (!cancelled) {
+          const status = e?.response?.status
+          setLookupError(
+            status === 404
+              ? 'No OWODE account found for this number'
+              : !e?.response
+                ? 'No internet connection'
+                : 'Could not check this number'
+          )
+        }
       } finally {
         if (!cancelled) setLookingUp(false)
       }
@@ -89,12 +100,21 @@ export default function TransferScreen({ navigation }: any) {
       Alert.alert('Recipient not confirmed', 'We could not confirm an OWODE account for that number. Check it and try again.')
       return
     }
-    if (!recipientPhone || !amount || !description) {
-      Alert.alert('Error', 'All fields are required')
+    if (!recipientPhone) {
+      Alert.alert('Phone number needed', "Enter the phone number you want to send money to.")
       return
     }
-    if (recipientPhone.length !== 11) {
-      Alert.alert('Error', 'Enter a valid 11 digit phone number')
+    const phoneDigits = recipientPhone.replace(/\D/g, '')
+    if (phoneDigits.length !== 11 && phoneDigits.length !== 10) {
+      Alert.alert('Check the number', 'Enter the full phone number, for example 08012345678.')
+      return
+    }
+    if (!amount) {
+      Alert.alert('Amount needed', 'Enter how much you want to send.')
+      return
+    }
+    if (!description) {
+      Alert.alert('Description needed', 'Add a short note, for example "Food money".')
       return
     }
     if (Number(amount) < 100) {
@@ -135,8 +155,12 @@ export default function TransferScreen({ navigation }: any) {
       // Ask for location at the moment it matters. Never blocks the transfer.
       const location = await getTransactionLocation()
 
+      // Normalise here too, so a 10-digit entry reaches the right account.
+      let sendTo = recipientPhone.replace(/\D/g, '')
+      if (sendTo.length === 10 && sendTo[0] !== '0') sendTo = '0' + sendTo
+
       const response = await walletAPI.transfer(
-        recipientPhone,
+        sendTo,
         Number(amount),
         description,
         transactionPin,
