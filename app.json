@@ -83,6 +83,12 @@
             "ndkVersion": "27.1.12297006"
           }
         }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "OWODE uses your location to help protect your transactions from fraud."
+        }
       ]
     ],
     "extra": {

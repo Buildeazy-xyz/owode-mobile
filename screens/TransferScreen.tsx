@@ -9,6 +9,7 @@ import { useAuth } from '../context/AuthContext'
 import { announcePayment } from '../utils/speech'
 import { authenticateWithBiometrics, isBiometricEnabled, getBiometricType } from '../utils/biometrics'
 import OwodeLoader from '../components/OwodeLoader'
+import { getTransactionLocation } from '../utils/location'
 
 export default function TransferScreen({ navigation }: any) {
   const { user } = useAuth()
@@ -131,11 +132,15 @@ export default function TransferScreen({ navigation }: any) {
     setLoading(true)
 
     try {
+      // Ask for location at the moment it matters. Never blocks the transfer.
+      const location = await getTransactionLocation()
+
       const response = await walletAPI.transfer(
         recipientPhone,
         Number(amount),
         description,
-        transactionPin
+        transactionPin,
+        location
       )
       await saveRecipient(recipientPhone, response.data.data.recipient)
       announcePayment({ type: 'DEBIT', amount: Number(amount) })

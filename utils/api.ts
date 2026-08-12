@@ -68,8 +68,8 @@ export const walletAPI = {
     api.post('/wallet/credit', { amount, description }),
   debit: (amount: number, description: string) =>
     api.post('/wallet/debit', { amount, description }),
-  transfer: (recipientPhone: string, amount: number, description: string, transactionPin: string) =>
-    api.post('/wallet/transfer', { recipientPhone, amount, description, transactionPin })
+  transfer: (recipientPhone: string, amount: number, description: string, transactionPin: string, location?: { latitude: number; longitude: number } | null) =>
+    api.post('/wallet/transfer', { recipientPhone, amount, description, transactionPin, location })
 }
 
 export const ajoAPI = {
