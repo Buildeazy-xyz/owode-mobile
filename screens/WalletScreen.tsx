@@ -390,7 +390,7 @@ export default function WalletScreen({ navigation }: any) {
           <View style={{ flex: 1 }}>
             <Text style={styles.infoTitle}>How to fund your wallet</Text>
             <Text style={styles.infoDesc}>
-              Bank deposit via Providus Bank coming soon! You'll be able to fund your wallet instantly.
+              Tap Add money to get your dedicated account number. Transfer to it from any bank and your wallet is funded.
             </Text>
           </View>
         </View>

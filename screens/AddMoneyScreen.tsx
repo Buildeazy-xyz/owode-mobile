@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   Share, Alert,
@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { formatAccountNumber, hasProvisionedAccount } from '../utils/account';
 import OwodeLoader from '../components/OwodeLoader'
+import api from '../utils/api'
 
 const C = {
   bg: '#0a0e1a',
@@ -26,10 +27,29 @@ export default function AddMoneyScreen() {
   const route = useRoute<any>();
   const [copying, setCopying] = useState(false);
 
-  const accountNumber = route.params?.accountNumber ?? '';
-  const bankName = route.params?.bankName ?? 'OWODE';
-  const accountName = route.params?.accountName ?? '';
-  const isLoading = route.params?.isLoading ?? false;
+  const [accountNumber, setAccountNumber] = useState(route.params?.accountNumber ?? '');
+  const [accountName, setAccountName] = useState(route.params?.accountName ?? '');
+  const [isLoading, setIsLoading] = useState(true);
+  const bankName = 'Providus Bank';
+
+  // Fetch (or create) this customer's dedicated funding account.
+  const loadAccount = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const res = await api.post('/providus/account');
+      const d = res.data?.data;
+      if (d?.accountNumber) {
+        setAccountNumber(d.accountNumber);
+        setAccountName(d.accountName || '');
+      }
+    } catch {
+      // Leave the screen in its not-ready state; the retry button handles it.
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { loadAccount(); }, [loadAccount]);
 
   const ready = hasProvisionedAccount(accountNumber);
   const displayNumber = useMemo(() => formatAccountNumber(accountNumber), [accountNumber]);
@@ -79,7 +99,7 @@ export default function AddMoneyScreen() {
           <Text style={styles.phText}>
             Your dedicated account is being created. This usually takes under a minute.
           </Text>
-          <TouchableOpacity style={styles.retry} onPress={() => navigation.goBack()} activeOpacity={0.8}>
+          <TouchableOpacity style={styles.retry} onPress={loadAccount} activeOpacity={0.8}>
             <Ionicons name="refresh-outline" size={16} color={C.gold} />
             <Text style={styles.retryText}>Check again</Text>
           </TouchableOpacity>
