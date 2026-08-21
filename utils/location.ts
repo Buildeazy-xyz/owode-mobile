@@ -30,7 +30,7 @@ export const getTransactionLocation = async (): Promise<TxLocation> => {
       accuracy: Location.Accuracy.Balanced
     })
     return { latitude: pos.coords.latitude, longitude: pos.coords.longitude }
-  } catch {
+  } catch (err: any) {
     // Location is a bonus, never a blocker.
     return null
   }
