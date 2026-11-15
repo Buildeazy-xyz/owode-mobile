@@ -13,6 +13,10 @@ import { useAuth } from '../context/AuthContext'
 import PinKeypad from '../components/PinKeypad'
 import { LineChart, ProgressChart } from 'react-native-chart-kit'
 import OwodeLoader from '../components/OwodeLoader'
+import Icon from '../components/Icon'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { F, ds, tnum } from '../constants/theme'
+import { naira } from '../utils/ajoDue'
 
 const { width } = Dimensions.get('window')
 
@@ -31,6 +35,7 @@ const GOAL_CATEGORIES = [
 
 export default function SavingsScreen({ navigation }: any) {
   const { user } = useAuth()
+  const insets = useSafeAreaInsets()
   const [goals, setGoals] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -177,6 +182,7 @@ export default function SavingsScreen({ navigation }: any) {
       Alert.alert('Error', error.response?.data?.message || 'Something went wrong')
     } finally {
       setSaving(false)
+      isProcessing.current = false
     }
   }
 
@@ -250,8 +256,12 @@ export default function SavingsScreen({ navigation }: any) {
 
   // Savings over time — built from REAL contributions across all goals
   const allContributions = goals
-    .flatMap((g: any) => (g.contributions || []).map((c: any) => ({ amount: c.amount, date: new Date(c.createdAt) })))
-    .filter((c: any) => c.amount > 0)
+    .flatMap((g: any) => (g.contributions || []).map((c: any) => ({
+      // Withdrawals and penalties take money out, so they count against the line
+      amount: c.type === 'WITHDRAWAL' || c.type === 'PENALTY' ? -c.amount : c.amount,
+      date: new Date(c.createdAt)
+    })))
+    .filter((c: any) => c.amount !== 0)
     .sort((a: any, b: any) => a.date.getTime() - b.date.getTime())
 
   const buildLineData = () => {
@@ -271,9 +281,17 @@ export default function SavingsScreen({ navigation }: any) {
     const cumulative = keys.map(k => { running += byMonth[k]; return running })
     // cap to last 6 points so the chart stays readable
     const sliceFrom = Math.max(0, keys.length - 6)
+    let labels = keys.slice(sliceFrom)
+    let points = cumulative.slice(sliceFrom).map(v => Math.max(0, v))
+    // The chart library draws nothing with a single point, which is why the
+    // card looked blank for anyone who started saving this month.
+    if (points.length === 1) {
+      labels = ['Start', ...labels]
+      points = [0, ...points]
+    }
     return {
-      labels: keys.slice(sliceFrom),
-      datasets: [{ data: cumulative.slice(sliceFrom), color: () => '#25427a', strokeWidth: 3 }]
+      labels,
+      datasets: [{ data: points, color: () => '#25427a', strokeWidth: 3 }]
     }
   }
   const savingsLineData = buildLineData()
@@ -659,344 +677,190 @@ export default function SavingsScreen({ navigation }: any) {
     )
   }
 
-  // MAIN LIST SCREEN
-  return (
-    <View style={styles.container}>
-      <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={22} color="#f5a623" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>My Savings</Text>
-        <TouchableOpacity onPress={() => setScreen('create')}>
-          <Text style={styles.newBtn}>+ New</Text>
-        </TouchableOpacity>
-      </LinearGradient>
+  // MAIN LIST SCREEN — OWODE Alajo Redesign "Savings" board
+  const monthBars = (() => {
+    const names = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+    const now = new Date()
+    const months = Array.from({ length: 6 }, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1)
+      return { y: d.getFullYear(), m: d.getMonth(), label: names[d.getMonth()], net: 0 }
+    })
+    allContributions.forEach((c: any) => {
+      const slot = months.find(x => x.y === c.date.getFullYear() && x.m === c.date.getMonth())
+      if (slot) slot.net += c.amount
+    })
+    const max = Math.max(0, ...months.map(x => x.net))
+    return months.map((x, i) => ({
+      ...x,
+      current: i === months.length - 1,
+      h: max > 0 && x.net > 0 ? Math.max(8, Math.round((x.net / max) * 52)) : 4,
+    }))
+  })()
 
+  const timeLeft = (days: number) => {
+    if (!days || days <= 0) return 'target date reached'
+    if (days > 60) return `${Math.round(days / 30)} months left`
+    return `${days} day${days === 1 ? '' : 's'} left`
+  }
+
+  const openGoal = (goal: any) => {
+    Alert.alert(goal.title, `${naira(goal.currentAmount || 0)} of ${naira(goal.goalAmount || 0)}`, [
+      { text: 'Add money', onPress: () => { setSelectedGoal(goal); setScreen('deposit') } },
+      { text: goal.canWithdrawFree ? 'Withdraw' : 'Withdraw early', onPress: () => handleWithdraw(goal) },
+      { text: 'Cancel', style: 'cancel' },
+    ])
+  }
+
+  const renderGoal = (goal: any) => {
+    const pct = Math.max(0, Math.min(100, Math.round(goal.progress || 0)))
+    if (goal.status === 'COMPLETED') {
+      return (
+        <View key={goal.id} style={[s.goal, s.goalReached]}>
+          <View style={s.rowBetween}>
+            <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
+              <Text style={s.goalTitle} numberOfLines={1}>{goal.title}</Text>
+              <Text style={[s.goalSub, { color: ds.goldInk2 }]} numberOfLines={1}>
+                Target reached · {goal.canWithdrawFree ? 'withdraw free of charge' : `${goal.penaltyPercent}% fee before target date`}
+              </Text>
+            </View>
+            <Icon name="checkCircle" size={22} color={ds.goldInk} width={2} />
+          </View>
+          <View style={s.rowBetween}>
+            <Text style={[s.goalSaved, { fontSize: 15 }]}>{naira(goal.currentAmount || 0)}</Text>
+            <TouchableOpacity style={s.withdrawBtn} onPress={() => handleWithdraw(goal)} activeOpacity={0.85}>
+              <Text style={s.withdrawText}>Withdraw</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )
+    }
+    const withdrawn = goal.status === 'WITHDRAWN'
+    const sub = withdrawn
+      ? 'Withdrawn'
+      : `${goal.autoDebitAmount > 0
+          ? `Auto-save ${naira(goal.autoDebitAmount)} ${String(goal.autoDebitFreq || '').toLowerCase()}`
+          : 'Manual'} · ${timeLeft(goal.daysLeft)}`
+    return (
+      <TouchableOpacity
+        key={goal.id}
+        style={[s.goal, withdrawn && { opacity: 0.6 }]}
+        onPress={() => !withdrawn && openGoal(goal)}
+        disabled={withdrawn}
+        activeOpacity={0.8}
+      >
+        <View style={[s.rowBetween, { gap: 10 }]}>
+          <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
+            <Text style={s.goalTitle} numberOfLines={1}>{goal.title}</Text>
+            <Text style={s.goalSub} numberOfLines={1}>{sub}</Text>
+          </View>
+          <Text style={s.goalPct}>{pct}%</Text>
+        </View>
+        <View style={s.track}><View style={[s.fill, { width: `${pct}%` }]} /></View>
+        <View style={s.rowBetween}>
+          <Text style={s.goalSaved}>{naira(goal.currentAmount || 0)}</Text>
+          <Text style={s.goalOf}>of {naira(goal.goalAmount || 0)}</Text>
+        </View>
+      </TouchableOpacity>
+    )
+  }
+
+  return (
+    <View style={s.container}>
       {loading ? (
-        <OwodeLoader size="large" fullscreen color="#25427a"  />
+        <OwodeLoader size="large" fullscreen color={ds.navy} />
       ) : (
-        <ScrollView contentContainerStyle={{ paddingBottom: 110 }} automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled"
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        <ScrollView
+          contentContainerStyle={{ paddingTop: insets.top + 20, paddingHorizontal: 20, paddingBottom: 110, gap: 18 }}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={ds.navy} />}
           showsVerticalScrollIndicator={false}
         >
-          {/* Summary Card */}
-          <LinearGradient colors={['#25427a', '#385c9e']} style={styles.summaryCard}>
-            <Text style={styles.summaryLabel}>Total Saved Across All Goals</Text>
-            <Text style={styles.summaryAmount}>₦{totalSaved.toLocaleString()}</Text>
-            <View style={styles.summaryRow}>
-              {[
-                { value: activeGoals.length, label: 'Active Goals' },
-                { value: completedGoals.length, label: 'Completed' },
-                { value: `₦${totalTarget.toLocaleString()}`, label: 'Total Target' },
-              ].map((item, i) => (
-                <React.Fragment key={item.label}>
-                  {i > 0 && <View style={styles.summaryDivider} />}
-                  <View style={styles.summaryItem}>
-                    <Text style={styles.summaryItemValue}>{item.value}</Text>
-                    <Text style={styles.summaryItemLabel}>{item.label}</Text>
-                  </View>
-                </React.Fragment>
-              ))}
-            </View>
-          </LinearGradient>
-
-          {/* Tabs */}
-          <View style={styles.tabRow}>
-            {[
-              { key: 'goals', label: 'My Goals' },
-              { key: 'analytics', label: 'Analytics' },
-            ].map(tab => (
-              <TouchableOpacity
-                key={tab.key}
-                style={[styles.tab, activeTab === tab.key && styles.tabActive]}
-                onPress={() => setActiveTab(tab.key as any)}
-              >
-                <Text style={[styles.tabText, activeTab === tab.key && styles.tabTextActive]}>
-                  {tab.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
+          <View style={s.rowBetween}>
+            <Text style={s.h1}>Savings</Text>
+            <TouchableOpacity style={s.newGoal} onPress={() => setScreen('create')} activeOpacity={0.85}>
+              <Icon name="plus" size={16} color="#ffffff" width={2.4} />
+              <Text style={s.newGoalText}>New goal</Text>
+            </TouchableOpacity>
           </View>
 
-          {/* ANALYTICS TAB */}
-          {activeTab === 'analytics' && (
-            <View>
-              {goals.length === 0 ? (
-                <View style={styles.emptyState}>
-                  <Ionicons name="bar-chart-outline" size={44} color="#9aa5b8" />
-                  <Text style={styles.emptyText}>Nothing to chart yet</Text>
-                  <Text style={styles.emptySubText}>Create a savings goal and your progress will show up here</Text>
-                </View>
-              ) : (
-                <>
-                  {/* Overall Progress Ring */}
-                  <View style={styles.analyticsCard}>
-                    <Text style={styles.analyticsTitle}>Overall Savings Progress</Text>
-                    <View style={styles.overallProgressRow}>
-                      <View style={styles.overallProgressCircle}>
-                        <Text style={styles.overallProgressPercent}>{overallProgress}%</Text>
-                        <Text style={styles.overallProgressLabel}>Complete</Text>
-                      </View>
-                      <View style={styles.overallProgressStats}>
-                        {[
-                          { label: 'Total Saved', value: `₦${totalSaved.toLocaleString()}`, color: '#22c55e' },
-                          { label: 'Remaining', value: `₦${Math.max(0, totalTarget - totalSaved).toLocaleString()}`, color: '#ef4444' },
-                          { label: 'Goals', value: `${activeGoals.length} active`, color: '#25427a' },
-                        ].map(item => (
-                          <View key={item.label} style={styles.overallStat}>
-                            <Text style={[styles.overallStatValue, { color: item.color }]}>{item.value}</Text>
-                            <Text style={styles.overallStatLabel}>{item.label}</Text>
-                          </View>
-                        ))}
-                      </View>
-                    </View>
-                    {/* Overall progress bar */}
-                    <View style={styles.overallBar}>
-                      <View style={[styles.overallBarFill, {
-                        width: `${Math.min(overallProgress, 100)}%`,
-                        backgroundColor: overallProgress >= 100 ? '#22c55e' : overallProgress >= 50 ? '#f5a623' : '#25427a'
-                      }]} />
-                    </View>
-                  </View>
-
-                  {/* Savings Growth Chart */}
-                  {totalSaved > 0 && (
-                    <View style={styles.analyticsCard}>
-                      <Text style={styles.analyticsTitle}>Savings Growth</Text>
-                      <Text style={styles.analyticsSubtitle}>Your actual savings over time</Text>
-                      <LineChart
-                        data={savingsLineData}
-                        width={width - 64}
-                        height={180}
-                        chartConfig={chartConfig}
-                        bezier
-                        style={styles.chart}
-                        withInnerLines={false}
-                        withOuterLines={false}
-                        formatYLabel={(v) => `₦${(Number(v) / 1000).toFixed(0)}k`}
-                      />
-                    </View>
-                  )}
-
-                  {/* Goals Progress Chart */}
-                  {activeGoals.length > 0 && (
-                    <View style={styles.analyticsCard}>
-                      <Text style={styles.analyticsTitle}>Goals Progress</Text>
-                      <Text style={styles.analyticsSubtitle}>Progress per active goal</Text>
-                      <ProgressChart
-                        data={progressData}
-                        width={width - 64}
-                        height={180}
-                        strokeWidth={12}
-                        radius={32}
-                        chartConfig={{
-                          ...chartConfig,
-                          color: (opacity = 1, index = 0) => {
-                            const colors = ['rgba(13,71,161', 'rgba(34,197,94', 'rgba(245,166,35', 'rgba(239,68,68']
-                            return `${colors[index % colors.length]},${opacity})`
-                          }
-                        }}
-                        hideLegend={false}
-                        style={styles.chart}
-                      />
-                    </View>
-                  )}
-
-                  {/* Per Goal Analytics */}
-                  <View style={styles.analyticsCard}>
-                    <Text style={styles.analyticsTitle}>Goals Breakdown</Text>
-                    {goals.map(goal => (
-                      <View key={goal.id} style={styles.goalAnalyticsRow}>
-                        <View style={styles.goalAnalyticsLeft}>
-                          <Text style={styles.goalAnalyticsTitle} numberOfLines={1}>{goal.title}</Text>
-                          <Text style={styles.goalAnalyticsSub}>
-                            ₦{goal.currentAmount?.toLocaleString()} / ₦{goal.goalAmount?.toLocaleString()}
-                          </Text>
-                        </View>
-                        <View style={styles.goalAnalyticsRight}>
-                          <Text style={[styles.goalAnalyticsPercent, { color: getProgressColor(goal.progress) }]}>
-                            {goal.progress}%
-                          </Text>
-                          <View style={styles.goalMiniBar}>
-                            <View style={[styles.goalMiniBarFill, {
-                              width: `${Math.min(goal.progress, 100)}%`,
-                              backgroundColor: getProgressColor(goal.progress)
-                            }]} />
-                          </View>
-                        </View>
-                      </View>
-                    ))}
-                  </View>
-
-                  {/* Insights */}
-                  <View style={styles.analyticsCard}>
-                    <Text style={styles.analyticsTitle}>Savings Insights</Text>
-                    {[
-                      goals.find(g => g.progress >= 75) && {
-                        icon: '',
-                        text: `${goals.find(g => g.progress >= 75)?.title} is almost complete! Keep going!`,
-                        color: '#e8f5e9'
-                      },
-                      activeGoals.filter(g => g.autoDebitAmount > 0).length > 0 && {
-                        icon: 'repeat',
-                        text: `${activeGoals.filter(g => g.autoDebitAmount > 0).length} goal(s) are on auto-debit — great habit!`,
-                        color: '#e3f2fd'
-                      },
-                      totalSaved > 0 && {
-                        icon: 'trophy',
-                        text: `You've saved ₦${totalSaved.toLocaleString()} total across all goals. Amazing!`,
-                        color: '#fff3e0'
-                      },
-                      activeGoals.length === 0 && {
-                        icon: '',
-                        text: 'Create your first savings goal to start your savings journey!',
-                        color: '#f3e5f5'
-                      },
-                    ].filter(Boolean).map((insight: any, i) => (
-                      <View key={i} style={[styles.insightCard, { backgroundColor: insight.color }]}>
-                        {insight.icon ? <Ionicons name={insight.icon} size={20} color="#25427a" /> : null}
-                        <Text style={styles.insightText}>{insight.text}</Text>
-                      </View>
-                    ))}
-                  </View>
-                </>
-              )}
+          <View style={s.summary}>
+            <View style={[s.rowBetween, { alignItems: 'flex-start' }]}>
+              <View style={{ gap: 4 }}>
+                <Text style={s.eyebrow}>SAVED ACROSS GOALS</Text>
+                <Text style={s.total}>{naira(totalSaved)}</Text>
+              </View>
+              <Text style={s.bluePill}>{goals.filter(x => x.status !== 'WITHDRAWN').length} active</Text>
             </View>
-          )}
+            <View style={s.bars} accessibilityLabel="Saved per month, last six months">
+              {monthBars.map(b => (
+                <View key={`${b.y}-${b.m}`} style={s.barCol}>
+                  <View style={[s.bar, { height: b.h, backgroundColor: b.current ? ds.navy : ds.barSoft }]} />
+                  <Text style={[s.barLabel, b.current && { color: ds.ink, fontFamily: F.b }]}>{b.label}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
 
-          {/* GOALS TAB */}
-          {activeTab === 'goals' && (
-            <View>
-              <Text style={styles.tplHeading}>Get started with these plans</Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.tplRow}
-              >
+          {goals.length === 0 ? (
+            <>
+              <Text style={s.section}>Start with a plan</Text>
+              <View style={{ gap: 12 }}>
                 {PLAN_TEMPLATES.map(t => (
-                  <TouchableOpacity
-                    key={t.title}
-                    style={styles.tplCard}
-                    onPress={() => applyTemplate(t)}
-                    activeOpacity={0.85}
-                  >
-                    <View style={styles.tplIcon}>
-                      <Ionicons name={t.icon as any} size={18} color="#25427a" />
+                  <TouchableOpacity key={t.title} style={s.goal} onPress={() => applyTemplate(t)} activeOpacity={0.8}>
+                    <View style={[s.rowBetween, { gap: 10 }]}>
+                      <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
+                        <Text style={s.goalTitle} numberOfLines={1}>{t.title}</Text>
+                        <Text style={s.goalSub} numberOfLines={1}>Auto-save {naira(t.perDay)} daily · {t.sub}</Text>
+                      </View>
+                      <Icon name="plus" size={18} color={ds.navy} width={2.2} />
                     </View>
-                    <Text style={styles.tplTitle} numberOfLines={1}>{t.title}</Text>
-                    <Text style={styles.tplRate} numberOfLines={1}>
-                      ₦{t.perDay.toLocaleString()}/day
-                    </Text>
-                    <Text style={styles.tplSub} numberOfLines={1}>{t.sub}</Text>
                   </TouchableOpacity>
                 ))}
-              </ScrollView>
-              {goals.length === 0 ? (
-                <View style={styles.emptyState}>
-                  <Ionicons name="wallet-outline" size={48} color="#9aa5b8" />
-                  <Text style={styles.emptyText}>Start your first plan</Text>
-                  <Text style={styles.emptySubText}>Set a goal, save at your own pace, and watch your money grow</Text>
-                  <TouchableOpacity style={styles.createFirstBtn} onPress={() => setScreen('create')}>
-                    <Text style={styles.createFirstBtnText}>Create First Goal</Text>
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                goals.map(goal => (
-                  <View key={goal.id} style={styles.goalCard}>
-                    <View style={styles.goalHeader}>
-                      <View style={{ flex: 1 }}>
-                        <Text style={styles.goalTitle}>{goal.title}</Text>
-                        {goal.description ? <Text style={styles.goalDesc}>{goal.description}</Text> : null}
-                      </View>
-                      <View style={[styles.statusBadge, {
-                        backgroundColor: goal.status === 'COMPLETED' ? '#e8f5e9' : goal.status === 'WITHDRAWN' ? '#f5f5f5' : '#e3f2fd'
-                      }]}>
-                        <Text style={[styles.statusBadgeText, {
-                          color: goal.status === 'COMPLETED' ? '#22c55e' : goal.status === 'WITHDRAWN' ? '#888' : '#25427a'
-                        }]}>
-                          {goal.status === 'COMPLETED' ? 'Done' : goal.status === 'WITHDRAWN' ? 'Withdrawn' : 'Active'}
-                        </Text>
-                      </View>
-                    </View>
-
-                    <View style={styles.amountsRow}>
-                      {[
-                        { label: 'Saved', value: `₦${goal.currentAmount?.toLocaleString()}` },
-                        { label: 'Target', value: `₦${goal.goalAmount?.toLocaleString()}` },
-                        { label: 'Days Left', value: goal.daysLeft === 0 ? 'Done' : `${goal.daysLeft}d`, color: goal.daysLeft < 30 ? '#f5a623' : '#25427a' },
-                      ].map(item => (
-                        <View key={item.label} style={styles.amountBox}>
-                          <Text style={styles.amountBoxLabel}>{item.label}</Text>
-                          <Text style={[styles.amountBoxValue, item.color && { color: item.color }]}>{item.value}</Text>
-                        </View>
-                      ))}
-                    </View>
-
-                    <View style={styles.progressSection}>
-                      <View style={styles.progressRow}>
-                        <Text style={styles.progressLabel}>Progress</Text>
-                        <Text style={[styles.progressPercent, { color: getProgressColor(goal.progress) }]}>{goal.progress}%</Text>
-                      </View>
-                      <View style={styles.progressBar}>
-                        <View style={[styles.progressBarFill, {
-                          width: `${Math.min(goal.progress, 100)}%`,
-                          backgroundColor: getProgressColor(goal.progress)
-                        }]} />
-                      </View>
-                    </View>
-
-                    {goal.autoDebitAmount > 0 && (
-                      <View style={styles.autoDebitBadge}>
-                        <Text style={styles.autoDebitBadgeText}>
-                          Auto-saving ₦{goal.autoDebitAmount?.toLocaleString()} {goal.autoDebitFreq?.toLowerCase()}
-                        </Text>
-                      </View>
-                    )}
-
-                    <Text style={styles.targetDate}>
-                      Target: {new Date(goal.targetDate).toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' })}
-                    </Text>
-
-                    {!goal.canWithdrawFree && goal.status === 'ACTIVE' && (
-                      <View style={styles.penaltyWarning}>
-                        <Text style={styles.penaltyWarningText}>Early withdrawal: {goal.penaltyPercent}% penalty applies</Text>
-                      </View>
-                    )}
-
-                    {goal.status === 'ACTIVE' && (
-                      <View style={styles.actions}>
-                        <TouchableOpacity style={styles.depositBtn} onPress={() => { setSelectedGoal(goal); setScreen('deposit') }}>
-                          <Text style={styles.depositBtnText}>Add Money</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          style={[styles.withdrawBtn, !goal.canWithdrawFree && styles.withdrawBtnEarly]}
-                          onPress={() => handleWithdraw(goal)}
-                        >
-                          <Text style={[styles.withdrawBtnText, !goal.canWithdrawFree && { color: '#f5a623' }]}>
-                            {goal.canWithdrawFree ? 'Withdraw' : 'Early'}
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-                    )}
-
-                    {goal.status === 'COMPLETED' && (
-                      <TouchableOpacity style={styles.withdrawCompletedBtn} onPress={() => handleWithdraw(goal)}>
-                        <Text style={styles.withdrawCompletedBtnText}>Goal Reached! Withdraw Now</Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                ))
-              )}
-            </View>
+              </View>
+            </>
+          ) : (
+            <>
+              <Text style={s.section}>Your goals</Text>
+              <View style={{ gap: 12 }}>
+                {[...goals]
+                  .sort((a, b) => (a.status === 'WITHDRAWN' ? 1 : 0) - (b.status === 'WITHDRAWN' ? 1 : 0))
+                  .map(renderGoal)}
+              </View>
+            </>
           )}
-
-          <View style={{ height: 40 }} />
         </ScrollView>
       )}
       <BottomNav navigation={navigation} active="savings" />
     </View>
   )
 }
+
+const s = StyleSheet.create({
+  container: { flex: 1, backgroundColor: ds.bg },
+  rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  h1: { fontSize: 24, lineHeight: 29, color: ds.ink, fontFamily: F.x },
+  newGoal: { height: 44, paddingHorizontal: 16, borderRadius: 22, backgroundColor: ds.navy, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  newGoalText: { color: '#ffffff', fontSize: 14, lineHeight: 17, fontFamily: F.b },
+  summary: { backgroundColor: ds.card, borderWidth: 1, borderColor: ds.border, borderRadius: 20, padding: 18, gap: 14 },
+  eyebrow: { fontSize: 12, lineHeight: 15, color: ds.muted, fontFamily: F.b, letterSpacing: 0.6 },
+  total: { fontSize: 30, lineHeight: 37, color: ds.ink, fontFamily: F.x, letterSpacing: -0.4, ...tnum },
+  bluePill: { fontSize: 12, lineHeight: 15, color: ds.navy, fontFamily: F.b, backgroundColor: ds.blueSoft, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10, overflow: 'hidden' },
+  bars: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, height: 72 },
+  barCol: { flex: 1, alignItems: 'center', gap: 6 },
+  bar: { width: '100%', borderRadius: 6 },
+  barLabel: { fontSize: 10, lineHeight: 12, color: ds.muted, fontFamily: F.r },
+  section: { fontSize: 15, lineHeight: 18, color: ds.ink, fontFamily: F.x },
+  goal: { backgroundColor: ds.card, borderWidth: 1, borderColor: ds.border, borderRadius: 18, padding: 16, gap: 12 },
+  goalReached: { backgroundColor: ds.goldWash, borderColor: ds.goldLine },
+  goalTitle: { fontSize: 15, lineHeight: 18, color: ds.ink, fontFamily: F.b },
+  goalSub: { fontSize: 12, lineHeight: 15, color: ds.muted, fontFamily: F.r },
+  goalPct: { fontSize: 12, lineHeight: 15, color: ds.hero, fontFamily: F.x, ...tnum },
+  track: { height: 8, borderRadius: 4, backgroundColor: ds.divider, overflow: 'hidden' },
+  fill: { height: 8, borderRadius: 4, backgroundColor: ds.navy },
+  goalSaved: { fontSize: 13, lineHeight: 16, color: ds.ink, fontFamily: F.x, ...tnum },
+  goalOf: { fontSize: 13, lineHeight: 16, color: ds.muted, fontFamily: F.r, ...tnum },
+  withdrawBtn: { height: 40, paddingHorizontal: 16, borderRadius: 12, backgroundColor: ds.gold, alignItems: 'center', justifyContent: 'center' },
+  withdrawText: { color: ds.hero, fontSize: 13, lineHeight: 16, fontFamily: F.x },
+})
 
 const styles = StyleSheet.create({
   tplHeading: { fontSize: 13, fontWeight: '700', color: '#1a2b4a', marginHorizontal: 14, marginTop: 4, marginBottom: 10 },

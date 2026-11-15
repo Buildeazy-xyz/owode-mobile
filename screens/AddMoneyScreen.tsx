@@ -4,33 +4,27 @@ import {
   Share, Alert,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Icon from '../components/Icon';
+import { F, ds, tnum } from '../constants/theme';
 import * as Clipboard from 'expo-clipboard';
 import { formatAccountNumber, hasProvisionedAccount } from '../utils/account';
 import OwodeLoader from '../components/OwodeLoader'
 import api from '../utils/api'
 
-const C = {
-  bg: '#0a0e1a',
-  card: '#111827',
-  primary: '#25427a',
-  gold: '#f5a623',
-  goldLight: '#fef3c7',
-  white: '#ffffff',
-  text: '#ffffff',
-  muted: '#6b7280',
-  border: '#1e293b',
-};
-
 export default function AddMoneyScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
+  const insets = useSafeAreaInsets();
   const [copying, setCopying] = useState(false);
 
-  const [accountNumber, setAccountNumber] = useState(route.params?.accountNumber ?? '');
+  // Only ever show a number the bank issued. Never pre-fill from the phone:
+  // a phone-derived 10-digit number looks like a real account, and a customer
+  // could send real money to a stranger's account at that bank.
+  const [accountNumber, setAccountNumber] = useState('');
   const [accountName, setAccountName] = useState(route.params?.accountName ?? '');
+  const [bankName, setBankName] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const bankName = 'Providus Bank';
 
   // Fetch (or create) this customer's dedicated funding account.
   const loadAccount = useCallback(async () => {
@@ -38,9 +32,10 @@ export default function AddMoneyScreen() {
       setIsLoading(true);
       const res = await api.post('/providus/account');
       const d = res.data?.data;
-      if (d?.accountNumber) {
+      if (d?.accountNumber && d?.bankName) {
         setAccountNumber(d.accountNumber);
         setAccountName(d.accountName || '');
+        setBankName(d.bankName);
       }
     } catch {
       // Leave the screen in its not-ready state; the retry button handles it.
@@ -80,11 +75,12 @@ export default function AddMoneyScreen() {
     } catch {}
   }, [accountNumber, accountName, bankName, ready]);
 
+  // ─── OWODE Alajo Redesign "Add money" board ──────────────────────────
   const renderCard = () => {
     if (isLoading) {
       return (
         <View style={[styles.card, styles.cardCentered]}>
-          <OwodeLoader color={C.gold} size="large" />
+          <OwodeLoader color={ds.gold} size="large" />
           <Text style={styles.phText}>Loading your account details...</Text>
         </View>
       );
@@ -92,41 +88,43 @@ export default function AddMoneyScreen() {
     if (!ready) {
       return (
         <View style={[styles.card, styles.cardCentered]}>
-          <View style={styles.loadingIconWrap}>
-            <Ionicons name="hourglass-outline" size={36} color={C.gold} />
-          </View>
           <Text style={styles.phTitle}>Setting up your account number...</Text>
           <Text style={styles.phText}>
-            Your dedicated account is being created. This usually takes under a minute.
+            Your partner bank is creating your number. This usually takes under a minute.
           </Text>
-          <TouchableOpacity style={styles.retry} onPress={loadAccount} activeOpacity={0.8}>
-            <Ionicons name="refresh-outline" size={16} color={C.gold} />
-            <Text style={styles.retryText}>Check again</Text>
+          <TouchableOpacity style={styles.outlineBtn} onPress={loadAccount} activeOpacity={0.8}>
+            <Icon name="refresh" size={18} color="#ffffff" width={2} />
+            <Text style={styles.outlineText}>Check again</Text>
           </TouchableOpacity>
         </View>
       );
     }
     return (
       <View style={styles.card}>
-        <View style={styles.cardHeader}>
+        <View style={styles.rowBetween}>
           <Text style={styles.cardLabel}>YOUR ACCOUNT NUMBER</Text>
-          <View style={styles.liveDot} />
+          <Text style={styles.onlyYou}>Only for you</Text>
         </View>
-        <Text style={styles.acct} numberOfLines={1}>{displayNumber}</Text>
+        <Text style={styles.acct} numberOfLines={1} adjustsFontSizeToFit>{displayNumber}</Text>
         <View style={styles.divider} />
-        <View style={styles.metaRow}>
-          <Text style={styles.metaText} numberOfLines={1}>{bankName}</Text>
-          <View style={styles.metaDot} />
-          <Text style={styles.metaText} numberOfLines={1}>{accountName}</Text>
+        <View style={{ gap: 6 }}>
+          <View style={styles.rowBetween}>
+            <Text style={styles.metaKey}>Bank</Text>
+            <Text style={styles.metaVal} numberOfLines={1}>{bankName}</Text>
+          </View>
+          <View style={styles.rowBetween}>
+            <Text style={styles.metaKey}>Account name</Text>
+            <Text style={styles.metaVal} numberOfLines={1}>{accountName}</Text>
+          </View>
         </View>
-        <View style={styles.actionRow}>
-          <TouchableOpacity style={styles.action} onPress={handleCopy} disabled={copying} activeOpacity={0.8}>
-            <Ionicons name="copy-outline" size={20} color={C.gold} />
-            <Text style={styles.actionText} numberOfLines={1}>Copy</Text>
+        <View style={{ flexDirection: 'row', gap: 10 }}>
+          <TouchableOpacity style={styles.goldBtn} onPress={handleCopy} disabled={copying} activeOpacity={0.85}>
+            <Icon name="copy" size={18} color={ds.hero} width={2} />
+            <Text style={styles.goldText}>Copy</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.action, styles.actionLast]} onPress={handleShare} activeOpacity={0.8}>
-            <Ionicons name="share-social-outline" size={20} color={C.gold} />
-            <Text style={styles.actionText} numberOfLines={1}>Share</Text>
+          <TouchableOpacity style={styles.outlineBtn} onPress={handleShare} activeOpacity={0.85}>
+            <Icon name="share" size={18} color="#ffffff" width={2} />
+            <Text style={styles.outlineText}>Share</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -135,27 +133,37 @@ export default function AddMoneyScreen() {
 
   return (
     <View style={styles.screen}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{top:12,bottom:12,left:12,right:12}} activeOpacity={0.7}>
-          <View style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={22} color={C.text} />
-          </View>
+      <View style={[styles.header, { paddingTop: insets.top + 18 }]}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} accessibilityLabel="Back" activeOpacity={0.7}>
+          <Icon name="back" size={20} color={ds.ink} width={2} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>Add money</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('HelpSupport')} activeOpacity={0.7}>
-          <Ionicons name="help-circle-outline" size={22} color={C.muted} />
-        </TouchableOpacity>
+        <Text style={styles.h1} numberOfLines={1}>Add money</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.glowWrap}>
-          {renderCard()}
+        <Text style={styles.intro}>
+          Transfer from any Nigerian bank app to the account below. Your OWODE wallet is credited as soon as the bank confirms.
+        </Text>
+
+        {renderCard()}
+
+        <View style={styles.other}>
+          <Text style={styles.otherTitle}>Other ways to add money</Text>
+          <View style={styles.otherRow}>
+            <View style={styles.otherTile}>
+              <Icon name="profile" size={20} color={ds.navy} />
+            </View>
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text style={styles.otherName}>Pay cash to your OWODE agent</Text>
+              <Text style={styles.otherSub}>You get a receipt in the app for every payment</Text>
+            </View>
+          </View>
         </View>
 
-        <View style={styles.infoCard}>
-          <Ionicons name="lock-closed-outline" size={18} color={C.gold} />
-          <Text style={styles.infoText}>
-            Transfers are instant and free. Funds reflect within seconds.
+        <View style={styles.note}>
+          <Icon name="shield" size={18} color={ds.muted} width={2} />
+          <Text style={styles.noteText}>
+            This number is created for you by our partner bank. If it hasn't appeared yet, wait a moment. Never send money to a number that isn't shown here.
           </Text>
         </View>
       </ScrollView>
@@ -164,34 +172,36 @@ export default function AddMoneyScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: C.bg },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 14, minHeight: 56, backgroundColor: C.bg },
-  backBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#1e293b', justifyContent: 'center', alignItems: 'center' },
-  headerTitle: { flex: 1, flexShrink: 1, textAlign: 'center', fontSize: 18, fontWeight: '700', color: C.text, letterSpacing: 0.5 },
-  content: { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 40 },
+  screen: { flex: 1, backgroundColor: ds.bg },
+  rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  header: { paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  backBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: ds.card, borderWidth: 1, borderColor: ds.border, alignItems: 'center', justifyContent: 'center' },
+  h1: { fontSize: 20, lineHeight: 24, color: ds.ink, fontFamily: F.x },
+  content: { paddingTop: 22, paddingHorizontal: 20, paddingBottom: 40, gap: 16 },
+  intro: { fontSize: 14, lineHeight: 21, color: ds.inkSoft, fontFamily: F.r },
 
-  glowWrap: { marginBottom: 24 },
-  card: { backgroundColor: C.card, borderRadius: 24, padding: 28, borderWidth: 1, borderColor: C.border, shadowColor: '#f5a623', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.15, shadowRadius: 30, elevation: 10 },
-  cardCentered: { alignItems: 'center', justifyContent: 'center', minHeight: 200 },
-  cardHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
-  cardLabel: { fontSize: 11, fontWeight: '700', color: C.muted, letterSpacing: 2, textTransform: 'uppercase' },
-  liveDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#f5a623' },
-  acct: { fontSize: 32, fontWeight: '800', color: C.gold, letterSpacing: 3 },
-  divider: { height: 1, backgroundColor: C.border, marginVertical: 16 },
-  metaRow: { flexDirection: 'row', alignItems: 'center', minHeight: 20 },
-  metaText: { flexShrink: 1, fontSize: 14, lineHeight: 20, color: '#9ca3af' },
-  metaDot: { width: 3, height: 3, borderRadius: 2, backgroundColor: C.muted, marginHorizontal: 8 },
-  actionRow: { flexDirection: 'row', marginTop: 24, gap: 10 },
-  action: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#1e293b', borderRadius: 14, paddingVertical: 14, minHeight: 50, borderWidth: 1, borderColor: C.border },
-  actionLast: { flex: 1 },
-  actionText: { flexShrink: 1, marginLeft: 8, fontSize: 14, fontWeight: '700', color: C.gold },
+  card: { backgroundColor: ds.hero, borderRadius: 22, padding: 22, gap: 16 },
+  cardCentered: { alignItems: 'center', justifyContent: 'center', minHeight: 220 },
+  cardLabel: { fontSize: 12, lineHeight: 15, color: ds.onHero, fontFamily: F.b, letterSpacing: 0.6 },
+  onlyYou: { fontSize: 11, lineHeight: 13, color: ds.hero, fontFamily: F.b, backgroundColor: ds.gold, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10, overflow: 'hidden' },
+  acct: { fontSize: 34, lineHeight: 41, color: '#ffffff', fontFamily: F.x, letterSpacing: 2, ...tnum },
+  divider: { height: 1, backgroundColor: ds.heroLine },
+  metaKey: { fontSize: 14, lineHeight: 17, color: ds.onHero, fontFamily: F.r },
+  metaVal: { flexShrink: 1, fontSize: 14, lineHeight: 17, color: '#ffffff', fontFamily: F.b, textAlign: 'right' },
+  goldBtn: { flex: 1, height: 48, borderRadius: 14, backgroundColor: ds.gold, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  goldText: { color: ds.hero, fontSize: 15, lineHeight: 18, fontFamily: F.x },
+  outlineBtn: { flex: 1, minHeight: 48, paddingHorizontal: 18, borderRadius: 14, borderWidth: 1, borderColor: ds.heroBtn, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  outlineText: { color: '#ffffff', fontSize: 15, lineHeight: 18, fontFamily: F.b },
+  phTitle: { fontSize: 16, lineHeight: 20, color: '#ffffff', fontFamily: F.x, textAlign: 'center' },
+  phText: { fontSize: 13, lineHeight: 20, color: ds.onHero, fontFamily: F.r, textAlign: 'center' },
 
-  loadingIconWrap: { width: 64, height: 64, borderRadius: 32, backgroundColor: '#1e293b', alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
-  phTitle: { marginTop: 12, fontSize: 15, fontWeight: '700', color: C.text, textAlign: 'center' },
-  phText: { marginTop: 6, fontSize: 13, lineHeight: 20, color: C.muted, textAlign: 'center' },
-  retry: { flexDirection: 'row', alignItems: 'center', marginTop: 24, paddingHorizontal: 24, paddingVertical: 10, borderRadius: 12, backgroundColor: '#1e293b', borderWidth: 1, borderColor: C.border, minHeight: 44 },
-  retryText: { flexShrink: 1, marginLeft: 8, fontSize: 14, fontWeight: '700', color: C.gold },
+  other: { backgroundColor: ds.card, borderWidth: 1, borderColor: ds.border, borderRadius: 18, padding: 16, gap: 14 },
+  otherTitle: { fontSize: 14, lineHeight: 17, color: ds.ink, fontFamily: F.x },
+  otherRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  otherTile: { width: 40, height: 40, borderRadius: 12, backgroundColor: ds.blueSoft, alignItems: 'center', justifyContent: 'center' },
+  otherName: { fontSize: 14, lineHeight: 17, color: ds.ink, fontFamily: F.b },
+  otherSub: { fontSize: 12, lineHeight: 15, color: ds.muted, fontFamily: F.r },
 
-  infoCard: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: '#111827', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: C.border, gap: 10 },
-  infoText: { flex: 1, flexShrink: 1, fontSize: 13, lineHeight: 19, color: '#9ca3af' },
+  note: { flexDirection: 'row', gap: 10, alignItems: 'flex-start', paddingHorizontal: 4 },
+  noteText: { flex: 1, fontSize: 12, lineHeight: 18, color: ds.muted, fontFamily: F.r },
 });

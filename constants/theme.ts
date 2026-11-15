@@ -84,4 +84,43 @@ export const divider = {
   borderBottomColor: colors.track,
 }
 
-export default { colors, spacing, radius, font, shadow, card, sectionTitle, listRow, divider }
+// ─── 2026 redesign tokens (OWODE Alajo Redesign canvas) ───────────────
+// Manrope families: on Android a custom font ignores fontWeight, so each
+// weight is its own family. Use F.x for 800, F.b for 700 and so on.
+export const F = {
+  r: 'Manrope_400Regular',
+  m: 'Manrope_500Medium',
+  s: 'Manrope_600SemiBold',
+  b: 'Manrope_700Bold',
+  x: 'Manrope_800ExtraBold',
+}
+
+export const ds = {
+  bg:        '#f4f6fb',
+  card:      '#ffffff',
+  border:    '#e3e8f1',
+  divider:   '#eef1f6',
+  hero:      '#14244a',   // balance card, Ajo header
+  heroLine:  '#2c447a',   // divider and ring track on hero
+  heroBtn:   '#3d5486',   // outline button border on hero
+  heroChip:  '#22376a',   // back button on hero
+  navy:      '#25427a',   // primary buttons
+  ink:       '#1a2b4a',   // text
+  inkSoft:   '#3a4d72',
+  muted:     '#5b6b88',
+  onHero:    '#c3cde3',
+  gold:      '#f5a623',   // the one primary action per screen
+  goldSoft:  '#fff4e0',
+  goldWash:  '#fff8ea',
+  goldLine:  '#f6dfae',
+  goldInk:   '#8a5a00',
+  goldInk2:  '#6e4a00',
+  blueSoft:  '#eaf2ff',
+  barSoft:   '#d6e2f7',
+  danger:    '#c62828',
+  dangerSoft:'#fdecec',
+}
+
+export const tnum = { fontVariant: ['tabular-nums' as const] }
+
+export default { colors, spacing, radius, font, shadow, card, sectionTitle, listRow, divider, F, ds }

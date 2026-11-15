@@ -367,7 +367,7 @@ export default function WalletScreen({ navigation }: any) {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionBtn}
-              onPress={() => Alert.alert('Coming Soon', 'Bank withdrawal will be available after Providus Bank integration!')}
+              onPress={() => Alert.alert('Coming Soon', 'Withdrawal to your bank account is coming soon.')}
             >
               <View style={styles.actionIconBg}>
                 <Ionicons name='cash' size={23} color='#ef6c00' />

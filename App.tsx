@@ -4,6 +4,10 @@ import { AuthProvider, useAuth } from './context/AuthContext'
 import AppNavigator from './navigation/AppNavigator'
 import SplashScreenComponent from './components/SplashScreenComponent'
 import { registerForPushNotifications, setupBackgroundNotifications } from './utils/notifications'
+import {
+  useFonts, Manrope_400Regular, Manrope_500Medium, Manrope_600SemiBold,
+  Manrope_700Bold, Manrope_800ExtraBold,
+} from '@expo-google-fonts/manrope'
 
 function AppContent() {
   const { user } = useAuth()
@@ -23,7 +27,13 @@ function AppContent() {
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(true)
-  if (showSplash) {
+  // Fonts load from the app bundle while the splash plays. If they ever fail,
+  // carry on with the system font rather than blocking the app.
+  const [fontsLoaded, fontError] = useFonts({
+    Manrope_400Regular, Manrope_500Medium, Manrope_600SemiBold,
+    Manrope_700Bold, Manrope_800ExtraBold,
+  })
+  if (showSplash || (!fontsLoaded && !fontError)) {
     return <SplashScreenComponent onFinish={() => setShowSplash(false)} />
   }
   return (

@@ -1,7 +1,7 @@
 import axios from 'axios'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
-const BASE_URL = 'https://owode-platform.onrender.com/api'
+const BASE_URL = 'https://api.owodealajo.com/api'
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -64,10 +64,6 @@ export const walletAPI = {
   getBalance: () => api.get('/wallet/balance'),
   getTransactions: (params?: { from?: string; to?: string; type?: string }) =>
     api.get('/wallet/transactions', { params }),
-  credit: (amount: number, description: string) =>
-    api.post('/wallet/credit', { amount, description }),
-  debit: (amount: number, description: string) =>
-    api.post('/wallet/debit', { amount, description }),
   transfer: (recipientPhone: string, amount: number, description: string, transactionPin: string, location?: { latitude: number; longitude: number } | null) =>
     api.post('/wallet/transfer', { recipientPhone, amount, description, transactionPin, location })
 }

@@ -1,5 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ScrollView, KeyboardAvoidingView, Platform } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ScrollView, Keyboard } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import Icon from '../components/Icon'
+import { F, ds, tnum } from '../constants/theme'
+import { commas, naira } from '../utils/ajoDue'
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import AsyncStorage from '@react-native-async-storage/async-storage'
@@ -13,6 +17,9 @@ import { getTransactionLocation } from '../utils/location'
 
 export default function TransferScreen({ navigation }: any) {
   const { user } = useAuth()
+  const insets = useSafeAreaInsets()
+  const [walletBalance, setWalletBalance] = useState<number | null>(null)
+  const [kbOpen, setKbOpen] = useState(false)
   const [recipientPhone, setRecipientPhone] = useState('')
   const [amount, setAmount] = useState('')
   const [description, setDescription] = useState('')
@@ -22,6 +29,16 @@ export default function TransferScreen({ navigation }: any) {
   const [recipientName, setRecipientName] = useState('')
   const [lookingUp, setLookingUp] = useState(false)
   const [lookupError, setLookupError] = useState('')
+
+  useEffect(() => {
+    walletAPI.getBalance()
+      .then(r => setWalletBalance(Number(r.data?.data?.balance || 0)))
+      .catch(() => {})
+    // The on-screen keypad hides while the phone keyboard is up so they never overlap.
+    const show = Keyboard.addListener('keyboardDidShow', () => setKbOpen(true))
+    const hide = Keyboard.addListener('keyboardDidHide', () => setKbOpen(false))
+    return () => { show.remove(); hide.remove() }
+  }, [])
 
   useEffect(() => {
     AsyncStorage.getItem('recent_recipients')
@@ -76,7 +93,10 @@ export default function TransferScreen({ navigation }: any) {
     const timer = setTimeout(async () => {
       try {
         const res = await authAPI.lookupRecipient(digits)
-        if (!cancelled) setRecipientName(res.data?.data?.fullName || '')
+        if (!cancelled) {
+          setRecipientName(res.data?.data?.fullName || '')
+          if (res.data?.data?.fullName) Keyboard.dismiss()
+        }
       } catch (e: any) {
         if (!cancelled) {
           const status = e?.response?.status
@@ -113,12 +133,12 @@ export default function TransferScreen({ navigation }: any) {
       Alert.alert('Amount needed', 'Enter how much you want to send.')
       return
     }
-    if (!description) {
-      Alert.alert('Description needed', 'Add a short note, for example "Food money".')
-      return
-    }
     if (Number(amount) < 100) {
       Alert.alert('Error', 'Minimum transfer amount is ₦100')
+      return
+    }
+    if (walletBalance !== null && Number(amount) > walletBalance) {
+      Alert.alert('Not enough money', `Your wallet balance is ${naira(walletBalance)}.`)
       return
     }
     if (!user?.hasTransactionPin) {
@@ -162,7 +182,7 @@ export default function TransferScreen({ navigation }: any) {
       const response = await walletAPI.transfer(
         sendTo,
         Number(amount),
-        description,
+        description.trim() || 'Wallet transfer',
         transactionPin,
         location
       )
@@ -189,7 +209,7 @@ export default function TransferScreen({ navigation }: any) {
 
   if (step === 'pin') {
     return (
-      <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={{ flex: 1 }}>
+      <LinearGradient colors={[ds.hero, ds.hero]} style={{ flex: 1 }}>
         <PinKeypad
           title="Transaction PIN"
           subtitle={`Authorizing ₦${Number(amount).toLocaleString()} transfer`}
@@ -206,180 +226,150 @@ export default function TransferScreen({ navigation }: any) {
     )
   }
 
+  // ─── Form — OWODE Alajo Redesign "Send money" board ──────────────────
+  const pressKey = (k: string) => {
+    Keyboard.dismiss()
+    if (k === 'del') { setAmount(prev => prev.slice(0, -1)); return }
+    setAmount(prev => {
+      if (!prev && (k === '0' || k === '00')) return prev
+      const next = prev + k
+      return next.length > 9 ? prev : next
+    })
+  }
+
+  // 08034127781 -> "0803 412 7781", the way people read numbers out
+  const spacedPhone = (d: string) =>
+    [d.slice(0, 4), d.slice(4, 7), d.slice(7, 11)].filter(Boolean).join(' ')
+
+  const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '00', '0', 'del']
+  const canPay = !!user?.hasTransactionPin
+
+  if (loading) {
+    return (
+      <View style={[t.screen, { justifyContent: 'center', alignItems: 'center' }]}>
+        <OwodeLoader size="large" fullscreen color={ds.navy} />
+        <Text style={t.loadingText}>Processing transfer...</Text>
+      </View>
+    )
+  }
+
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={22} color="#f5a623" />
+    <View style={t.screen}>
+      <View style={[t.header, { paddingTop: insets.top + 18 }]}>
+        <TouchableOpacity style={t.backBtn} onPress={() => navigation.goBack()} accessibilityLabel="Back">
+          <Icon name="back" size={20} color={ds.ink} width={2} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Send Money</Text>
-        <Text style={styles.headerSubtitle}>Transfer to any OWODE user instantly</Text>
-      </LinearGradient>
+        <Text style={t.h1}>Send money</Text>
+      </View>
 
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <OwodeLoader size="large" fullscreen color="#25427a" />
-          <Text style={styles.loadingText}>Processing transfer...</Text>
-        </View>
-      ) : (
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          {recents.length > 0 && (
-            <View style={styles.card}>
-              <Text style={styles.label}>Recent recipients</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 14, paddingTop: 4 }}>
-                {recents.map((r: any) => (
-                  <TouchableOpacity key={r.phone} style={styles.recentItem} onPress={() => setRecipientPhone(r.phone)}>
-                    <View style={styles.recentAvatar}>
-                      <Text style={styles.recentAvatarText}>{(r.name || '?').charAt(0).toUpperCase()}</Text>
-                    </View>
-                    <Text style={styles.recentName} numberOfLines={1}>{(r.name || r.phone).split(' ')[0]}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-          )}
-
-          <View style={styles.card}>
-            <Text style={styles.label}>Recipient Phone Number</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="08012345678"
-              placeholderTextColor="#9aa5b8"
-              value={recipientPhone}
-              onChangeText={setRecipientPhone}
-              keyboardType="phone-pad"
-              maxLength={11}
-            />
-
-            {lookingUp ? (
-              <View style={styles.lookupRow}>
-                <OwodeLoader size="small" color="#25427a" />
-                <Text style={styles.lookupText} numberOfLines={1}>Checking account...</Text>
-              </View>
-            ) : recipientName ? (
-              <View style={styles.lookupOk}>
-                <Ionicons name="checkmark-circle" size={18} color="#22c55e" />
-                <Text style={styles.lookupOkText} numberOfLines={1}>{recipientName}</Text>
-              </View>
-            ) : lookupError ? (
-              <View style={styles.lookupBad}>
-                <Ionicons name="alert-circle" size={18} color="#ef4444" />
-                <Text style={styles.lookupBadText} numberOfLines={2}>{lookupError}</Text>
-              </View>
-            ) : null}
+      <View style={t.recipientBlock}>
+        <Text style={t.eyebrow}>RECIPIENT'S OWODE PHONE NUMBER</Text>
+        <TextInput
+          style={[t.input, recipientPhone ? t.inputOn : null]}
+          placeholder="08012345678"
+          placeholderTextColor="#9aa5b8"
+          value={spacedPhone(recipientPhone)}
+          onChangeText={v => setRecipientPhone(v.replace(/\D/g, '').slice(0, 11))}
+          keyboardType="phone-pad"
+          maxLength={13}
+        />
+        {lookingUp ? (
+          <View style={t.chip}>
+            <OwodeLoader size="small" color={ds.navy} />
+            <Text style={t.chipSub}>Checking account...</Text>
           </View>
-
-          <View style={styles.card}>
-            <Text style={styles.label}>Amount (₦)</Text>
-            <TextInput
-              style={styles.amountInput}
-              placeholder="0.00"
-              placeholderTextColor="#9aa5b8"
-              value={amount}
-              onChangeText={setAmount}
-              keyboardType="numeric"
-            />
-            <Text style={styles.quickLabel}>Quick Select</Text>
-            <View style={styles.quickRow}>
-              {quickAmounts.map(q => (
-                <TouchableOpacity
-                  key={q}
-                  style={[styles.quickBtn, amount === String(q) && styles.quickBtnActive]}
-                  onPress={() => setAmount(String(q))}
-                >
-                  <Text style={[styles.quickBtnText, amount === String(q) && styles.quickBtnTextActive]}>
-                    ₦{q.toLocaleString()}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+        ) : recipientName ? (
+          <View style={t.chip}>
+            <Icon name="checkCircle" size={20} color={ds.navy} width={2} />
+            <View style={{ flex: 1, gap: 1 }}>
+              <Text style={t.chipName} numberOfLines={1}>{recipientName}</Text>
+              <Text style={t.chipSub}>Name confirmed by OWODE</Text>
             </View>
           </View>
-
-          <View style={styles.card}>
-            <Text style={styles.label}>Description</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="What is this for?"
-              placeholderTextColor="#9aa5b8"
-              value={description}
-              onChangeText={setDescription}
-            />
+        ) : lookupError ? (
+          <View style={[t.chip, { backgroundColor: ds.dangerSoft }]}>
+            <Icon name="alert" size={20} color={ds.danger} width={2} />
+            <Text style={[t.chipSub, { color: ds.danger, flex: 1 }]} numberOfLines={2}>{lookupError}</Text>
           </View>
-
-          {/* Transaction PIN warning */}
-          {!user?.hasTransactionPin && (
-            <View style={styles.pinWarning}>
-              <Text style={styles.pinWarningText}>
-                ⚠️ You need to set a Transaction PIN before making transfers!
-              </Text>
-              <TouchableOpacity
-                style={styles.pinWarningBtn}
-                onPress={() => navigation.navigate('SetTransactionPin')}
-              >
-                <Text style={styles.pinWarningBtnText}>Set PIN Now</Text>
+        ) : !recipientPhone && recents.length > 0 ? (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }} keyboardShouldPersistTaps="handled">
+            {recents.map((r: any) => (
+              <TouchableOpacity key={r.phone} style={t.recent} onPress={() => setRecipientPhone(r.phone)}>
+                <Text style={t.recentText} numberOfLines={1}>{(r.name || r.phone).split(' ')[0]}</Text>
               </TouchableOpacity>
-            </View>
-          )}
+            ))}
+          </ScrollView>
+        ) : null}
+      </View>
 
-          <TouchableOpacity
-            style={[styles.sendButton, !user?.hasTransactionPin && styles.sendButtonDisabled]}
-            onPress={handleContinue}
-            disabled={loading || !user?.hasTransactionPin}
-          >
-            <Text style={styles.sendButtonText}>Send Money</Text>
-            {amount ? (
-              <Text style={styles.sendButtonAmount}>₦{Number(amount).toLocaleString()}</Text>
-            ) : null}
-          </TouchableOpacity>
+      <View style={t.amountBlock}>
+        <Text style={t.eyebrow}>AMOUNT</Text>
+        <View style={t.amountRow}>
+          <Text style={t.amountSym}>₦</Text>
+          <Text style={[t.amount, !amount && { color: '#9aa5b8' }]}>{amount ? commas(Number(amount)) : '0'}</Text>
+        </View>
+        <Text style={t.balance}>
+          {walletBalance === null ? ' ' : `Wallet balance ${naira(walletBalance)}`}
+        </Text>
+      </View>
 
-          <Text style={styles.disclaimer}>
-            Transfers are instant and secured by OWODE's double-entry ledger system
-          </Text>
-        </ScrollView>
+      <View style={{ flex: 1 }} />
+
+      {!kbOpen && (
+        <View style={t.pad}>
+          {keys.map(k => (
+            <TouchableOpacity
+              key={k}
+              style={t.key}
+              onPress={() => pressKey(k)}
+              onLongPress={k === 'del' ? () => setAmount('') : undefined}
+              activeOpacity={0.6}
+              accessibilityLabel={k === 'del' ? 'Delete' : k}
+            >
+              {k === 'del'
+                ? <Icon name="backspace" size={24} color={ds.ink} />
+                : <Text style={t.keyText}>{k}</Text>}
+            </TouchableOpacity>
+          ))}
+        </View>
       )}
-    </KeyboardAvoidingView>
+
+      <View style={{ paddingTop: 16, paddingHorizontal: 20, paddingBottom: Math.max(insets.bottom + 12, 28) }}>
+        <TouchableOpacity
+          style={t.cta}
+          onPress={canPay ? handleContinue : () => navigation.navigate('SetTransactionPin')}
+          activeOpacity={0.85}
+        >
+          <Text style={t.ctaText}>{canPay ? 'Continue — enter PIN' : 'Set your transaction PIN first'}</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   )
 }
 
-const styles = StyleSheet.create({
-  lookupRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10, minHeight: 24 },
-  lookupText: { flexShrink: 1, fontSize: 13, color: '#7c8aa5' },
-  lookupOk: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10, backgroundColor: '#e9f9ef', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, minHeight: 40 },
-  lookupOkText: { flex: 1, flexShrink: 1, fontSize: 14, fontWeight: '700', color: '#1a2b4a' },
-  lookupBad: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10, backgroundColor: '#fdecec', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, minHeight: 40 },
-  lookupBadText: { flex: 1, flexShrink: 1, fontSize: 13, color: '#ef4444' },
-  recentItem: { alignItems: 'center', width: 58 },
-  recentAvatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: '#25427a', justifyContent: 'center', alignItems: 'center', marginBottom: 5 },
-  recentAvatarText: { color: '#fff', fontSize: 18, fontWeight: '700' },
-  recentName: { fontSize: 11, color: '#7c8aa5', textAlign: 'center' },
-  container: { flex: 1, backgroundColor: '#f4f6fb' },
-  header: { padding: 24, paddingTop: 60, paddingBottom: 30 },
-  back: { color: '#f5a623', fontSize: 16, marginBottom: 16 },
-  headerTitle: { color: '#fff', fontSize: 24, fontWeight: 'bold' },
-  headerSubtitle: { color: 'rgba(255,255,255,0.7)', fontSize: 14, marginTop: 4 },
-  content: { flex: 1, padding: 16 },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  loadingText: { color: '#25427a', fontSize: 16, marginTop: 16, fontWeight: '600' },
-  card: { backgroundColor: '#fff', borderRadius: 16, padding: 20, marginBottom: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
-  label: { fontSize: 14, fontWeight: '600', color: '#25427a', marginBottom: 12 },
-  input: { backgroundColor: '#f4f6fb', borderRadius: 12, padding: 16, fontSize: 16, color: '#1a2b4a' },
-  amountInput: { backgroundColor: '#f4f6fb', borderRadius: 12, padding: 16, fontSize: 28, fontWeight: 'bold', color: '#25427a', textAlign: 'center', marginBottom: 16 },
-  quickLabel: { fontSize: 12, color: '#7c8aa5', marginBottom: 8 },
-  quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  quickBtn: { backgroundColor: '#f4f6fb', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 },
-  quickBtnActive: { backgroundColor: '#25427a' },
-  quickBtnText: { fontSize: 13, color: '#1a2b4a', fontWeight: '600' },
-  quickBtnTextActive: { color: '#fff' },
-  pinWarning: { backgroundColor: '#fff3e0', borderRadius: 16, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: '#f5a623' },
-  pinWarningText: { fontSize: 13, color: '#f5a623', marginBottom: 12 },
-  pinWarningBtn: { backgroundColor: '#f5a623', borderRadius: 10, padding: 12, alignItems: 'center' },
-  pinWarningBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
-  sendButton: { backgroundColor: '#25427a', borderRadius: 16, padding: 20, alignItems: 'center', marginBottom: 16 },
-  sendButtonDisabled: { backgroundColor: '#e6eaf2' },
-  sendButtonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-  sendButtonAmount: { color: 'rgba(255,255,255,0.8)', fontSize: 14, marginTop: 4 },
-  disclaimer: { textAlign: 'center', color: '#7c8aa5', fontSize: 12, marginBottom: 40, lineHeight: 20 }
+const t = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: '#ffffff' },
+  header: { paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  backBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: ds.bg, alignItems: 'center', justifyContent: 'center' },
+  h1: { fontSize: 20, lineHeight: 24, color: ds.ink, fontFamily: F.x },
+  recipientBlock: { paddingTop: 22, paddingHorizontal: 20, gap: 14 },
+  eyebrow: { fontSize: 12, lineHeight: 15, color: ds.muted, fontFamily: F.b, letterSpacing: 0.6 },
+  input: { height: 52, borderRadius: 14, borderWidth: 1.5, borderColor: ds.border, paddingHorizontal: 16, fontSize: 17, lineHeight: 21, fontFamily: F.b, color: ds.ink, ...tnum },
+  inputOn: { borderColor: ds.navy },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: ds.blueSoft, borderRadius: 14, paddingVertical: 12, paddingHorizontal: 14, minHeight: 48 },
+  chipName: { fontSize: 15, lineHeight: 18, color: ds.ink, fontFamily: F.x },
+  chipSub: { fontSize: 12, lineHeight: 15, color: ds.inkSoft, fontFamily: F.r },
+  recent: { height: 36, paddingHorizontal: 14, borderRadius: 18, backgroundColor: ds.bg, alignItems: 'center', justifyContent: 'center' },
+  recentText: { fontSize: 13, lineHeight: 16, color: ds.ink, fontFamily: F.b },
+  amountBlock: { paddingTop: 30, paddingHorizontal: 20, alignItems: 'center', gap: 8 },
+  amountRow: { flexDirection: 'row', alignItems: 'baseline', gap: 4 },
+  amountSym: { fontSize: 28, lineHeight: 34, color: ds.muted, fontFamily: F.b },
+  amount: { fontSize: 48, lineHeight: 59, color: ds.ink, fontFamily: F.x, letterSpacing: -1, ...tnum },
+  balance: { fontSize: 13, lineHeight: 16, color: ds.muted, fontFamily: F.r, ...tnum },
+  pad: { paddingHorizontal: 20, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 8 },
+  key: { width: '32%', height: 56, borderRadius: 14, backgroundColor: ds.bg, alignItems: 'center', justifyContent: 'center' },
+  keyText: { fontSize: 22, lineHeight: 27, color: ds.ink, fontFamily: F.b },
+  cta: { height: 54, borderRadius: 16, backgroundColor: ds.navy, alignItems: 'center', justifyContent: 'center' },
+  ctaText: { color: '#ffffff', fontSize: 16, lineHeight: 20, fontFamily: F.x },
+  loadingText: { color: ds.navy, fontSize: 16, lineHeight: 20, marginTop: 16, fontFamily: F.s },
 })

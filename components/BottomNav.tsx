@@ -1,37 +1,36 @@
 import React from 'react'
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
-import { Ionicons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import Icon, { IconName } from './Icon'
+import { F, ds } from '../constants/theme'
 
 type TabKey = 'home' | 'wallet' | 'savings' | 'ajo' | 'profile'
 
-const TABS: { key: TabKey; label: string; route: string; icon: any; iconActive: any }[] = [
-  { key: 'home',    label: 'Home',    route: 'Dashboard', icon: 'home-outline',        iconActive: 'home' },
-  { key: 'wallet',  label: 'Wallet',  route: 'Wallet',    icon: 'wallet-outline',      iconActive: 'wallet' },
-  { key: 'savings', label: 'Savings', route: 'Savings',   icon: 'trending-up-outline', iconActive: 'trending-up' },
-  { key: 'ajo',     label: 'Ajo',     route: 'Ajo',       icon: 'people-outline',      iconActive: 'people' },
-  { key: 'profile', label: 'Profile', route: 'Profile',   icon: 'person-outline',      iconActive: 'person' },
+const TABS: { key: TabKey; label: string; route: string; icon: IconName }[] = [
+  { key: 'home',    label: 'Home',    route: 'Dashboard', icon: 'home' },
+  { key: 'wallet',  label: 'Wallet',  route: 'Wallet',    icon: 'wallet' },
+  { key: 'savings', label: 'Savings', route: 'Savings',   icon: 'savings' },
+  { key: 'ajo',     label: 'Ajọ',     route: 'Ajo',       icon: 'ajo' },
+  { key: 'profile', label: 'Profile', route: 'Profile',   icon: 'profile' },
 ]
 
 export default function BottomNav({ navigation, active }: { navigation: any; active: TabKey }) {
   const insets = useSafeAreaInsets()
   return (
-    <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom, 10) + 8 }]}>
+    <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom, 14) }]}>
       {TABS.map(tab => {
-        const isActive = tab.key === active
+        const on = tab.key === active
         return (
           <TouchableOpacity
             key={tab.key}
             style={styles.tab}
             activeOpacity={0.7}
-            onPress={() => { if (!isActive) navigation.navigate(tab.route) }}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: on }}
+            onPress={() => { if (!on) navigation.navigate(tab.route) }}
           >
-            <Ionicons
-              name={isActive ? tab.iconActive : tab.icon}
-              size={22}
-              color={isActive ? '#25427a' : '#9aa5b8'}
-            />
-            <Text style={[styles.label, isActive && styles.labelActive]} numberOfLines={1}>{tab.label}</Text>
+            <Icon name={tab.icon} size={22} color={on ? ds.hero : ds.muted} width={on ? 2 : 1.8} />
+            <Text style={[styles.label, on && styles.labelOn]} numberOfLines={1}>{tab.label}</Text>
           </TouchableOpacity>
         )
       })}
@@ -42,13 +41,11 @@ export default function BottomNav({ navigation, active }: { navigation: any; act
 const styles = StyleSheet.create({
   bar: {
     position: 'absolute', left: 0, right: 0, bottom: 0,
-    flexDirection: 'row', backgroundColor: '#fff',
-    borderTopWidth: 1, borderTopColor: '#f0f2f7',
-    paddingTop: 10,
-    shadowColor: '#000', shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.04, shadowRadius: 8, elevation: 8,
+    flexDirection: 'row', backgroundColor: ds.card,
+    borderTopWidth: 1, borderTopColor: ds.border,
+    paddingTop: 8, paddingHorizontal: 6,
   },
-  tab: { flex: 1, alignItems: 'center', gap: 3 },
-  label: { fontSize: 11, color: '#9aa5b8', fontWeight: '500' },
-  labelActive: { color: '#25427a', fontWeight: '700' },
+  tab: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 4, minHeight: 56 },
+  label: { fontSize: 11, lineHeight: 13, color: ds.muted, fontFamily: F.s },
+  labelOn: { color: ds.hero, fontFamily: F.x },
 })
