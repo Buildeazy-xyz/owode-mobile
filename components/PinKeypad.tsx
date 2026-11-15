@@ -4,6 +4,9 @@ import {
   Animated, Vibration, Image, Dimensions
 } from 'react-native'
 import OwodeLoader from './OwodeLoader'
+import Icon from './Icon'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { F, ds } from '../constants/theme'
 
 const { width } = Dimensions.get('window')
 
@@ -27,6 +30,7 @@ export default function PinKeypad({
   const [isConfirming, setIsConfirming] = useState(false)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const insets = useSafeAreaInsets()
   const shakeAnim = useRef(new Animated.Value(0)).current
 
   const shake = () => {
@@ -98,300 +102,80 @@ export default function PinKeypad({
 
   const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'del']
 
-  if (busy) return <OwodeLoader size="large" fullscreen />
+  if (busy) return <View style={s.container}><OwodeLoader size="large" fullscreen color={ds.gold} /></View>
 
+  // OWODE Alajo Redesign "Enter PIN" board: navy screen, gold dots, flat keys
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.logoCard}>
-          <Image
-            source={require('../assets/owode-logo.png')}
-            style={styles.logoImage}
-            resizeMode="contain"
-          />
+    <View style={[s.container, { paddingBottom: Math.max(insets.bottom + 12, 24) }]}>
+      <View style={s.content}>
+        <View style={s.lockTile}>
+          <Icon name="lock" size={26} color={ds.gold} width={2} />
         </View>
-      </View>
-
-      {/* Content */}
-      <View style={styles.content}>
-        {/* Step indicator */}
         {requireConfirm && (
-          <View style={styles.stepRow}>
-            <View style={[styles.stepDot, !isConfirming && styles.stepDotActive]} />
-            <View style={styles.stepLine} />
-            <View style={[styles.stepDot, isConfirming && styles.stepDotActive]} />
+          <View style={s.steps}>
+            <View style={[s.step, s.stepOn]} />
+            <View style={[s.step, isConfirming && s.stepOn]} />
           </View>
         )}
-
-        <Text style={styles.title}>
-          {isConfirming ? `Confirm ${title}` : title}
+        <Text style={s.title}>{isConfirming ? `Confirm ${title}` : title}</Text>
+        <Text style={s.sub}>
+          {isConfirming ? `Enter the same ${pinLength}-digit PIN again` : subtitle}
         </Text>
-        <Text style={styles.subtitle}>
-          {isConfirming
-            ? `Re-enter your ${pinLength}-digit PIN to confirm`
-            : subtitle
-          }
-        </Text>
-
-        {/* Error message */}
-        {error ? (
-          <View style={styles.errorCard}>
-            <Text style={styles.errorText}>{error}</Text>
-          </View>
-        ) : null}
-
-        {/* PIN Dots */}
-        <Animated.View style={[
-          styles.dotsRow,
-          { transform: [{ translateX: shakeAnim }] }
-        ]}>
+        {error ? <Text style={s.error}>{error}</Text> : null}
+        <Animated.View style={[s.dots, { transform: [{ translateX: shakeAnim }] }]}
+          accessibilityLabel={`${currentPin.length} of ${pinLength} digits entered`}>
           {Array.from({ length: pinLength }).map((_, i) => (
-            <View
-              key={i}
-              style={[
-                styles.dot,
-                i < currentPin.length ? styles.dotFilled : styles.dotEmpty
-              ]}
-            >
-              {i < currentPin.length && <View style={styles.dotInner} />}
-            </View>
+            <View key={i} style={[s.dot, i < currentPin.length && s.dotOn]} />
           ))}
         </Animated.View>
-
-        <Text style={styles.hint}>
-          {isConfirming
-            ? 'Re-enter to confirm your PIN'
-            : `Enter ${pinLength} digits`
-          }
-        </Text>
       </View>
 
-      {/* Keypad */}
-      <View style={styles.keypadContainer}>
-        <View style={styles.keypad}>
-          {keys.map((key, index) => (
+      <View style={{ flex: 1, minHeight: 16 }} />
+
+      <View style={s.pad}>
+        {keys.map((key, index) => (
+          key === '' ? <View key={index} style={s.keyBlank} /> : (
             <TouchableOpacity
               key={index}
-              style={[
-                styles.key,
-                key === '' && styles.keyEmpty,
-                key === 'del' && styles.keyDel,
-              ]}
-              disabled={busy || key === ''}
-              onPress={() => key !== '' && !busy && handlePress(key)}
+              style={s.key}
+              disabled={busy}
+              onPress={() => !busy && handlePress(key)}
               activeOpacity={0.6}
+              accessibilityLabel={key === 'del' ? 'Delete' : key}
             >
-              {key === 'del' ? (
-                <Text style={styles.keyDelText}>⌫</Text>
-              ) : key !== '' ? (
-                <>
-                  <Text style={styles.keyText}>{key}</Text>
-                  <Text style={styles.keySubText}>
-                    {key === '2' ? 'ABC' :
-                     key === '3' ? 'DEF' :
-                     key === '4' ? 'GHI' :
-                     key === '5' ? 'JKL' :
-                     key === '6' ? 'MNO' :
-                     key === '7' ? 'PQRS' :
-                     key === '8' ? 'TUV' :
-                     key === '9' ? 'WXYZ' : ''}
-                  </Text>
-                </>
-              ) : null}
+              {key === 'del'
+                ? <Icon name="backspace" size={24} color="#ffffff" />
+                : <Text style={s.keyText}>{key}</Text>}
             </TouchableOpacity>
-          ))}
-        </View>
+          )
+        ))}
       </View>
 
-      {/* Secure badge */}
-      <View style={styles.secureBadge}>
-        <Text style={styles.secureBadgeText}>256-bit encrypted • OWODE Security</Text>
+      <View style={s.secure}>
+        <Icon name="shieldCheck" size={14} color={ds.onHero} width={2} />
+        <Text style={s.secureText}>OWODE will never ask for your PIN</Text>
       </View>
     </View>
   )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-  },
-  header: {
-    width: '100%',
-    backgroundColor: '#25427a',
-    paddingTop: 60,
-    paddingBottom: 24,
-    alignItems: 'center',
-  },
-  logoCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 10,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 6,
-  },
-  logoImage: { width: width * 0.45, height: 45 },
-  content: {
-    width: '100%',
-    alignItems: 'center',
-    paddingTop: 28,
-    paddingHorizontal: 24,
-    flex: 1,
-  },
-  stepRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-    gap: 8,
-  },
-  stepDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#e6eaf2',
-  },
-  stepDotActive: {
-    backgroundColor: '#25427a',
-    width: 28,
-    borderRadius: 5,
-  },
-  stepLine: {
-    width: 40,
-    height: 2,
-    backgroundColor: '#e6eaf2',
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#25427a',
-    marginBottom: 6,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#7c8aa5',
-    marginBottom: 16,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  errorCard: {
-    backgroundColor: '#ffebee',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#ffcdd2',
-  },
-  errorText: {
-    color: '#ef4444',
-    fontSize: 13,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  dotsRow: {
-    flexDirection: 'row',
-    gap: 16,
-    marginVertical: 20,
-  },
-  dot: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  dotEmpty: {
-    borderWidth: 2,
-    borderColor: '#e6eaf2',
-    backgroundColor: '#f4f6fb',
-  },
-  dotFilled: {
-    backgroundColor: '#25427a',
-    shadowColor: '#25427a',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  dotInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#fff',
-  },
-  hint: {
-    fontSize: 12,
-    color: '#bbb',
-    marginTop: 4,
-  },
-  keypadContainer: {
-    paddingBottom: 20,
-    alignItems: 'center',
-  },
-  keypad: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    width: width * 0.85,
-    gap: 12,
-    justifyContent: 'center',
-  },
-  key: {
-    width: (width * 0.85 - 36) / 3,
-    height: 72,
-    borderRadius: 16,
-    backgroundColor: '#f4f6fb',
-    borderWidth: 1,
-    borderColor: '#f0f2f7',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  keyEmpty: {
-    backgroundColor: 'transparent',
-    borderColor: 'transparent',
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  keyDel: {
-    backgroundColor: '#fff3e0',
-    borderColor: '#ffe0b2',
-  },
-  keyText: {
-    fontSize: 26,
-    fontWeight: '400',
-    color: '#1a2b4a',
-    lineHeight: 30,
-  },
-  keySubText: {
-    fontSize: 9,
-    color: '#9aa5b8',
-    letterSpacing: 1,
-    marginTop: 2,
-  },
-  keyDelText: {
-    fontSize: 22,
-    color: '#f5a623',
-  },
-  secureBadge: {
-    marginBottom: 32,
-    backgroundColor: '#f4f6fb',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  secureBadgeText: {
-    color: '#7c8aa5',
-    fontSize: 11,
-  },
+const s = StyleSheet.create({
+  container: { flex: 1, alignSelf: 'stretch', width: '100%', backgroundColor: ds.hero, paddingTop: 24 },
+  content: { alignItems: 'center', paddingHorizontal: 24, gap: 10 },
+  lockTile: { width: 56, height: 56, borderRadius: 18, backgroundColor: ds.heroChip, alignItems: 'center', justifyContent: 'center' },
+  steps: { flexDirection: 'row', gap: 6, width: 64 },
+  step: { flex: 1, height: 4, borderRadius: 2, backgroundColor: ds.heroBtn },
+  stepOn: { backgroundColor: ds.gold },
+  title: { fontSize: 22, lineHeight: 27, color: '#ffffff', fontFamily: F.x, textAlign: 'center' },
+  sub: { fontSize: 14, lineHeight: 20, color: ds.onHero, fontFamily: F.r, textAlign: 'center' },
+  error: { fontSize: 13, lineHeight: 18, color: '#ffb4b4', fontFamily: F.b, textAlign: 'center' },
+  dots: { flexDirection: 'row', gap: 16, paddingTop: 18 },
+  dot: { width: 16, height: 16, borderRadius: 8, borderWidth: 2, borderColor: ds.heroBtn },
+  dotOn: { backgroundColor: ds.gold, borderColor: ds.gold },
+  pad: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 8, paddingHorizontal: 20 },
+  key: { width: '31.5%', height: 60, borderRadius: 14, backgroundColor: ds.heroChip, alignItems: 'center', justifyContent: 'center' },
+  keyBlank: { width: '31.5%', height: 60 },
+  keyText: { fontSize: 24, lineHeight: 29, color: '#ffffff', fontFamily: F.b },
+  secure: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingTop: 16 },
+  secureText: { fontSize: 12, lineHeight: 15, color: ds.onHero, fontFamily: F.r },
 })

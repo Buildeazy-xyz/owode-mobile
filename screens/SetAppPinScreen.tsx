@@ -79,7 +79,7 @@ export default function SetAppPinScreen({ navigation, route }: any) {
   }
 
   if (!ready) return (
-    <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.container}>
+    <LinearGradient colors={['#14244a', '#14244a']} style={styles.container}>
       <OwodeLoader size="large" fullscreen color="#f5a623" />
     </LinearGradient>
   )
@@ -94,7 +94,7 @@ export default function SetAppPinScreen({ navigation, route }: any) {
   const totalSteps = hasExistingPin ? 3 : 2
 
   return (
-    <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.container}>
+    <LinearGradient colors={['#14244a', '#14244a']} style={styles.container}>
       {!fromRegister && (
         <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={22} color="#f5a623" />

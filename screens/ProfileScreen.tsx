@@ -11,6 +11,11 @@ import { useAuth } from '../context/AuthContext'
 import { authAPI } from '../utils/api'
 import { isBiometricEnabled, getBiometricType } from '../utils/biometrics'
 import OwodeLoader from '../components/OwodeLoader'
+import Icon, { IconName } from '../components/Icon'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { savingsAPI } from '../utils/api'
+import { F, ds, tnum } from '../constants/theme'
+import { naira, initials } from '../utils/ajoDue'
 
 const { width } = Dimensions.get('window')
 
@@ -23,10 +28,17 @@ export default function ProfileScreen({ navigation }: any) {
   const [showEmailModal, setShowEmailModal] = useState(false)
   const [email, setEmail] = useState('')
   const [emailLoading, setEmailLoading] = useState(false)
+  const [showDetails, setShowDetails] = useState(false)
+  const [savedInGoals, setSavedInGoals] = useState(0)
+  const insets = useSafeAreaInsets()
 
   useEffect(() => {
     loadFreshData()
     checkBio()
+    // wallet.totalSaved misses goal savings; the goal total is the honest figure
+    savingsAPI.getGoals()
+      .then(r => setSavedInGoals((r.data?.data || []).reduce((t: number, g: any) => t + (g.currentAmount || 0), 0)))
+      .catch(() => {})
   }, [])
 
   const loadFreshData = async () => {
@@ -183,235 +195,118 @@ export default function ProfileScreen({ navigation }: any) {
     },
   ]
 
+  // ─── OWODE Alajo Redesign "Profile" board ────────────────────────────
+  const verifiedText = kycLevel === 3 ? 'Verified' : kycLevel === 2 ? 'Under review' : 'Not verified'
+  const stats = [
+    { label: 'Balance', value: naira(currentUser?.wallet?.balance || 0) },
+    { label: 'Saved', value: naira(savedInGoals) },
+    { label: 'Payouts', value: naira(currentUser?.wallet?.totalPayout || 0) },
+  ]
+  type RowT = { icon: IconName; title: string; sub?: string; onPress: () => void; right?: React.ReactNode; tone?: 'gold' | 'red' }
+  const renderRows = (rows: RowT[]) => (
+    <View style={p.list}>
+      {rows.map((r, i) => {
+        const tone = r.tone === 'gold' ? { bg: ds.goldSoft, fg: ds.goldInk }
+          : r.tone === 'red' ? { bg: ds.dangerSoft, fg: ds.danger }
+          : { bg: ds.blueSoft, fg: ds.navy }
+        return (
+          <TouchableOpacity key={r.title} style={[p.row, i < rows.length - 1 && p.rowLine]} onPress={r.onPress} activeOpacity={0.7}>
+            <View style={[p.tile, { backgroundColor: tone.bg }]}>
+              <Icon name={r.icon} size={18} color={tone.fg} width={2} />
+            </View>
+            <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+              <Text style={[p.rowTitle, r.tone === 'red' && { color: ds.danger }]} numberOfLines={1}>{r.title}</Text>
+              {!!r.sub && <Text style={p.rowSub} numberOfLines={1}>{r.sub}</Text>}
+            </View>
+            {r.right !== undefined ? r.right : r.tone === 'red' ? null : <Icon name="chevron" size={18} color="#9aa5b8" width={2} />}
+          </TouchableOpacity>
+        )
+      })}
+    </View>
+  )
+
   return (
-    <View style={{ flex: 1, backgroundColor: '#f4f6fb' }}>
-    <ScrollView contentContainerStyle={{ paddingBottom: 110 }} style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Header */}
-      <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="chevron-back" size={24} color="#f5a623" />
-        </TouchableOpacity>
-        <View style={styles.logoCard}>
-          <Image source={require('../assets/owode-logo.png')} style={styles.logoImage} resizeMode="contain" />
+    <View style={{ flex: 1, backgroundColor: ds.bg }}>
+    <ScrollView contentContainerStyle={{ paddingBottom: 110 }} showsVerticalScrollIndicator={false}>
+      <View style={[p.hero, { paddingTop: insets.top + 20 }]}>
+        <View style={p.rowBetween}>
+          <Text style={p.h1}>Profile</Text>
+          <TouchableOpacity style={p.gearBtn} onPress={() => navigation.navigate('Settings')} accessibilityLabel="Settings">
+            <Icon name="gear" size={20} color="#ffffff" />
+          </TouchableOpacity>
         </View>
-        <View style={styles.avatarContainer}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{currentUser?.fullName?.charAt(0)}</Text>
-            <TouchableOpacity
-              style={styles.avatarEdit}
-              onPress={() => {
-                if (!currentUser?.isVerified) {
-                  Alert.alert(
-                    'Verification Required',
-                    'Complete BVN/NIN and face verification first. Your profile photo will match your verified identity.'
-                  )
-                } else {
-                  Alert.alert('Coming Soon', 'Profile photo upload will be available in the next update.')
-                }
-              }}
-            >
-              <Ionicons name="camera" size={13} color="#fff" />
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.name}>{currentUser?.fullName}</Text>
-          <Text style={styles.phone}>{currentUser?.phone}</Text>
-          <View style={styles.badgeRow}>
-            <View style={[styles.badge, { borderColor: currentUser?.isVerified ? '#22c55e' : '#f5a623' }]}>
-              <Ionicons
-                name={currentUser?.isVerified ? 'checkmark-circle' : 'time-outline'}
-                size={11}
-                color={currentUser?.isVerified ? '#22c55e' : '#f5a623'}
-              />
-              <Text style={[styles.badgeText, { color: currentUser?.isVerified ? '#22c55e' : '#f5a623' }]}>
-                {currentUser?.isVerified ? ' Verified' : ' Unverified'}
-              </Text>
-            </View>
-            <View style={[styles.badge, { borderColor: '#f5a623' }]}>
-              <Text style={[styles.badgeText, { color: '#f5a623' }]}>{currentUser?.role}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+          <View style={p.avatar}><Text style={p.avatarText}>{initials(currentUser?.fullName)}</Text></View>
+          <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
+            <Text style={p.name} numberOfLines={1}>{currentUser?.fullName}</Text>
+            <Text style={p.phone}>{String(currentUser?.phone || '').replace(/^(\d{4})(\d{3})(\d{4})$/, '$1 $2 $3')}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+              <Icon name={kycLevel === 3 ? 'shieldCheck' : 'shield'} size={14} color={kycLevel === 3 ? ds.gold : ds.onHero} width={2} />
+              <Text style={[p.verified, kycLevel !== 3 && { color: ds.onHero }]}>{verifiedText} · Level {kycLevel} of 3</Text>
             </View>
           </View>
         </View>
-      </LinearGradient>
-
-      {/* Stats */}
-      <View style={styles.statsRow}>
-        {[
-          { label: 'Balance', value: `₦${(currentUser?.wallet?.balance || 0).toLocaleString()}` },
-          { label: 'Total Saved', value: `₦${(currentUser?.wallet?.totalSaved || 0).toLocaleString()}` },
-          { label: 'Total Payout', value: `₦${(currentUser?.wallet?.totalPayout || 0).toLocaleString()}` },
-        ].map(stat => (
-          <View key={stat.label} style={styles.statCard}>
-            <Text style={styles.statValue}>{stat.value}</Text>
-            <Text style={styles.statLabel}>{stat.label}</Text>
-          </View>
-        ))}
-      </View>
-
-      {/* Trust Score */}
-      <View style={styles.section}>
-        <View style={styles.card}>
-          <View style={styles.trustHeader}>
-            <View style={styles.trustTitleRow}>
-              <Ionicons name="star" size={16} color={trustColor} />
-              <Text style={styles.cardTitle}> Trust Score</Text>
-            </View>
-            <Text style={[styles.trustScore, { color: trustColor }]}>
-              {Math.round(trustScore)}/100 — {trustLabel}
-            </Text>
-          </View>
-          <View style={styles.trustBar}>
-            <View style={[styles.trustFill, { width: `${Math.min(trustScore, 100)}%`, backgroundColor: trustColor }]} />
-          </View>
-          <Text style={styles.trustHint}>Complete KYC and maintain good payment history to increase your score</Text>
-        </View>
-      </View>
-
-      {/* KYC */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Identity Verification (KYC)</Text>
-        <View style={styles.card}>
-          {kycItems.map((item, i) => (
-            <View key={item.label}>
-              <TouchableOpacity style={styles.menuItem} onPress={item.onPress}>
-                <View style={[styles.menuIconBg, { backgroundColor: item.bg }]}>
-                  <Ionicons name={item.icon} size={20} color={item.iconColor} />
-                </View>
-                <View style={styles.menuText}>
-                  <Text style={styles.menuLabel}>{item.label}</Text>
-                  <Text style={[styles.menuSub, item.done && { color: '#22c55e' }]}>{item.sub}</Text>
-                </View>
-                <Ionicons
-                  name={item.done ? 'checkmark-circle' : 'chevron-forward'}
-                  size={18}
-                  color={item.done ? '#22c55e' : '#ccc'}
-                />
-              </TouchableOpacity>
-              {i < kycItems.length - 1 && <View style={styles.divider} />}
+        <View style={{ flexDirection: 'row', gap: 14 }}>
+          {stats.map((s, i) => (
+            <View key={s.label} style={[{ flex: 1, gap: 3 }, i > 0 && p.statSplit]}>
+              <Text style={p.statLabel}>{s.label}</Text>
+              <Text style={p.statValue} numberOfLines={1} adjustsFontSizeToFit>{s.value}</Text>
             </View>
           ))}
         </View>
       </View>
 
-      {/* Security */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Account Level</Text>
-        <TouchableOpacity style={styles.kycCard} onPress={() => navigation.navigate('KYCVerification')}>
-          <View style={styles.kycTop}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.kycLevel}>Level {kycLevel} of 3</Text>
-              <Text style={styles.kycLabel}>{kycLabel}</Text>
-            </View>
-            <View style={styles.kycAction}>
-              <Text style={styles.kycActionText}>{kycLevel < 3 ? 'Upgrade' : 'Verified'}</Text>
-              {kycLevel < 3 && <Ionicons name="chevron-forward" size={14} color="#25427a" />}
-            </View>
-          </View>
-          <View style={styles.kycTrack}>
-            <View style={[styles.kycFill, { width: `${(kycLevel / 3) * 100}%` }]} />
-          </View>
-          <Text style={styles.kycHint}>{kycHint}</Text>
-        </TouchableOpacity>
-      </View>
+      <View style={{ paddingTop: 18, paddingHorizontal: 20, gap: 12 }}>
+        {renderRows([
+          {
+            icon: 'star', tone: 'gold', title: 'Trust score',
+            sub: `${Math.round(trustScore)} of 100 · ${trustLabel}`,
+            onPress: () => navigation.navigate('TrustScore'),
+            right: (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Text style={p.goldPill}>{Math.round(trustScore)}</Text>
+                <Icon name="chevron" size={18} color="#9aa5b8" width={2} />
+              </View>
+            ),
+          },
+          { icon: 'shieldCheck', title: 'Identity verification', sub: kycLabel, onPress: () => navigation.navigate('KYCVerification') },
+          {
+            icon: 'user', title: 'Account details', sub: 'Name, phone, email',
+            onPress: () => setShowDetails(!showDetails),
+            right: <View style={{ transform: [{ rotate: showDetails ? '90deg' : '0deg' }] }}><Icon name="chevron" size={18} color="#9aa5b8" width={2} /></View>,
+          },
+          { icon: 'gift', title: 'Refer & earn', sub: 'Invite friends and earn trust points', onPress: () => navigation.navigate('Referral') },
+        ])}
 
-      {/* Account Info */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Account Details</Text>
-        <View style={styles.card}>
-          {[
-            { label: 'Full Name', value: currentUser?.fullName, editable: false, status: '' },
-            { label: 'Phone Number', value: currentUser?.phone, editable: false, status: 'Verified' },
-            { label: 'Email', value: currentUser?.email || 'Not provided — tap to add', editable: true, status: currentUser?.email ? 'Added' : 'Missing' },
-            { label: 'BVN', value: hasBVN ? 'Submitted' : 'Not provided', editable: false, status: hasBVN ? (currentUser?.isVerified ? 'Verified' : 'Under review') : 'Missing' },
-            { label: 'NIN', value: hasNIN ? 'Submitted' : 'Not provided', editable: false, status: hasNIN ? (currentUser?.isVerified ? 'Verified' : 'Under review') : 'Missing' },
-            { label: 'Account Type', value: currentUser?.role, editable: false, status: '' },
-          ].map((item, i) => (
-            <View key={item.label}>
+        {showDetails && (
+          <View style={p.list}>
+            {[
+              { k: 'Full name', v: currentUser?.fullName },
+              { k: 'Phone', v: currentUser?.phone },
+              { k: 'Email', v: currentUser?.email || 'Add email', edit: true },
+              { k: 'Account type', v: String(currentUser?.role || '').toLowerCase() },
+            ].map((d, i, arr) => (
               <TouchableOpacity
-                style={styles.infoRow}
-                onPress={() => item.editable && setShowEmailModal(true)}
-                disabled={!item.editable}
+                key={d.k}
+                style={[p.detail, i < arr.length - 1 && p.rowLine]}
+                disabled={!d.edit}
+                onPress={() => setShowEmailModal(true)}
               >
-                <Text style={styles.infoLabel}>{item.label}</Text>
-                <View style={styles.infoRight}>
-                  <Text style={[styles.infoValue, item.editable && !currentUser?.email && { color: '#f5a623' }]}>
-                    {item.value}
-                  </Text>
-                  {!!item.status && (
-                    <View style={[styles.statusChip, {
-                      backgroundColor: item.status === 'Verified' ? '#e8f5e9'
-                        : item.status === 'Under review' || item.status === 'Added' ? '#fff8e1'
-                        : '#f0f2f7'
-                    }]}>
-                      <Text style={[styles.statusChipText, {
-                        color: item.status === 'Verified' ? '#22c55e'
-                          : item.status === 'Under review' || item.status === 'Added' ? '#f5a623'
-                          : '#7c8aa5'
-                      }]}>{item.status}</Text>
-                    </View>
-                  )}
-                  {item.editable && (
-                    <Ionicons
-                      name={currentUser?.email ? 'create-outline' : 'add-circle-outline'}
-                      size={16}
-                      color="#25427a"
-                    />
-                  )}
-                </View>
+                <Text style={p.detailKey}>{d.k}</Text>
+                <Text style={[p.detailVal, d.edit && { color: ds.navy }]} numberOfLines={1}>{d.v}</Text>
               </TouchableOpacity>
-              {i < 5 && <View style={styles.divider} />}
-            </View>
-          ))}
-        </View>
-      </View>
-
-      {/* Support */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Help & Support</Text>
-        <View style={styles.card}>
-          {supportItems.map((item, i) => (
-            <View key={item.label}>
-              <TouchableOpacity style={styles.menuItem} onPress={item.onPress}>
-                <View style={[styles.menuIconBg, { backgroundColor: item.bg }]}>
-                  <Ionicons name={item.icon} size={20} color={item.iconColor} />
-                </View>
-                <View style={styles.menuText}>
-                  <Text style={styles.menuLabel}>{item.label}</Text>
-                  <Text style={styles.menuSub}>{item.sub}</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={18} color="#ccc" />
-              </TouchableOpacity>
-              {i < supportItems.length - 1 && <View style={styles.divider} />}
-            </View>
-          ))}
-        </View>
-      </View>
-
-      {/* App Info */}
-      <View style={styles.section}>
-        <View style={styles.card}>
-          <View style={styles.appInfoRow}>
-            <View style={styles.logoCardSmall}>
-              <Image source={require('../assets/owode-logo.png')} style={styles.logoImageSmall} resizeMode="contain" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.appInfoTitle}>OWODE Alajo</Text>
-              <Text style={styles.appInfoSub}>Version 1.0.0</Text>
-              <Text style={styles.appInfoSub}>OWODE Digital Services Limited</Text>
-              <Text style={styles.appInfoSub}>CAC: RC 8569061</Text>
-            </View>
+            ))}
           </View>
-        </View>
-      </View>
+        )}
 
-      {/* Logout */}
-      <View style={styles.section}>
-        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={20} color="#ef4444" />
-          <Text style={styles.logoutText}> Logout</Text>
-        </TouchableOpacity>
-      </View>
+        {renderRows([
+          { icon: 'help', title: 'Help & support', sub: 'Chat, call, email and FAQs', onPress: () => navigation.navigate('HelpSupport') },
+          { icon: 'doc', title: 'Terms & privacy', onPress: () => Linking.openURL('https://owodealajo.com/privacy') },
+          { icon: 'logout', title: 'Log out', tone: 'red', onPress: handleLogout },
+        ])}
 
-      <View style={{ height: 40 }} />
+        <Text style={p.footer}>OWODE Alajo · OWODE Digital Services Limited · RC 8569061</Text>
+      </View>
 
       {/* Email Modal */}
       <Modal visible={showEmailModal} transparent animationType="slide">
@@ -520,4 +415,30 @@ const styles = StyleSheet.create({
   modalCancelText: { color: '#7c8aa5', fontWeight: '600' },
   modalSaveBtn: { flex: 1, backgroundColor: '#25427a', borderRadius: 12, padding: 16, alignItems: 'center' },
   modalSaveText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
+})
+
+const p = StyleSheet.create({
+  rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  hero: { backgroundColor: ds.hero, paddingHorizontal: 20, paddingBottom: 22, gap: 18 },
+  h1: { fontSize: 24, lineHeight: 29, color: '#ffffff', fontFamily: F.x },
+  gearBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: ds.heroChip, alignItems: 'center', justifyContent: 'center' },
+  avatar: { width: 60, height: 60, borderRadius: 30, backgroundColor: ds.gold, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { fontSize: 20, lineHeight: 24, color: ds.hero, fontFamily: F.x },
+  name: { fontSize: 18, lineHeight: 22, color: '#ffffff', fontFamily: F.x },
+  phone: { fontSize: 13, lineHeight: 16, color: ds.onHero, fontFamily: F.r, ...tnum },
+  verified: { fontSize: 12, lineHeight: 15, color: ds.gold, fontFamily: F.b },
+  statSplit: { borderLeftWidth: 1, borderLeftColor: ds.heroLine, paddingLeft: 14 },
+  statLabel: { fontSize: 12, lineHeight: 15, color: ds.onHero, fontFamily: F.r },
+  statValue: { fontSize: 16, lineHeight: 20, color: '#ffffff', fontFamily: F.x, ...tnum },
+  list: { backgroundColor: ds.card, borderRadius: 18, borderWidth: 1, borderColor: ds.border, overflow: 'hidden' },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, paddingHorizontal: 16 },
+  rowLine: { borderBottomWidth: 1, borderBottomColor: ds.divider },
+  tile: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  rowTitle: { fontSize: 14, lineHeight: 17, color: ds.ink, fontFamily: F.b },
+  rowSub: { fontSize: 12, lineHeight: 15, color: ds.muted, fontFamily: F.r },
+  goldPill: { fontSize: 12, lineHeight: 15, color: ds.goldInk, fontFamily: F.b, backgroundColor: ds.goldSoft, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10, overflow: 'hidden' },
+  detail: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingVertical: 13, paddingHorizontal: 16 },
+  detailKey: { fontSize: 13, lineHeight: 16, color: ds.muted, fontFamily: F.r },
+  detailVal: { flexShrink: 1, fontSize: 13, lineHeight: 16, color: ds.ink, fontFamily: F.b, textAlign: 'right' },
+  footer: { fontSize: 11, lineHeight: 16, color: ds.muted, fontFamily: F.r, textAlign: 'center', paddingTop: 4 },
 })

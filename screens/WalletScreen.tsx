@@ -11,6 +11,10 @@ import * as Sharing from 'expo-sharing'
 import * as Print from 'expo-print'
 import { Ionicons } from '@expo/vector-icons'
 import BottomNav from '../components/BottomNav'
+import Icon from '../components/Icon'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { F, ds, tnum } from '../constants/theme'
+import { naira, splitNaira } from '../utils/ajoDue'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { announceNewCredit } from '../utils/speech'
 import { showPaymentNotification } from '../utils/notifications'
@@ -28,6 +32,7 @@ const dayLabel = (iso: string) => {
 }
 
 export default function WalletScreen({ navigation }: any) {
+  const insets = useSafeAreaInsets()
   const [wallet, setWallet] = useState<any>(null)
   const [goals, setGoals] = useState<any[]>([])
   const [activeTab, setActiveTab] = useState<'past' | 'upcoming'>('past')
@@ -37,7 +42,7 @@ export default function WalletScreen({ navigation }: any) {
   const [showSearch, setShowSearch] = useState(false)
   const [selectedTx, setSelectedTx] = useState<any>(null)
   const [balanceVisible, setBalanceVisible] = useState(true)
-  const [period, setPeriod] = useState<'WEEK' | 'MONTH' | 'YEAR' | 'ALL' | 'CUSTOM'>('MONTH')
+  const [period, setPeriod] = useState<'WEEK' | 'MONTH' | 'YEAR' | 'ALL' | 'CUSTOM'>('ALL')
   const [showFilter, setShowFilter] = useState(false)
   const [customStart, setCustomStart] = useState<Date | null>(null)
   const [customEnd, setCustomEnd] = useState<Date | null>(null)
@@ -265,310 +270,200 @@ export default function WalletScreen({ navigation }: any) {
     return 'cash'
   }
 
+  // ─── OWODE Alajo Redesign "Wallet" board ─────────────────────────────
+  const periodWord =
+    period === 'WEEK' ? 'this week'
+    : period === 'MONTH' ? new Date().toLocaleDateString('en-NG', { month: 'short' })
+    : period === 'YEAR' ? String(new Date().getFullYear())
+    : period === 'ALL' ? 'all time'
+    : 'custom'
+  const bal = splitNaira(wallet?.balance || 0)
+  const hhmm = (iso: string) => {
+    const d = new Date(iso); const h = d.getHours()
+    return `${h % 12 || 12}:${String(d.getMinutes()).padStart(2, '0')} ${h < 12 ? 'am' : 'pm'}`
+  }
+  const groups: { label: string; items: any[] }[] = []
+  filteredTransactions.forEach((tx: any) => {
+    const label = dayLabel(tx.createdAt)
+    const g = groups.find(x => x.label === label)
+    if (g) g.items.push(tx)
+    else groups.push({ label, items: [tx] })
+  })
+  const chipKeys: { key: string; label: string }[] = [
+    { key: 'ALL', label: 'All' }, { key: 'CREDIT', label: 'Money in' },
+    { key: 'DEBIT', label: 'Money out' }, { key: 'UP', label: 'Upcoming' },
+  ]
+  const chipOn = (k: string) => k === 'UP' ? activeTab === 'upcoming' : activeTab === 'past' && filter === k
+  const txLook = (tx: any) => {
+    const credit = tx.type === 'CREDIT'
+    const d = (tx.description || '').toLowerCase()
+    if (credit) return { icon: 'receive' as const, bg: ds.blueSoft, fg: ds.navy }
+    if (d.includes('ajo')) return { icon: 'ajo' as const, bg: ds.goldSoft, fg: ds.goldInk }
+    if (/sav|goal/.test(d)) return { icon: 'savings' as const, bg: ds.goldSoft, fg: ds.goldInk }
+    return { icon: 'send' as const, bg: ds.divider, fg: ds.inkSoft }
+  }
+
   return (
-    <View style={styles.container}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 110 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />}
+    <View style={w.screen}>
+      <ScrollView
+        contentContainerStyle={{ paddingTop: insets.top + 20, paddingHorizontal: 20, paddingBottom: 110, gap: 14 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={ds.navy} />}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
-        {/* Header */}
-        <LinearGradient colors={['#25427a', '#1c3a6d']} style={styles.header}>
-          <View style={styles.headerTop}>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Ionicons name="chevron-back" size={22} color="#f5a623" />
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>My Wallet</Text>
-            <View style={styles.headerActions}>
-              <TouchableOpacity onPress={() => setShowSearch(!showSearch)}>
-                <Ionicons name="search" size={16} color="#9aa5b8" />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={handleExport} style={styles.headerFilterBtn}>
-                <Ionicons name="download-outline" size={18} color="#9aa5b8" />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => setShowFilter(true)} style={styles.headerFilterBtn}>
-                <Ionicons name="options-outline" size={18} color={activeFilterCount > 0 ? '#f5a623' : '#9aa5b8'} />
-                {activeFilterCount > 0 ? <View style={styles.filterDot} /> : null}
-              </TouchableOpacity>
-            </View>
-          </View>
+        <View style={w.rowBetween}>
+          <Text style={w.h1}>Wallet</Text>
+          <TouchableOpacity style={w.roundBtn} onPress={handleExport} accessibilityLabel="Download statement">
+            <Icon name="download" size={20} color={ds.ink} />
+          </TouchableOpacity>
+        </View>
 
-          {/* Balance Card */}
-          <View style={styles.balanceCard}>
-            <View style={styles.balanceTop}>
-              <Text style={styles.balanceLabel}>Available Balance</Text>
-              <TouchableOpacity onPress={() => setBalanceVisible(!balanceVisible)}>
-                <Ionicons name={balanceVisible ? "eye-outline" : "eye-off-outline"} size={19} color="rgba(255,255,255,0.8)" />
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.balanceAmount}>
-              {balanceVisible ? `₦${(wallet?.balance || 0).toLocaleString()}` : '₦ ••••••'}
-            </Text>
-
-            {/* Period Selector */}
-            <View style={styles.periodRow}>
-              {(['WEEK','MONTH','YEAR','ALL'] as const).map((k) => (
-                <TouchableOpacity key={k} onPress={() => setPeriod(k)} style={[styles.periodPill, period === k && styles.periodPillActive]}>
-                  <Text style={[styles.periodPillText, period === k && styles.periodPillTextActive]}>
-                    {k === 'WEEK' ? 'Week' : k === 'MONTH' ? 'Month' : k === 'YEAR' ? 'Year' : 'All'}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            {period === 'CUSTOM' && (customStart || customEnd) ? (
-              <TouchableOpacity style={styles.rangePill} onPress={() => setShowFilter(true)} activeOpacity={0.8}>
-                <Ionicons name="calendar-outline" size={13} color="#fff" />
-                <Text style={styles.rangePillText} numberOfLines={1}>
-                  {customStart ? customStart.toLocaleDateString('en-NG', { day: 'numeric', month: 'short' }) : 'Start'} - {customEnd ? customEnd.toLocaleDateString('en-NG', { day: 'numeric', month: 'short' }) : 'End'}
-                </Text>
-                <TouchableOpacity
-                  onPress={() => { setPeriod('MONTH'); setCustomStart(null); setCustomEnd(null) }}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
-                  <Ionicons name="close" size={13} color="#fff" />
-                </TouchableOpacity>
-              </TouchableOpacity>
-            ) : null}
-
-            {/* Stats Row */}
-            <View style={styles.statsRow}>
-              <View style={styles.statItem}>
-                <Text style={styles.statLabel} numberOfLines={1}>Money In</Text>
-                <Text style={[styles.statValue, { color: '#7CFFB2' }]}>{balanceVisible ? `₦${totalCredit.toLocaleString()}` : '••••'}</Text>
-              </View>
-              <View style={styles.statDivider} />
-              <View style={styles.statItem}>
-                <Text style={styles.statLabel} numberOfLines={1}>Money Out</Text>
-                <Text style={[styles.statValue, { color: '#FF9E9E' }]}>{balanceVisible ? `₦${totalDebit.toLocaleString()}` : '••••'}</Text>
-              </View>
-            </View>
-          </View>
-        </LinearGradient>
-
-       {/* Quick Actions */}
-          <View style={styles.actionsRow}>
-            <TouchableOpacity
-              style={styles.actionBtn}
-              onPress={() => navigation.navigate('Transfer')}
-            >
-              <View style={styles.actionIconBg}>
-                <Ionicons name='paper-plane' size={23} color='#385c9e' />
-              </View>
-              <Text style={styles.actionText} numberOfLines={1}>Send Money</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.actionBtn}
-              onPress={() => navigation.navigate('Savings')}
-            >
-              <View style={styles.actionIconBg}>
-                <Ionicons name='wallet' size={23} color='#2e7d32' />
-              </View>
-              <Text style={styles.actionText} numberOfLines={1}>Savings</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.actionBtn}
-              onPress={() => Alert.alert('Coming Soon', 'Withdrawal to your bank account is coming soon.')}
-            >
-              <View style={styles.actionIconBg}>
-                <Ionicons name='cash' size={23} color='#ef6c00' />
-              </View>
-              <Text style={styles.actionText} numberOfLines={1}>Withdraw</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.actionBtn}
-              onPress={() => navigation.navigate('Ajo')}
-            >
-              <View style={styles.actionIconBg}>
-                <Ionicons name='people' size={23} color='#7b1fa2' />
-              </View>
-              <Text style={styles.actionText} numberOfLines={1}>Ajo Groups</Text>
+        <View style={w.hero}>
+          <View style={w.rowBetween}>
+            <Text style={w.heroLabel}>Available balance</Text>
+            <TouchableOpacity onPress={() => setBalanceVisible(!balanceVisible)} style={{ padding: 4 }}
+              accessibilityLabel={balanceVisible ? 'Hide balance' : 'Show balance'}>
+              <Icon name={balanceVisible ? 'eye' : 'eyeOff'} size={18} color={ds.onHero} />
             </TouchableOpacity>
           </View>
-        {/* Info Card */}
-        <View style={styles.infoCard}>
-          <Ionicons name="bulb-outline" size={16} color="#f5a623" />
-          <View style={{ flex: 1 }}>
-            <Text style={styles.infoTitle}>How to fund your wallet</Text>
-            <Text style={styles.infoDesc}>
-              Tap Add money to get your dedicated account number. Transfer to it from any bank and your wallet is funded.
-            </Text>
+          <View style={w.balRow}>
+            <Text style={w.balSym}>₦</Text>
+            <Text style={w.balWhole}>{balanceVisible ? bal.whole : '••••••'}</Text>
+            {balanceVisible ? <Text style={w.balSym}>{bal.kobo}</Text> : null}
+          </View>
+          <View style={w.heroLine} />
+          <View style={{ flexDirection: 'row' }}>
+            <View style={{ flex: 1, gap: 3 }}>
+              <Text style={w.statLabel} numberOfLines={1}>Money in · {periodWord}</Text>
+              <Text style={w.statValue}>{balanceVisible ? naira(totalCredit) : '••••'}</Text>
+            </View>
+            <View style={{ flex: 1, gap: 3 }}>
+              <Text style={w.statLabel} numberOfLines={1}>Money out · {periodWord}</Text>
+              <Text style={w.statValue}>{balanceVisible ? naira(totalDebit) : '••••'}</Text>
+            </View>
           </View>
         </View>
 
-        {/* Search Bar */}
-        {showSearch && (
-          <View style={styles.searchContainer}>
+        <View style={{ flexDirection: 'row', gap: 10 }}>
+          <TouchableOpacity style={[w.btn, { backgroundColor: ds.gold }]} activeOpacity={0.85}
+            onPress={() => navigation.navigate('AddMoney', { accountName: '' })}>
+            <Icon name="plus" size={18} color={ds.hero} width={2.2} />
+            <Text style={[w.btnText, { color: ds.hero, fontFamily: F.x }]}>Add money</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[w.btn, { backgroundColor: ds.navy }]} activeOpacity={0.85}
+            onPress={() => navigation.navigate('Transfer')}>
+            <Icon name="send" size={18} color="#ffffff" width={2} />
+            <Text style={[w.btnText, { color: '#ffffff' }]}>Send</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+          <View style={w.search}>
+            <Icon name="search" size={18} color={ds.muted} />
             <TextInput
-              style={styles.searchInput}
-              placeholder="Search transactions..."
-              placeholderTextColor="#aaa"
+              style={w.searchInput}
+              placeholder="Search transactions"
+              placeholderTextColor="#9aa5b8"
               value={search}
               onChangeText={setSearch}
-              autoFocus
+              returnKeyType="search"
             />
             {search.length > 0 && (
-              <TouchableOpacity onPress={() => setSearch('')} style={styles.clearSearch}>
-                <Ionicons name="close-circle" size={16} color="#9aa5b8" />
+              <TouchableOpacity onPress={() => setSearch('')} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <Icon name="close" size={16} color={ds.muted} width={2} />
               </TouchableOpacity>
             )}
           </View>
-        )}
-
-        {/* Transaction History */}
-        <View style={styles.historySection}>
-          <View style={styles.historyHeader}>
-            <Text style={styles.historyTitle}>Transaction History</Text>
-            <Text style={styles.historyCount}>
-              {activeTab === 'past'
-                ? `${(filter === 'ALL'
-                      ? (wallet?.transactions?.length || 0)
-                      : (wallet?.transactions?.filter((t: any) => t.type === filter).length || 0))} transactions`
-                : `${upcoming.length} scheduled`}
-            </Text>
-          </View>
-
-          <View style={styles.puTabRow}>
-            {([['past', 'Past'], ['upcoming', 'Upcoming']] as const).map(([k, label]) => (
-              <TouchableOpacity
-                key={k}
-                style={[styles.puTab, activeTab === k && styles.puTabActive]}
-                onPress={() => setActiveTab(k)}
-              >
-                <Text style={[styles.puTabText, activeTab === k && styles.puTabTextActive]} numberOfLines={1}>
-                  {label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          {activeTab === 'past' ? (
-          <>
-          {/* Filter Tabs */}
-          <View style={styles.filterRow}>
-            {[
-              { key: 'ALL', label: 'All', count: wallet?.transactions?.length || 0 },
-              { key: 'CREDIT', label: 'In', count: wallet?.transactions?.filter((t: any) => t.type === 'CREDIT').length || 0 },
-              { key: 'DEBIT', label: 'Out', count: wallet?.transactions?.filter((t: any) => t.type === 'DEBIT').length || 0 },
-            ].map(f => (
-              <TouchableOpacity
-                key={f.key}
-                style={[styles.filterBtn, filter === f.key && styles.filterBtnActive]}
-                onPress={() => setFilter(f.key as any)}
-              >
-                <Text style={[styles.filterBtnText, filter === f.key && styles.filterBtnTextActive]}>
-                  {f.label}
-                </Text>
-                <View style={[styles.filterCount, filter === f.key && styles.filterCountActive]}>
-                  <Text style={[styles.filterCountText, filter === f.key && styles.filterCountTextActive]}>
-                    {f.count}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          {/* Transaction List */}
-          {!filteredTransactions?.length ? (
-            <View style={styles.emptyState}>
-              <Ionicons name="receipt-outline" size={44} color="#9aa5b8" />
-              <Text style={styles.emptyText}>No transactions found</Text>
-              <Text style={styles.emptySubText}>
-                {search ? 'Try a different search term' : 'Your transactions will appear here'}
-              </Text>
-            </View>
-          ) : (
-            <View style={styles.txList}>
-              {filteredTransactions.map((tx: any, index: number) => {
-                const isFirst = index === 0
-                const prevTx = filteredTransactions[index - 1]
-                const txDate = dayLabel(tx.createdAt)
-                const prevDate = prevTx ? dayLabel(prevTx.createdAt) : null
-                const showDate = isFirst || txDate !== prevDate
-
-                return (
-                  <View key={tx.id}>
-                    {showDate && (
-                      <View style={styles.dayHeader}>
-                        <Text style={styles.dayHeaderText}>{txDate}</Text>
-                      </View>
-                    )}
-                    <TouchableOpacity
-                      style={styles.txCard}
-                      onPress={() => setSelectedTx(tx)}
-                      activeOpacity={0.7}
-                    >
-                      <View style={[
-                        styles.txIconCircle,
-                        { backgroundColor: tx.type === 'CREDIT' ? '#e8f5e9' : '#ffebee' }
-                      ]}>
-                        <Ionicons name={getTxIcon(tx.description) as any} size={20} color={tx.type === 'CREDIT' ? '#22c55e' : '#ef4444'} />
-                      </View>
-                      <View style={styles.txMiddle}>
-                        <Text style={styles.txDesc} numberOfLines={1}>{tx.description}</Text>
-                        <Text style={styles.txTime}>
-                          {new Date(tx.createdAt).toLocaleTimeString('en-NG', {
-                            hour: '2-digit', minute: '2-digit'
-                          })}
-                        </Text>
-                        <View style={[
-                          styles.txStatusBadge,
-                          { backgroundColor: tx.status === 'SUCCESS' ? '#e8f5e9' : '#fff3e0' }
-                        ]}>
-                          <Text style={[
-                            styles.txStatusText,
-                            { color: tx.status === 'SUCCESS' ? '#22c55e' : '#f5a623' }
-                          ]}>
-                            {tx.status === 'SUCCESS' ? 'Success' : 'Pending'}
-                          </Text>
-                        </View>
-                      </View>
-                      <View style={styles.txRight}>
-                        <Text style={[
-                          styles.txAmount,
-                          { color: tx.type === 'CREDIT' ? '#22c55e' : '#ef4444' }
-                        ]}>
-                          {tx.type === 'CREDIT' ? '+' : '-'}₦{tx.amount.toLocaleString()}
-                        </Text>
-                        <Text style={styles.txBalance} numberOfLines={1}>
-                          Bal: ₦{(tx.balance ?? 0).toLocaleString()}
-                        </Text>
-                        <Text style={styles.txArrow}>›</Text>
-                      </View>
-                    </TouchableOpacity>
-                  </View>
-                )
-              })}
-            </View>
-          )}
-          </>
-          ) : upcoming.length === 0 ? (
-            <View style={styles.emptyState}>
-              <Ionicons name="time-outline" size={44} color="#9aa5b8" />
-              <Text style={styles.emptyText}>No upcoming transactions</Text>
-              <Text style={styles.emptySubText}>Scheduled auto-saves will appear here</Text>
-            </View>
-          ) : (
-            <View style={styles.txList}>
-              {upcoming.map((u: any) => (
-                <View key={u.id} style={styles.upCard}>
-                  <View style={styles.upIconCircle}>
-                    <Ionicons name="time-outline" size={20} color="#7c8aa5" />
-                  </View>
-                  <View style={styles.txMiddle}>
-                    <Text style={styles.upDesc} numberOfLines={1}>Auto-save — {u.title}</Text>
-                    <Text style={styles.txTime}>{u.when} · {u.freq}</Text>
-                  </View>
-                  <View style={styles.txRight}>
-                    <Text style={styles.upAmount} numberOfLines={1}>₦{u.amount.toLocaleString()}</Text>
-                    <Text style={styles.upLabel} numberOfLines={1}>Scheduled</Text>
-                  </View>
-                </View>
-              ))}
-            </View>
-          )}
+          <TouchableOpacity style={w.roundBtn} onPress={() => setShowFilter(true)} accessibilityLabel="Filter by date">
+            <Icon name="filter" size={20} color={activeFilterCount > 0 ? ds.navy : ds.ink} width={activeFilterCount > 0 ? 2.4 : 1.8} />
+            {activeFilterCount > 0 ? <View style={w.dot} /> : null}
+          </TouchableOpacity>
         </View>
 
-        <View style={{ height: 40 }} />
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+          {chipKeys.map(c => {
+            const on = chipOn(c.key)
+            return (
+              <TouchableOpacity
+                key={c.key}
+                style={[w.chip, on && w.chipOn]}
+                onPress={() => {
+                  if (c.key === 'UP') setActiveTab('upcoming')
+                  else { setActiveTab('past'); setFilter(c.key as any) }
+                }}
+              >
+                <Text style={[w.chipText, on && w.chipTextOn]}>{c.label}</Text>
+              </TouchableOpacity>
+            )
+          })}
+        </ScrollView>
+
+        {period === 'CUSTOM' && (customStart || customEnd) ? (
+          <TouchableOpacity style={w.range} onPress={() => setShowFilter(true)} activeOpacity={0.8}>
+            <Icon name="calendar" size={14} color={ds.navy} width={2} />
+            <Text style={w.rangeText} numberOfLines={1}>
+              {customStart ? customStart.toLocaleDateString('en-NG', { day: 'numeric', month: 'short' }) : 'Start'} – {customEnd ? customEnd.toLocaleDateString('en-NG', { day: 'numeric', month: 'short' }) : 'End'}
+            </Text>
+            <TouchableOpacity onPress={() => { setPeriod('ALL'); setCustomStart(null); setCustomEnd(null) }}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <Icon name="close" size={14} color={ds.navy} width={2} />
+            </TouchableOpacity>
+          </TouchableOpacity>
+        ) : null}
+
+        {activeTab === 'past' ? (
+          groups.length === 0 ? (
+            <View style={w.empty}>
+              <Text style={w.emptyTitle}>No transactions found</Text>
+              <Text style={w.emptySub}>{search ? 'Try a different search' : `Nothing ${periodWord === 'all time' ? 'yet' : 'for ' + periodWord}. Try another date range.`}</Text>
+            </View>
+          ) : groups.map(g => (
+            <View key={g.label} style={{ gap: 10 }}>
+              <Text style={w.day}>{g.label.toUpperCase()}</Text>
+              <View style={w.list}>
+                {g.items.map((tx: any, i: number) => {
+                  const look = txLook(tx)
+                  const credit = tx.type === 'CREDIT'
+                  return (
+                    <TouchableOpacity key={tx.id} style={[w.tx, i < g.items.length - 1 && w.txLine]}
+                      onPress={() => setSelectedTx(tx)} activeOpacity={0.7}>
+                      <View style={[w.tile, { backgroundColor: look.bg }]}>
+                        <Icon name={look.icon} size={18} color={look.fg} width={2} />
+                      </View>
+                      <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+                        <Text style={w.txTitle} numberOfLines={1}>{tx.description}</Text>
+                        <Text style={w.txSub} numberOfLines={1}>
+                          {hhmm(tx.createdAt)}{tx.status !== 'SUCCESS' ? ' · Pending' : ''}
+                        </Text>
+                      </View>
+                      <Text style={w.txAmt}>{balanceVisible ? `${credit ? '+' : '−'}${naira(tx.amount)}` : '••••'}</Text>
+                    </TouchableOpacity>
+                  )
+                })}
+              </View>
+            </View>
+          ))
+        ) : upcoming.length === 0 ? (
+          <View style={w.empty}>
+            <Text style={w.emptyTitle}>Nothing scheduled</Text>
+            <Text style={w.emptySub}>Auto-saves you set up on a goal will show here</Text>
+          </View>
+        ) : (
+          <View style={w.list}>
+            {upcoming.map((u: any, i: number) => (
+              <View key={u.id} style={[w.tx, i < upcoming.length - 1 && w.txLine]}>
+                <View style={[w.tile, { backgroundColor: ds.goldSoft }]}>
+                  <Icon name="calendar" size={18} color={ds.goldInk} width={2} />
+                </View>
+                <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+                  <Text style={w.txTitle} numberOfLines={1}>Auto-save · {u.title}</Text>
+                  <Text style={w.txSub} numberOfLines={1}>{u.when} · {u.freq}</Text>
+                </View>
+                <Text style={w.txAmt}>{naira(u.amount)}</Text>
+              </View>
+            ))}
+          </View>
+        )}
       </ScrollView>
 
       {/* Transaction Detail Modal */}
@@ -690,7 +585,7 @@ export default function WalletScreen({ navigation }: any) {
             <View style={styles.fsFooter}>
               <TouchableOpacity
                 style={styles.fsClear}
-                onPress={() => { setPeriod('MONTH'); setFilter('ALL'); setCustomStart(null); setCustomEnd(null) }}
+                onPress={() => { setPeriod('ALL'); setFilter('ALL'); setCustomStart(null); setCustomEnd(null) }}
               >
                 <Text style={styles.fsClearText} numberOfLines={1}>Clear all</Text>
               </TouchableOpacity>
@@ -850,4 +745,41 @@ const styles = StyleSheet.create({
   modalDivider: { height: 1, backgroundColor: '#f0f2f7' },
   modalCloseBtn: { backgroundColor: '#25427a', borderRadius: 14, padding: 16, alignItems: 'center' },
   modalCloseBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
+})
+
+const w = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: ds.bg },
+  rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  h1: { fontSize: 24, lineHeight: 29, color: ds.ink, fontFamily: F.x },
+  roundBtn: { width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: ds.border, backgroundColor: ds.card, alignItems: 'center', justifyContent: 'center' },
+  dot: { position: 'absolute', top: 9, right: 10, width: 9, height: 9, borderRadius: 5, backgroundColor: ds.gold, borderWidth: 2, borderColor: '#ffffff' },
+  hero: { backgroundColor: ds.hero, borderRadius: 22, padding: 20, gap: 16 },
+  heroLabel: { fontSize: 13, lineHeight: 16, color: ds.onHero, fontFamily: F.r },
+  balRow: { flexDirection: 'row', alignItems: 'baseline', gap: 4 },
+  balSym: { fontSize: 20, lineHeight: 24, color: ds.onHero, fontFamily: F.b, ...tnum },
+  balWhole: { fontSize: 34, lineHeight: 41, color: '#ffffff', fontFamily: F.x, letterSpacing: -0.5, ...tnum },
+  heroLine: { height: 1, backgroundColor: ds.heroLine },
+  statLabel: { fontSize: 12, lineHeight: 15, color: ds.onHero, fontFamily: F.r },
+  statValue: { fontSize: 16, lineHeight: 20, color: '#ffffff', fontFamily: F.x, ...tnum },
+  btn: { flex: 1, height: 48, borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  btnText: { fontSize: 15, lineHeight: 18, fontFamily: F.x },
+  search: { flex: 1, height: 44, borderRadius: 14, backgroundColor: ds.card, borderWidth: 1, borderColor: ds.border, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14 },
+  searchInput: { flex: 1, fontSize: 14, color: ds.ink, fontFamily: F.s, paddingVertical: 0 },
+  chip: { height: 36, paddingHorizontal: 14, borderRadius: 18, borderWidth: 1, borderColor: ds.border, backgroundColor: ds.card, alignItems: 'center', justifyContent: 'center' },
+  chipOn: { backgroundColor: ds.hero, borderColor: ds.hero },
+  chipText: { fontSize: 13, lineHeight: 16, color: ds.ink, fontFamily: F.s },
+  chipTextOn: { color: '#ffffff', fontFamily: F.x },
+  range: { flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-start', backgroundColor: ds.blueSoft, borderRadius: 12, paddingHorizontal: 12, height: 34 },
+  rangeText: { fontSize: 13, lineHeight: 16, color: ds.navy, fontFamily: F.b },
+  day: { fontSize: 12, lineHeight: 15, color: ds.muted, fontFamily: F.b, letterSpacing: 0.6, paddingHorizontal: 4 },
+  list: { backgroundColor: ds.card, borderRadius: 18, borderWidth: 1, borderColor: ds.border, overflow: 'hidden' },
+  tx: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 13, paddingHorizontal: 16 },
+  txLine: { borderBottomWidth: 1, borderBottomColor: ds.divider },
+  tile: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  txTitle: { fontSize: 14, lineHeight: 17, color: ds.ink, fontFamily: F.b },
+  txSub: { fontSize: 12, lineHeight: 15, color: ds.muted, fontFamily: F.r },
+  txAmt: { fontSize: 14, lineHeight: 17, color: ds.ink, fontFamily: F.x, ...tnum },
+  empty: { backgroundColor: ds.card, borderRadius: 18, borderWidth: 1, borderColor: ds.border, paddingVertical: 28, paddingHorizontal: 20, alignItems: 'center', gap: 6 },
+  emptyTitle: { fontSize: 15, lineHeight: 18, color: ds.ink, fontFamily: F.x },
+  emptySub: { fontSize: 13, lineHeight: 19, color: ds.muted, fontFamily: F.r, textAlign: 'center' },
 })

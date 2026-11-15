@@ -390,7 +390,7 @@ export default function AjoScreen({ navigation, route }: any) {
           <View style={g.contrib}>
             <View style={{ flex: 1, gap: 3 }}>
               <Text style={g.eyebrow}>YOUR CONTRIBUTION</Text>
-              <Text style={g.contribValue}>
+              <Text style={g.contribValue} numberOfLines={1} adjustsFontSizeToFit>
                 {status === 'paid' ? 'Paid this cycle'
                   : status === 'waiting' ? 'Waiting for members'
                   : status === 'none' ? 'Not a member'
@@ -405,6 +405,16 @@ export default function AjoScreen({ navigation, route }: any) {
               <Icon name="checkCircle" size={26} color={ds.navy} width={2} />
             ) : null}
           </View>
+
+          {kind === 'guaranteed' && (
+            <View style={g.cover}>
+              <Icon name="shieldCheck" size={20} color={ds.goldInk} width={2} />
+              <View style={{ flex: 1, gap: 2 }}>
+                <Text style={g.coverTitle}>OWODE covers missed payments</Text>
+                <Text style={g.coverText}>Includes {naira(group.guaranteeFee || 0)} guarantee fee. If anyone misses a payment, the payout still goes out in full.</Text>
+              </View>
+            </View>
+          )}
 
           <Text style={g.section}>Payout order</Text>
 
@@ -464,7 +474,7 @@ export default function AjoScreen({ navigation, route }: any) {
       {/* Guaranteed Contribute Modal */}
       <Modal visible={contributeModal} animationType="slide" transparent>
         {pinStep ? (
-          <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.pinContainer}>
+          <LinearGradient colors={['#14244a', '#14244a']} style={styles.pinContainer}>
             {contributing ? (
               <OwodeLoader size="large" fullscreen color="#f5a623" />
             ) : (
@@ -483,40 +493,42 @@ export default function AjoScreen({ navigation, route }: any) {
             )}
           </LinearGradient>
         ) : (
-          <View style={styles.modalOverlay}>
-            <View style={styles.modal}>
-              <Text style={styles.modalTitle}>Confirm Contribution</Text>
+          <View style={C.backdrop}>
+            <View style={[C.sheet, { paddingBottom: Math.max(insets.bottom + 16, 28) }]}>
+              <View style={C.grab} />
+              <Text style={C.title}>Confirm contribution</Text>
               {selectedGroup && (
                 <>
-                  <View style={styles.confirmRow}>
-                    <Text style={styles.confirmLabel}>Group</Text>
-                    <Text style={styles.confirmValue}>{selectedGroup.name}</Text>
+                  <View>
+                    {[
+                      ['Group', selectedGroup.name],
+                      ['Contribution', naira(selectedGroup.amount || 0)],
+                      ['Guarantee fee', naira(selectedGroup.guaranteeFee || 0)],
+                    ].map(([k, v], i) => (
+                      <View key={k} style={[C.row, i < 2 && C.rowLine]}>
+                        <Text style={C.key}>{k}</Text>
+                        <Text style={C.val} numberOfLines={1}>{v}</Text>
+                      </View>
+                    ))}
                   </View>
-                  <View style={styles.confirmRow}>
-                    <Text style={styles.confirmLabel}>Contribution</Text>
-                    <Text style={styles.confirmValue}>₦{selectedGroup.amount?.toLocaleString()}</Text>
+                  <View style={C.totalRow}>
+                    <Text style={C.totalKey}>Total</Text>
+                    <Text style={C.total}>{naira((selectedGroup.amount || 0) + (selectedGroup.guaranteeFee || 0))}</Text>
                   </View>
-                  <View style={styles.confirmRow}>
-                    <Text style={styles.confirmLabel}>Guarantee Fee</Text>
-                    <Text style={styles.confirmValue}>₦{selectedGroup.guaranteeFee?.toLocaleString()}</Text>
-                  </View>
-                  <View style={[styles.confirmRow, { borderBottomWidth: 0 }]}>
-                    <Text style={[styles.confirmLabel, { fontWeight: 'bold', color: '#25427a' }]}>Total</Text>
-                    <Text style={[styles.confirmValue, { fontWeight: 'bold', color: '#25427a' }]}>
-                      ₦{(selectedGroup.amount + selectedGroup.guaranteeFee)?.toLocaleString()}
-                    </Text>
-                  </View>
-                  <View style={styles.avatarNote}>
-                    <Text style={styles.avatarNoteText}>Your payout is protected by the Owode Avatar</Text>
+                  <View style={C.note}>
+                    <Icon name="shieldCheck" size={20} color={ds.goldInk} width={2} />
+                    <Text style={C.noteText}>Your payout is protected. If a member misses a payment, OWODE covers it.</Text>
                   </View>
                 </>
               )}
-              <TouchableOpacity style={styles.confirmBtn} onPress={() => setPinStep(true)}>
-                <Text style={styles.confirmBtnText}>Continue to PIN</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => setContributeModal(false)}>
-                <Text style={styles.cancelText}>Cancel</Text>
-              </TouchableOpacity>
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+                <TouchableOpacity style={[C.btn, C.btnOutline]} onPress={() => setContributeModal(false)}>
+                  <Text style={C.btnOutlineText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[C.btn, C.btnGold]} onPress={() => setPinStep(true)} activeOpacity={0.85}>
+                  <Text style={C.btnGoldText}>Continue to PIN</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         )}
@@ -628,321 +640,157 @@ export default function AjoScreen({ navigation, route }: any) {
     )
   }
 
-  return (
-    <View style={styles.container}>
-      <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={22} color="#f5a623" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Ajo Groups</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('CreateAjo')}>
-          <Ionicons name="add-circle-outline" size={24} color="#f5a623" />
-        </TouchableOpacity>
-      </LinearGradient>
+  // ─── OWODE Alajo Redesign "Ajọ groups" board ─────────────────────────
+  const renderCard = (group: any) => {
+    const kind: 'standard' | 'guaranteed' = group.type === 'guaranteed' ? 'guaranteed' : 'standard'
+    const isMember = isMyGroup(group)
+    const member = myMember(group)
+    const members = ajoMembers(group)
+    const n = ajoSize(group, kind)
+    const full = ajoIsFull(group, kind)
+    const paid = members.filter((m: any) => m.hasPaid).length
+    const cur = ajoCurrentPosition(group, kind)
+    const freq = String(group.frequency || '').toLowerCase()
+    const meta = full
+      ? `${naira(group.amount)} ${freq} · cycle ${cur} of ${n}`
+      : `${naira(group.amount)} ${freq} · ${members.length} of ${n} seats filled`
+    const fill = full ? paid / n : members.length / n
+    const pending = kind === 'standard' ? (group.members || []).filter((m: any) => m.status === 'PENDING').length : 0
+    const canManage = kind === 'standard' && group.createdBy === user?.id && group.approvalStatus !== 'APPROVED'
 
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchBar}>
-          <Ionicons name="search-outline" size={16} color="#9aa5b8" />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search groups..."
-            placeholderTextColor="#888"
-            value={search}
-            onChangeText={setSearch}
-          />
+    let status = ''
+    let action: React.ReactNode = null
+    if (!isMember) {
+      status = full ? 'Group is full' : `${n - members.length} seat${n - members.length === 1 ? '' : 's'} left`
+      action = full ? <Text style={[L.pill, { backgroundColor: ds.divider, color: ds.muted }]}>Full</Text> : (
+        <TouchableOpacity style={L.navyBtn} activeOpacity={0.85}
+          onPress={() => kind === 'guaranteed' ? handleJoinGuaranteed(group.id) : handleJoinStandard(group.id)}>
+          <Text style={L.navyBtnText}>Join</Text>
+        </TouchableOpacity>
+      )
+    } else if (!full) {
+      status = 'starts when full'
+      action = <Text style={[L.pill, { backgroundColor: ds.divider, color: ds.muted }]}>Waiting</Text>
+    } else if (member?.hasPaid) {
+      status = `${paid} of ${n} paid · you have paid`
+      action = <Text style={[L.pill, { backgroundColor: ds.blueSoft, color: ds.navy }]}>Paid</Text>
+    } else {
+      status = `${paid} of ${n} paid · you owe ${ajoDueWord(group.frequency)}`
+      action = (
+        <TouchableOpacity style={L.goldBtn} activeOpacity={0.85}
+          onPress={() => kind === 'standard'
+            ? handleContributeStandard(group.id, group.name, group.amount)
+            : (setContributeMode('guaranteed'), handleContributeGuaranteed(group))}>
+          <Text style={L.goldBtnText}>Pay</Text>
+        </TouchableOpacity>
+      )
+    }
+
+    return (
+      <TouchableOpacity
+        key={`${kind}-${group.id}`}
+        style={L.card}
+        activeOpacity={isMember ? 0.85 : 1}
+        onPress={() => isMember && setFocus({ id: group.id, kind, fromParam: false })}
+      >
+        <View style={[L.rowBetween, { alignItems: 'flex-start', gap: 10 }]}>
+          <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
+            <Text style={L.name} numberOfLines={1}>{group.name}</Text>
+            <Text style={L.meta} numberOfLines={1}>{meta}</Text>
+          </View>
+          <Text style={[L.pill, kind === 'guaranteed'
+            ? { backgroundColor: ds.goldSoft, color: ds.goldInk }
+            : { backgroundColor: ds.blueSoft, color: ds.navy }]}>
+            {kind === 'guaranteed' ? 'Guaranteed' : 'Standard'}
+          </Text>
+        </View>
+        <View style={L.track}><View style={[L.fill, { width: `${Math.round(Math.min(1, fill) * 100)}%` }]} /></View>
+        <View style={L.rowBetween}>
+          <Text style={L.status} numberOfLines={1}>{status}</Text>
+          {action}
+        </View>
+        {canManage && (
+          <TouchableOpacity style={L.manage} activeOpacity={0.8}
+            onPress={() => navigation.navigate('ManageAjo', {
+              groupId: group.id, groupName: group.name, inviteCode: group.inviteCode,
+              amount: group.amount, frequency: group.frequency,
+            })}>
+            <Icon name="gear" size={16} color={ds.navy} />
+            <Text style={L.manageText} numberOfLines={1}>{pending ? `Manage group · ${pending} waiting` : 'Manage group'}</Text>
+            <Icon name="chevron" size={16} color="#9aa5b8" width={2} />
+          </TouchableOpacity>
+        )}
+      </TouchableOpacity>
+    )
+  }
+
+  return (
+    <View style={[styles.container, { backgroundColor: ds.bg }]}>
+      <ScrollView
+        contentContainerStyle={{ paddingTop: insets.top + 20, paddingHorizontal: 20, paddingBottom: 110, gap: 12 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={ds.navy} />}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={[L.rowBetween, { marginBottom: 6 }]}>
+          <Text style={L.h1}>Ajọ groups</Text>
+          <TouchableOpacity style={L.create} onPress={() => navigation.navigate('CreateAjo')} activeOpacity={0.85}>
+            <Icon name="plus" size={16} color="#ffffff" width={2.4} />
+            <Text style={L.createText}>Create</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={L.seg}>
+          {([['all', 'All'], ['standard', 'Standard'], ['guaranteed', 'Guaranteed']] as const).map(([k, label]) => {
+            const on = activeTab === k
+            return (
+              <TouchableOpacity key={k} style={[L.segItem, on && L.segOn]} onPress={() => setActiveTab(k)}>
+                <Text style={[L.segText, on && L.segTextOn]} numberOfLines={1}>{label}</Text>
+              </TouchableOpacity>
+            )
+          })}
+        </View>
+
+        <View style={L.search}>
+          <Icon name="search" size={18} color={ds.muted} />
+          <TextInput style={L.searchInput} placeholder="Search groups" placeholderTextColor="#9aa5b8"
+            value={search} onChangeText={setSearch} />
           {search ? (
-            <TouchableOpacity onPress={() => setSearch('')}>
-              <Ionicons name="close-circle" size={16} color="#9aa5b8" />
+            <TouchableOpacity onPress={() => setSearch('')} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <Icon name="close" size={16} color={ds.muted} width={2} />
             </TouchableOpacity>
           ) : null}
         </View>
-      </View>
 
-      <TouchableOpacity style={styles.joinCodeBar} onPress={() => setShowJoinCode(true)}>
-        <Ionicons name="key-outline" size={17} color="#25427a" />
-        <Text style={styles.joinCodeText}>Have an invite code? Join a group</Text>
-        <Ionicons name="chevron-forward" size={16} color="#7c8aa5" />
-      </TouchableOpacity>
+        <TouchableOpacity style={L.invite} onPress={() => setShowJoinCode(true)} activeOpacity={0.8}>
+          <View style={L.tile}><Icon name="key" size={18} color={ds.navy} width={2} /></View>
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text style={L.inviteTitle}>Have an invite code?</Text>
+            <Text style={L.meta}>Join a group with the 6-character code</Text>
+          </View>
+          <Icon name="chevron" size={18} color="#9aa5b8" width={2} />
+        </TouchableOpacity>
 
-      {/* Filter Tabs */}
-      <View style={styles.tabsContainer}>
-        {[
-          { key: 'all', label: `All (${allGroups.length})` },
-          { key: 'standard', label: `Standard (${standardGroups.length})` },
-          { key: 'guaranteed', label: `Guaranteed (${guaranteedGroups.length})` }
-        ].map(tab => (
-          <TouchableOpacity
-            key={tab.key}
-            style={[styles.tab, activeTab === tab.key && styles.tabActive]}
-            onPress={() => setActiveTab(tab.key as any)}
-          >
-            <Text style={[styles.tabText, activeTab === tab.key && styles.tabTextActive]}>
-              {tab.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+        {activeTab === 'guaranteed' && (
+          <View style={L.cover}>
+            <Icon name="shieldCheck" size={20} color={ds.goldInk} width={2} />
+            <Text style={L.coverText}>In Guaranteed Ajọ, OWODE covers missed payments so every payout goes out in full.</Text>
+          </View>
+        )}
 
-      {/* Guaranteed Info Bar */}
-      {activeTab === 'guaranteed' && (
-        <View style={styles.guaranteedInfoBar}>
-          <Text style={styles.guaranteedInfoText}>
-            Owode Avatar guarantees your payout even if members default!
-          </Text>
-        </View>
-      )}
-
-      {loading ? (
-        <OwodeLoader size="large" fullscreen color="#25427a"  />
-      ) : (
-        <ScrollView contentContainerStyle={{ paddingBottom: 110 }}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-          showsVerticalScrollIndicator={false}
-        >
-          {filteredGroups.length === 0 ? (
-            <View style={styles.emptyState}>
-              {search ? <Ionicons name="search-outline" size={56} color="#9aa5b8" style={{ marginBottom: 16 }} /> : null}
-              <Text style={styles.emptyText}>
-                {search ? `No groups found for "${search}"` : 'No Ajo groups available'}
-              </Text>
-              <Text style={styles.emptySubText}>
-                {search ? 'Try a different search term' : 'Check back soon — OWODE admins are creating groups!'}
-              </Text>
-            </View>
-          ) : (
-            filteredGroups.map(group => {
-              const isMember = isMyGroup(group)
-              const member = myMember(group)
-
-              if (group.type === 'guaranteed') {
-                return (
-                  <TouchableOpacity
-                    key={`guaranteed-${group.id}`}
-                    style={[styles.groupCard, styles.guaranteedCard]}
-                    activeOpacity={isMember ? 0.9 : 1}
-                    onPress={() => isMember && setFocus({ id: group.id, kind: 'guaranteed', fromParam: false })}
-                  >
-                    <View style={styles.groupHeader}>
-                      <View style={{ flex: 1 }}>
-                        <Text style={styles.groupName}>{group.name}</Text>
-                        <Text style={styles.groupFrequencyText}>{group.frequency}</Text>
-                      </View>
-                      <View style={styles.guaranteedBadge}>
-                        <Text style={styles.guaranteedBadgeText}>Guaranteed</Text>
-                      </View>
-                    </View>
-
-                    <Text style={styles.groupAmount}>₦{group.amount?.toLocaleString()}</Text>
-                    <Text style={styles.groupAmountLabel}>
-                      per cycle + ₦{group.guaranteeFee?.toLocaleString()} guarantee fee
-                    </Text>
-
-                    <View style={styles.avatarCoverage}>
-                      <Text style={styles.avatarCoverageText}>
-                        Avatar Coverage: {group.avatarCoveredCount}/{group.maxAvatarCoverage} used
-                      </Text>
-                      <View style={styles.coverageBar}>
-                        <View style={[
-                          styles.coverageBarFill,
-                          {
-                            width: `${(group.avatarCoveredCount / group.maxAvatarCoverage) * 100}%`,
-                            backgroundColor: group.avatarCoveredCount === group.maxAvatarCoverage ? '#ef4444' : '#22c55e'
-                          }
-                        ]} />
-                      </View>
-                    </View>
-
-                    <Text style={styles.membersTitle}>
-                      Members ({group.members?.length}/{group.totalMembers})
-                    </Text>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.membersRow}>
-                      {group.members?.map((m: any) => (
-                        <View key={`gm-${m.id}`} style={styles.memberChip}>
-                          <View style={[styles.memberAvatar, { backgroundColor: m.isAvatar ? '#f5a623' : '#25427a' }]}>
-                            <Text style={styles.memberAvatarText}>
-                              {m.isAvatar ? '' : m.user?.fullName?.charAt(0)}
-                            </Text>
-                          </View>
-                          <Text style={styles.memberName} numberOfLines={1}>
-                            {m.isAvatar ? 'Avatar' : m.userId === user?.id ? 'You' : m.user?.fullName?.split(' ')[0]}
-                          </Text>
-                          <Text style={{ fontSize: 10, color: m.hasPaid ? '#22c55e' : '#ccc' }}>
-                            {m.hasPaid ? '' : 'Due'}
-                          </Text>
-                        </View>
-                      ))}
-                    </ScrollView>
-
-                    <View style={styles.groupActions}>
-                      {!isMember ? (
-                        <TouchableOpacity
-                          style={[styles.actionBtn, styles.joinBtn]}
-                          onPress={() => handleJoinGuaranteed(group.id)}
-                        >
-                          <Text style={styles.joinBtnText}>+ Join Group</Text>
-                        </TouchableOpacity>
-                      ) : (
-                        <>
-                          <View style={styles.memberBadge}>
-                            <Text style={styles.memberBadgeText}>Member — Position #{member?.position}</Text>
-                          </View>
-                          <TouchableOpacity
-                            style={[styles.actionBtn, styles.contributeBtn]}
-                            onPress={() => { setContributeMode('guaranteed'); handleContributeGuaranteed(group) }}
-                          >
-                            <Text style={styles.contributeBtnText}>Contribute</Text>
-                          </TouchableOpacity>
-                        </>
-                      )}
-                      <TouchableOpacity style={styles.shareBtn} onPress={() => handleShare(group)}>
-                        <Text style={styles.shareBtnText}>Share Group</Text>
-                      </TouchableOpacity>
-                    </View>
-                    <Text style={styles.cycleInfo}>Cycle {group.currentCycle} • Guaranteed Ajo</Text>
-                  </TouchableOpacity>
-                )
-              }
-
-              // Standard Group
-              const isFull = group.members?.filter((m: any) => !m.isAvatar).length >= group.totalMembers
-              const spotsLeft = group.totalMembers - (group.members?.filter((m: any) => !m.isAvatar).length || 0)
-
-              return (
-                <TouchableOpacity
-                  key={`standard-${group.id}`}
-                  style={styles.groupCard}
-                  activeOpacity={isMember ? 0.9 : 1}
-                  onPress={() => isMember && setFocus({ id: group.id, kind: 'standard', fromParam: false })}
-                >
-                  <View style={styles.groupHeader}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.groupName}>{group.name}</Text>
-                      <Text style={styles.groupFrequencyText}>{group.frequency}</Text>
-                    </View>
-                    <View style={styles.badgeRow}>
-                      <View style={styles.standardBadge}>
-                        <Text style={styles.standardBadgeText}>Standard</Text>
-                      </View>
-                      <View style={[styles.statusBadge, { backgroundColor: isFull ? '#e8f5e9' : '#fff3e0' }]}>
-                        <Text style={[styles.statusBadgeText, { color: isFull ? '#22c55e' : '#f5a623' }]}>
-                          {isFull ? 'Full' : `${spotsLeft} left`}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-
-                  <Text style={styles.groupAmount}>₦{group.amount?.toLocaleString()}</Text>
-                  <Text style={styles.groupAmountLabel}>per contribution cycle</Text>
-
-                  <View style={styles.progressSection}>
-                    <View style={styles.progressRow}>
-                      <Text style={styles.progressLabel}>Members</Text>
-                      <Text style={styles.progressValue}>
-                        {group.members?.filter((m: any) => !m.isAvatar).length}/{group.totalMembers}
-                      </Text>
-                    </View>
-                    <View style={styles.progressBar}>
-                      <View style={[
-                        styles.progressBarFill,
-                        {
-                          width: `${((group.members?.filter((m: any) => !m.isAvatar).length || 0) / group.totalMembers) * 100}%`,
-                          backgroundColor: isFull ? '#22c55e' : '#25427a'
-                        }
-                      ]} />
-                    </View>
-                  </View>
-
-                  {!isFull && (
-                    <View style={styles.warningBox}>
-                      <Text style={styles.warningText}>
-                        ⏳ {spotsLeft} more member{spotsLeft > 1 ? 's' : ''} needed before contributions start
-                      </Text>
-                    </View>
-                  )}
-
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.membersRow}>
-                    {group.members?.filter((m: any) => !m.isAvatar).map((m: any) => (
-                      <View key={`sm-${m.id}`} style={styles.memberChip}>
-                        <View style={[styles.memberAvatar, { backgroundColor: m.userId === user?.id ? '#f5a623' : '#25427a' }]}>
-                          <Text style={styles.memberAvatarText}>{m.user?.fullName?.charAt(0)}</Text>
-                        </View>
-                        <Text style={styles.memberName} numberOfLines={1}>
-                          {m.userId === user?.id ? 'You' : m.user?.fullName?.split(' ')[0]}
-                        </Text>
-                        <Text style={{ fontSize: 10, color: m.hasPaid ? '#22c55e' : '#ccc' }}>
-                          {m.hasPaid ? '' : 'Due'}
-                        </Text>
-                      </View>
-                    ))}
-                    {Array.from({ length: spotsLeft }).map((_, i) => (
-                      <View key={`empty-${group.id}-${i}`} style={styles.memberChip}>
-                        <View style={[styles.memberAvatar, { backgroundColor: '#f0f2f7' }]}>
-                          <Text style={[styles.memberAvatarText, { color: '#9aa5b8' }]}>?</Text>
-                        </View>
-                        <Text style={[styles.memberName, { color: '#9aa5b8' }]}>Open</Text>
-                      </View>
-                    ))}
-                  </ScrollView>
-
-                  {group.createdBy === user?.id && group.approvalStatus !== 'APPROVED' ? (
-                    <TouchableOpacity
-                      style={styles.manageBtn}
-                      onPress={() => navigation.navigate('ManageAjo', {
-                        groupId: group.id,
-                        groupName: group.name,
-                        inviteCode: group.inviteCode,
-                        amount: group.amount,
-                        frequency: group.frequency
-                      })}
-                    >
-                      <Ionicons name="settings-outline" size={15} color="#25427a" />
-                      <Text style={styles.manageBtnText} numberOfLines={1}>
-                        {group.members?.filter((m: any) => m.status === 'PENDING').length
-                          ? 'Manage group \u00b7 ' + group.members.filter((m: any) => m.status === 'PENDING').length + ' waiting'
-                          : 'Manage group'}
-                      </Text>
-                      <Ionicons name="chevron-forward" size={15} color="#7c8aa5" />
-                    </TouchableOpacity>
-                  ) : null}
-
-                  <View style={styles.groupActions}>
-                    {!isMember ? (
-                      <TouchableOpacity
-                        style={[styles.actionBtn, styles.joinBtn, isFull && styles.actionBtnDisabled]}
-                        onPress={() => !isFull && handleJoinStandard(group.id)}
-                        disabled={isFull}
-                      >
-                        <Text style={styles.joinBtnText}>{isFull ? 'Group Full' : '+ Join Group'}</Text>
-                      </TouchableOpacity>
-                    ) : (
-                      <>
-                        <View style={styles.memberBadge}>
-                          <Text style={styles.memberBadgeText}>Member — Position #{member?.position}</Text>
-                        </View>
-                        <TouchableOpacity
-                          style={[styles.actionBtn, styles.contributeBtn, (!isFull || member?.hasPaid) && styles.actionBtnDisabled]}
-                          onPress={() => isFull && !member?.hasPaid && handleContributeStandard(group.id, group.name, group.amount)}
-                          disabled={!isFull || member?.hasPaid}
-                        >
-                          <Text style={styles.contributeBtnText}>
-                            {!isFull ? '⏳ Waiting for members' : member?.hasPaid ? 'Paid this cycle' : 'Contribute Now'}
-                          </Text>
-                        </TouchableOpacity>
-                      </>
-                    )}
-                    <TouchableOpacity style={styles.shareBtn} onPress={() => handleShare(group)}>
-                      <Text style={styles.shareBtnText}>Share Group</Text>
-                    </TouchableOpacity>
-                  </View>
-                  <Text style={styles.cycleInfo}>Cycle {group.currentCycle} • Standard Ajo</Text>
-                </TouchableOpacity>
-              )
-            })
-          )}
-          <View style={{ height: 40 }} />
-        </ScrollView>
-      )}
+        {loading ? (
+          <OwodeLoader size="large" color={ds.navy} label="Loading your groups…" />
+        ) : filteredGroups.length === 0 ? (
+          <View style={L.empty}>
+            <Text style={L.name}>{search ? `No groups match "${search}"` : 'No Ajọ groups yet'}</Text>
+            <Text style={[L.meta, { textAlign: 'center' }]}>{search ? 'Try a different name' : 'Create one or join with an invite code'}</Text>
+          </View>
+        ) : (
+          [...filteredGroups]
+            .sort((a, b) => Number(isMyGroup(b)) - Number(isMyGroup(a)))
+            .map(renderCard)
+        )}
+      </ScrollView>
 
       {modals}
 
@@ -1079,5 +927,62 @@ const g = StyleSheet.create({
   name: { flex: 1, fontSize: 14, lineHeight: 17, color: ds.ink, fontFamily: F.s },
   state: { fontSize: 12, lineHeight: 15, color: ds.muted, fontFamily: F.r },
   shareRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 48, borderRadius: 14, borderWidth: 1, borderColor: ds.border, backgroundColor: ds.card },
+  cover: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: ds.goldWash, borderWidth: 1, borderColor: ds.goldLine, borderRadius: 18, paddingVertical: 14, paddingHorizontal: 16 },
+  coverTitle: { fontSize: 14, lineHeight: 17, color: ds.ink, fontFamily: F.x },
+  coverText: { fontSize: 12, lineHeight: 17, color: ds.goldInk2, fontFamily: F.r },
   shareText: { fontSize: 14, lineHeight: 17, color: ds.navy, fontFamily: F.b },
+})
+
+const L = StyleSheet.create({
+  rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  h1: { fontSize: 24, lineHeight: 29, color: ds.ink, fontFamily: F.x },
+  create: { height: 44, paddingHorizontal: 16, borderRadius: 22, backgroundColor: ds.navy, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  createText: { fontSize: 14, lineHeight: 17, color: '#ffffff', fontFamily: F.b },
+  seg: { flexDirection: 'row', backgroundColor: ds.divider, borderRadius: 14, padding: 4, gap: 4 },
+  segItem: { flex: 1, height: 38, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  segOn: { backgroundColor: ds.card, shadowColor: '#14244a', shadowOpacity: 0.08, shadowRadius: 2, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
+  segText: { fontSize: 13, lineHeight: 16, color: ds.muted, fontFamily: F.s },
+  segTextOn: { color: ds.hero, fontFamily: F.x },
+  search: { height: 44, borderRadius: 14, backgroundColor: ds.card, borderWidth: 1, borderColor: ds.border, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14 },
+  searchInput: { flex: 1, fontSize: 14, color: ds.ink, fontFamily: F.s, paddingVertical: 0 },
+  invite: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: ds.card, borderWidth: 1.5, borderStyle: 'dashed', borderColor: '#c7d0de', borderRadius: 18, paddingVertical: 14, paddingHorizontal: 16 },
+  tile: { width: 38, height: 38, borderRadius: 12, backgroundColor: ds.blueSoft, alignItems: 'center', justifyContent: 'center' },
+  inviteTitle: { fontSize: 14, lineHeight: 17, color: ds.ink, fontFamily: F.x },
+  cover: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: ds.goldWash, borderWidth: 1, borderColor: ds.goldLine, borderRadius: 14, padding: 12 },
+  coverText: { flex: 1, fontSize: 13, lineHeight: 18, color: ds.goldInk2, fontFamily: F.m },
+  card: { backgroundColor: ds.card, borderWidth: 1, borderColor: ds.border, borderRadius: 18, padding: 14, gap: 12 },
+  name: { fontSize: 15, lineHeight: 18, color: ds.ink, fontFamily: F.x },
+  meta: { fontSize: 12, lineHeight: 15, color: ds.muted, fontFamily: F.r, ...tnum },
+  pill: { fontSize: 12, lineHeight: 15, fontFamily: F.b, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10, overflow: 'hidden' },
+  track: { height: 6, borderRadius: 3, backgroundColor: ds.divider, overflow: 'hidden' },
+  fill: { height: 6, borderRadius: 3, backgroundColor: ds.navy },
+  status: { flex: 1, marginRight: 10, fontSize: 13, lineHeight: 16, color: ds.inkSoft, fontFamily: F.r },
+  goldBtn: { height: 40, paddingHorizontal: 18, borderRadius: 12, backgroundColor: ds.gold, alignItems: 'center', justifyContent: 'center' },
+  goldBtnText: { fontSize: 14, lineHeight: 17, color: ds.hero, fontFamily: F.x },
+  navyBtn: { height: 40, paddingHorizontal: 18, borderRadius: 12, backgroundColor: ds.navy, alignItems: 'center', justifyContent: 'center' },
+  navyBtnText: { fontSize: 14, lineHeight: 17, color: '#ffffff', fontFamily: F.x },
+  manage: { flexDirection: 'row', alignItems: 'center', gap: 8, borderTopWidth: 1, borderTopColor: ds.divider, paddingTop: 12 },
+  manageText: { flex: 1, fontSize: 13, lineHeight: 16, color: ds.navy, fontFamily: F.b },
+  empty: { backgroundColor: ds.card, borderWidth: 1, borderColor: ds.border, borderRadius: 18, paddingVertical: 28, paddingHorizontal: 20, alignItems: 'center', gap: 6 },
+})
+
+const C = StyleSheet.create({
+  backdrop: { flex: 1, backgroundColor: 'rgba(10,20,45,0.55)', justifyContent: 'flex-end' },
+  sheet: { backgroundColor: '#ffffff', borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingTop: 10, paddingHorizontal: 20, gap: 14 },
+  grab: { alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: '#d3dbe8' },
+  title: { fontSize: 20, lineHeight: 24, color: ds.ink, fontFamily: F.x },
+  row: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, paddingVertical: 12 },
+  rowLine: { borderBottomWidth: 1, borderBottomColor: ds.divider },
+  key: { fontSize: 14, lineHeight: 17, color: ds.muted, fontFamily: F.r },
+  val: { flexShrink: 1, fontSize: 14, lineHeight: 17, color: ds.ink, fontFamily: F.b, textAlign: 'right', ...tnum },
+  totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
+  totalKey: { fontSize: 15, lineHeight: 18, color: ds.ink, fontFamily: F.x },
+  total: { fontSize: 26, lineHeight: 32, color: ds.ink, fontFamily: F.x, ...tnum },
+  note: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: ds.goldWash, borderWidth: 1, borderColor: ds.goldLine, borderRadius: 14, paddingVertical: 12, paddingHorizontal: 14 },
+  noteText: { flex: 1, fontSize: 13, lineHeight: 18, color: ds.goldInk2, fontFamily: F.r },
+  btn: { height: 54, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  btnOutline: { flex: 1, borderWidth: 1, borderColor: ds.border, backgroundColor: '#ffffff' },
+  btnOutlineText: { fontSize: 16, lineHeight: 20, color: ds.navy, fontFamily: F.b },
+  btnGold: { flex: 2, backgroundColor: ds.gold },
+  btnGoldText: { fontSize: 16, lineHeight: 20, color: ds.hero, fontFamily: F.x },
 })

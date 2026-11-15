@@ -1,5 +1,5 @@
 import React from 'react'
-import Svg, { Path, Circle, Rect, Line, Polyline } from 'react-native-svg'
+import Svg, { Path, Circle, Rect, Line, Polyline, Polygon } from 'react-native-svg'
 
 // Line icons copied from the OWODE Alajo Redesign canvas (24x24 grid).
 export type IconName =
@@ -7,6 +7,8 @@ export type IconName =
   | 'help' | 'bell' | 'eye' | 'eyeOff' | 'plus' | 'send' | 'receive'
   | 'shield' | 'shieldCheck' | 'gift' | 'back' | 'checkCircle' | 'copy'
   | 'share' | 'backspace' | 'alert' | 'lock' | 'mail' | 'close' | 'refresh'
+  | 'download' | 'search' | 'filter' | 'calendar' | 'chevron' | 'gear' | 'star' | 'user'
+  | 'doc' | 'logout' | 'key' | 'finger' | 'trash' | 'mic'
 
 export default function Icon({
   name, size = 22, color = '#1a2b4a', width: sw = 1.8,
@@ -112,6 +114,70 @@ export default function Icon({
       case 'close': return <>
         <Line {...p} x1="18" y1="6" x2="6" y2="18" />
         <Line {...p} x1="6" y1="6" x2="18" y2="18" />
+      </>
+      case 'download': return <>
+        <Path {...p} d="M12 3v12" />
+        <Polyline {...p} points="7 10 12 15 17 10" />
+        <Path {...p} d="M5 21h14" />
+      </>
+      case 'search': return <>
+        <Circle {...p} cx="11" cy="11" r="7" />
+        <Line {...p} x1="21" y1="21" x2="16.5" y2="16.5" />
+      </>
+      case 'filter': return <>
+        <Line {...p} x1="4" y1="6" x2="20" y2="6" />
+        <Line {...p} x1="7" y1="12" x2="17" y2="12" />
+        <Line {...p} x1="10" y1="18" x2="14" y2="18" />
+      </>
+      case 'calendar': return <>
+        <Rect {...p} x="3" y="4" width="18" height="18" rx="2" />
+        <Line {...p} x1="16" y1="2" x2="16" y2="6" />
+        <Line {...p} x1="8" y1="2" x2="8" y2="6" />
+        <Line {...p} x1="3" y1="10" x2="21" y2="10" />
+      </>
+      case 'chevron': return <Polyline {...p} points="9 18 15 12 9 6" />
+      case 'gear': return <>
+        <Circle {...p} cx="12" cy="12" r="3" />
+        <Path {...p} d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" />
+      </>
+      case 'star': return <Polygon {...p} points="12 2 15.1 8.3 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 8.9 8.3 12 2" />
+      case 'user': return <>
+        <Circle {...p} cx="12" cy="8" r="4" />
+        <Path {...p} d="M4 21a8 8 0 0 1 16 0" />
+      </>
+      case 'doc': return <>
+        <Path {...p} d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <Polyline {...p} points="14 2 14 8 20 8" />
+        <Line {...p} x1="8" y1="13" x2="16" y2="13" />
+        <Line {...p} x1="8" y1="17" x2="13" y2="17" />
+      </>
+      case 'logout': return <>
+        <Path {...p} d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+        <Polyline {...p} points="16 17 21 12 16 7" />
+        <Line {...p} x1="21" y1="12" x2="9" y2="12" />
+      </>
+      case 'key': return <>
+        <Circle {...p} cx="8" cy="15" r="4" />
+        <Path {...p} d="M10.8 12.2 20 3" />
+        <Path {...p} d="M17 6l3 3" />
+      </>
+      case 'finger': return <>
+        <Path {...p} d="M12 11v4" />
+        <Path {...p} d="M8.5 8.5a5 5 0 0 1 8.5 3.5v2" />
+        <Path {...p} d="M6 12a6 6 0 0 1 .7-2.8" />
+        <Path {...p} d="M9 13v1a7 7 0 0 0 1.5 4.3" />
+        <Path {...p} d="M15 15.5a9 9 0 0 1-1 4" />
+        <Path {...p} d="M4.5 16A10 10 0 0 1 4 12a8 8 0 0 1 14.6-4.5" />
+      </>
+      case 'trash': return <>
+        <Polyline {...p} points="3 6 5 6 21 6" />
+        <Path {...p} d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+        <Path {...p} d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+      </>
+      case 'mic': return <>
+        <Rect {...p} x="9" y="2" width="6" height="12" rx="3" />
+        <Path {...p} d="M5 11a7 7 0 0 0 14 0" />
+        <Line {...p} x1="12" y1="18" x2="12" y2="22" />
       </>
       case 'refresh': return <>
         <Polyline {...p} points="23 4 23 10 17 10" />

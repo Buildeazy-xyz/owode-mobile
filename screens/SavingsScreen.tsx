@@ -310,7 +310,7 @@ export default function SavingsScreen({ navigation }: any) {
   // CREATE SCREEN
   if (pinAction) {
     return (
-      <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={{ flex: 1 }}>
+      <LinearGradient colors={['#14244a', '#14244a']} style={{ flex: 1 }}>
         {saving ? (
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
             <OwodeLoader size="large" fullscreen color="#f5a623" />
@@ -339,7 +339,7 @@ export default function SavingsScreen({ navigation }: any) {
   if (screen === 'create') {
     return (
       <View style={styles.container}>
-        <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.createHeader}>
+        <LinearGradient colors={['#14244a', '#14244a']} style={styles.createHeader}>
           <TouchableOpacity onPress={() => setScreen('list')}>
             <Ionicons name="chevron-back" size={22} color="#f5a623" />
           </TouchableOpacity>
@@ -594,7 +594,7 @@ export default function SavingsScreen({ navigation }: any) {
   if (screen === 'deposit') {
     return (
       <View style={styles.container}>
-        <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.createHeader}>
+        <LinearGradient colors={['#14244a', '#14244a']} style={styles.createHeader}>
           <TouchableOpacity onPress={() => setScreen('list')}>
             <Ionicons name="chevron-back" size={22} color="#f5a623" />
           </TouchableOpacity>

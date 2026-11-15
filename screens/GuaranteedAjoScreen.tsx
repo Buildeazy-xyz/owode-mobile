@@ -127,7 +127,7 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.header}>
+      <LinearGradient colors={['#14244a', '#14244a']} style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={22} color="#f5a623" />
         </TouchableOpacity>
@@ -239,7 +239,7 @@ export default function GuaranteedAjoScreen({ navigation }: any) {
       {/* Contribute Modal */}
       <Modal visible={contributeModal} animationType="slide" transparent>
         {pinStep ? (
-          <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.pinContainer}>
+          <LinearGradient colors={['#14244a', '#14244a']} style={styles.pinContainer}>
             {loading ? (
               <OwodeLoader size="large" fullscreen color="#f5a623" />
             ) : (
