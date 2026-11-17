@@ -416,7 +416,14 @@ export default function AjoScreen({ navigation, route }: any) {
             </View>
           )}
 
-          <Text style={g.section}>Payout order</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Text style={g.section}>Payout order</Text>
+            {kind === 'guaranteed' ? (
+              <TouchableOpacity onPress={() => navigation.navigate('GroupHistory', { groupId: group.id })}>
+                <Text style={{ fontSize: 13, lineHeight: 16, color: ds.navy, fontFamily: F.b }}>History</Text>
+              </TouchableOpacity>
+            ) : null}
+          </View>
 
           <View style={g.list}>
             {members.map((m: any, i: number) => {
@@ -539,79 +546,81 @@ export default function AjoScreen({ navigation, route }: any) {
         animationType="slide"
         onRequestClose={() => { setShowJoinCode(false); setPreview(null) }}
       >
-        <View style={styles.jcBackdrop}>
-          <View style={[styles.jcSheet, { maxHeight: SCREEN_H - kbHeight - 40 }]}>
-            <View style={styles.jcHeader}>
-              <Text style={styles.jcTitle} numberOfLines={1}>Join with invite code</Text>
-              <TouchableOpacity onPress={() => { setShowJoinCode(false); setJoinCode(''); setPreview(null) }}>
-                <Ionicons name="close" size={20} color="#7c8aa5" />
+        <View style={C.backdrop}>
+          <View style={[C.sheet, { maxHeight: SCREEN_H - kbHeight - 40, paddingBottom: Math.max(insets.bottom + 16, 28) }]}>
+            <View style={C.grab} />
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Text style={C.title}>Join a group</Text>
+              <TouchableOpacity onPress={() => { setShowJoinCode(false); setJoinCode(''); setPreview(null) }}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} accessibilityLabel="Close">
+                <Icon name="close" size={20} color={ds.muted} width={2} />
               </TouchableOpacity>
             </View>
 
             {!preview ? (
-              <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 20 }}>
-                <Text style={styles.jcLabel}>Enter the 6 character code</Text>
+              <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ gap: 14 }}>
+                <Text style={J.lead}>Ask the group creator for the 6-character code.</Text>
                 <TextInput
-                  style={styles.jcInput}
-                  placeholder="ABC123"
-                  placeholderTextColor="#9aa5b8"
+                  style={J.code}
+                  placeholder="K7Q2MX"
+                  placeholderTextColor="#c3cbda"
                   value={joinCode}
                   onChangeText={t => setJoinCode(t.toUpperCase())}
                   autoCapitalize="characters"
+                  autoCorrect={false}
                   maxLength={6}
+                  autoFocus
                 />
-                <View style={styles.jcWarn}>
-                  <Ionicons name="information-circle" size={17} color="#d97706" />
-                  <Text style={styles.jcWarnText}>
-                    This is a standard Ajo. If a member fails to contribute, OWODE does not cover it.
-                    Only join groups with people you trust.
-                  </Text>
+                <View style={J.note}>
+                  <Icon name="info" size={18} color={ds.muted} width={2} />
+                  <Text style={J.noteText}>Standard Ajọ: if a member fails to pay, OWODE does not cover it. Only join groups with people you trust.</Text>
                 </View>
-                <TouchableOpacity style={styles.jcBtn} onPress={lookupCode} disabled={joining}>
-                  {joining ? <OwodeLoader color="#fff" /> : <Text style={styles.jcBtnText}>Find group</Text>}
+                <TouchableOpacity style={[C.btn, C.btnGold, { flex: 0 }, joinCode.length < 6 && { opacity: 0.45 }]}
+                  onPress={lookupCode} disabled={joining || joinCode.length < 6} activeOpacity={0.85}>
+                  {joining ? <OwodeLoader color={ds.hero} size="small" /> : <Text style={C.btnGoldText}>Find group</Text>}
                 </TouchableOpacity>
               </ScrollView>
             ) : (
-              <View style={{ padding: 20 }}>
-                <Text style={styles.jcGroupName} numberOfLines={2}>{preview.name}</Text>
-                <View style={styles.jcRows}>
-                  {[
-                    ['Contribution', '\u20a6' + Number(preview.amount).toLocaleString() + ' ' + String(preview.frequency).toLowerCase()],
-                    ['You collect', '\u20a6' + (Number(preview.amount) * preview.totalMembers).toLocaleString()],
-                    ['Members', preview.joined + ' of ' + preview.totalMembers],
-                    ['Status', preview.alreadyIn ? 'Request already sent' : 'Creator must approve']
-                  ].map(([k, v]) => (
-                    <View key={k} style={styles.jcRow}>
-                      <Text style={styles.jcRowKey} numberOfLines={1}>{k}</Text>
-                      <Text style={styles.jcRowVal} numberOfLines={1}>{v}</Text>
-                    </View>
-                  ))}
-                </View>
-
-                {preview.memberNames?.length ? (
-                  <Text style={styles.jcMembers} numberOfLines={3}>
-                    Already in: {preview.memberNames.join(', ')}
-                  </Text>
-                ) : null}
-
-                <View style={styles.jcWarn}>
-                  <Ionicons name="information-circle" size={17} color="#d97706" />
-                  <Text style={styles.jcWarnText}>
-                    If a member fails to contribute, OWODE does not cover it.
-                  </Text>
-                </View>
-
-                {preview.alreadyIn ? (
-                  <View style={[styles.jcBtn, { backgroundColor: '#e6eaf2' }]}>
-                    <Text style={[styles.jcBtnText, { color: '#7c8aa5' }]}>Request already sent</Text>
+              <View style={{ gap: 14 }}>
+                <View style={J.card}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 10 }}>
+                    <Text style={J.name} numberOfLines={2}>{preview.name}</Text>
+                    <Text style={J.pill}>Standard</Text>
                   </View>
+                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                    {[
+                      ['PAY', naira(Number(preview.amount))],
+                      ['HOW OFTEN', String(preview.frequency || '').charAt(0) + String(preview.frequency || '').slice(1).toLowerCase()],
+                      ['PAYOUT', naira(Number(preview.amount) * preview.totalMembers)],
+                    ].map(([k, v]) => (
+                      <View key={k} style={J.stat}>
+                        <Text style={J.statKey}>{k}</Text>
+                        <Text style={J.statVal} numberOfLines={1} adjustsFontSizeToFit>{v}</Text>
+                      </View>
+                    ))}
+                  </View>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <Text style={J.seats}>{preview.joined} of {preview.totalMembers} seats filled</Text>
+                    <Text style={[J.seats, { color: ds.navy, fontFamily: F.b }]}>{Math.max(0, preview.totalMembers - preview.joined)} left</Text>
+                  </View>
+                  <View style={J.track}><View style={[J.fill, { width: `${Math.round(Math.min(1, preview.joined / Math.max(1, preview.totalMembers)) * 100)}%` }]} /></View>
+                  {preview.memberNames?.length ? (
+                    <Text style={J.members} numberOfLines={2}>Already in: {preview.memberNames.join(', ')}</Text>
+                  ) : null}
+                </View>
+                <View style={J.note}>
+                  <Icon name="info" size={18} color={ds.muted} width={2} />
+                  <Text style={J.noteText}>The creator approves your request. You start paying when every seat is filled.</Text>
+                </View>
+                {preview.alreadyIn ? (
+                  <View style={[C.btn, { backgroundColor: ds.divider }]}><Text style={[C.btnGoldText, { color: ds.muted }]}>Request already sent</Text></View>
                 ) : (
-                  <TouchableOpacity style={styles.jcBtn} onPress={confirmJoin} disabled={joining}>
-                    {joining ? <OwodeLoader color="#fff" /> : <Text style={styles.jcBtnText}>Request to join</Text>}
+                  <TouchableOpacity style={[C.btn, C.btnGold, { flex: 0 }]} onPress={confirmJoin} disabled={joining} activeOpacity={0.85}>
+                    {joining ? <OwodeLoader color={ds.hero} size="small" /> : <Text style={C.btnGoldText}>Request to join</Text>}
                   </TouchableOpacity>
                 )}
-                <TouchableOpacity onPress={() => setPreview(null)} style={{ alignItems: 'center', paddingVertical: 12 }}>
-                  <Text style={{ color: '#7c8aa5', fontSize: 13 }}>Use a different code</Text>
+                <TouchableOpacity onPress={() => setPreview(null)} style={{ alignItems: 'center', paddingVertical: 4 }}>
+                  <Text style={{ fontSize: 13, lineHeight: 16, color: ds.navy, fontFamily: F.b }}>Use a different code</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -985,4 +994,21 @@ const C = StyleSheet.create({
   btnOutlineText: { fontSize: 16, lineHeight: 20, color: ds.navy, fontFamily: F.b },
   btnGold: { flex: 2, backgroundColor: ds.gold },
   btnGoldText: { fontSize: 16, lineHeight: 20, color: ds.hero, fontFamily: F.x },
+})
+
+const J = StyleSheet.create({
+  lead: { fontSize: 14, lineHeight: 20, color: ds.inkSoft, fontFamily: F.r },
+  code: { height: 64, borderRadius: 16, borderWidth: 1.5, borderColor: ds.navy, textAlign: 'center', fontSize: 28, color: ds.ink, fontFamily: F.x, letterSpacing: 10 },
+  note: { flexDirection: 'row', gap: 10, alignItems: 'flex-start', paddingHorizontal: 2 },
+  noteText: { flex: 1, fontSize: 12, lineHeight: 18, color: ds.muted, fontFamily: F.r },
+  card: { borderWidth: 1, borderColor: ds.border, borderRadius: 18, padding: 16, gap: 14 },
+  name: { flex: 1, fontSize: 16, lineHeight: 20, color: ds.ink, fontFamily: F.x },
+  pill: { alignSelf: 'flex-start', fontSize: 12, lineHeight: 15, color: ds.navy, fontFamily: F.b, backgroundColor: ds.blueSoft, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10, overflow: 'hidden' },
+  stat: { flex: 1, backgroundColor: ds.bg, borderRadius: 12, padding: 10, gap: 3 },
+  statKey: { fontSize: 11, lineHeight: 14, color: ds.muted, fontFamily: F.b, letterSpacing: 0.4 },
+  statVal: { fontSize: 15, lineHeight: 18, color: ds.ink, fontFamily: F.x, ...tnum },
+  seats: { fontSize: 13, lineHeight: 16, color: ds.inkSoft, fontFamily: F.r },
+  track: { height: 6, borderRadius: 3, backgroundColor: ds.divider, overflow: 'hidden' },
+  fill: { height: 6, borderRadius: 3, backgroundColor: ds.navy },
+  members: { fontSize: 12, lineHeight: 17, color: ds.muted, fontFamily: F.r },
 })

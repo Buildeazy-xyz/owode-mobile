@@ -6,8 +6,12 @@ import PinKeypad from '../components/PinKeypad'
 import { authAPI } from '../utils/api'
 import { useAuth } from '../context/AuthContext'
 import OwodeLoader from '../components/OwodeLoader'
+import Icon from '../components/Icon'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { F, ds } from '../constants/theme'
 
 export default function SetTransactionPinScreen({ navigation, route }: any) {
+  const insets = useSafeAreaInsets()
   const { user, refreshUser } = useAuth()
   const fromRegister = route?.params?.fromRegister
   const hasExistingPin = !fromRegister && !!user?.hasTransactionPin
@@ -78,13 +82,15 @@ export default function SetTransactionPinScreen({ navigation, route }: any) {
   if (step === 'verify') {
     return (
       <LinearGradient colors={['#14244a', '#14244a']} style={styles.container}>
-        <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={22} color="#f5a623" />
-          <Text style={styles.backText}>Back</Text>
-        </TouchableOpacity>
-        <View style={styles.stepBadge}><Text style={styles.stepBadgeText}>Step 1 of 3</Text></View>
+        <View style={[styles.topRow, { paddingTop: insets.top + 18 }]}>
+          <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()} accessibilityLabel="Back">
+            <Icon name="back" size={20} color="#ffffff" width={2} />
+          </TouchableOpacity>
+          <View style={styles.stepBadge}><Text style={styles.stepBadgeText}>Step 1 of 3</Text></View>
+          <View style={{ width: 44 }} />
+        </View>
         <View style={styles.verifyBox}>
-          <Ionicons name="shield-checkmark" size={44} color="#f5a623" />
+          <View style={styles.lockTile}><Icon name="shieldCheck" size={26} color={ds.gold} width={2} /></View>
           <Text style={styles.verifyTitle}>Verify it's you</Text>
           <Text style={styles.verifySub}>
             {sending ? 'Sending a verification code...' : `Enter the 6-digit code sent to your ${otpChannel || 'phone'}`}
@@ -92,7 +98,7 @@ export default function SetTransactionPinScreen({ navigation, route }: any) {
           <TextInput
             style={styles.otpInput}
             placeholder="------"
-            placeholderTextColor="rgba(255,255,255,0.3)"
+            placeholderTextColor="rgba(255,255,255,0.25)"
             keyboardType="number-pad"
             maxLength={6}
             value={otpCode}
@@ -119,14 +125,14 @@ export default function SetTransactionPinScreen({ navigation, route }: any) {
 
   return (
     <LinearGradient colors={['#14244a', '#14244a']} style={styles.container}>
-      {!fromRegister && (
-        <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={22} color="#f5a623" />
-          <Text style={styles.backText}>Back</Text>
-        </TouchableOpacity>
-      )}
-      <View style={styles.stepBadge}>
-        <Text style={styles.stepBadgeText}>Step {stepIndex} of {totalSteps}</Text>
+      <View style={[styles.topRow, { paddingTop: insets.top + 18 }]}>
+        {!fromRegister ? (
+          <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()} accessibilityLabel="Back">
+            <Icon name="back" size={20} color="#ffffff" width={2} />
+          </TouchableOpacity>
+        ) : <View style={{ width: 44 }} />}
+        <View style={styles.stepBadge}><Text style={styles.stepBadgeText}>Step {stepIndex} of {totalSteps}</Text></View>
+        <View style={{ width: 44 }} />
       </View>
       {loading ? (
         <OwodeLoader size="large" fullscreen color="#f5a623" />
@@ -145,16 +151,18 @@ export default function SetTransactionPinScreen({ navigation, route }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
-  back: { position: 'absolute', top: 60, left: 24, flexDirection: 'row', alignItems: 'center', zIndex: 2 },
-  backText: { color: '#f5a623', fontSize: 16, marginLeft: 2 },
-  stepBadge: { position: 'absolute', top: 62, alignSelf: 'center', backgroundColor: 'rgba(245,166,35,0.15)', borderColor: '#f5a623', borderWidth: 1, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 5 },
-  stepBadgeText: { color: '#f5a623', fontSize: 12, fontWeight: '700' },
-  verifyBox: { width: '100%', alignItems: 'center', paddingHorizontal: 10 },
-  verifyTitle: { color: '#fff', fontSize: 22, fontWeight: '800', marginTop: 14 },
-  verifySub: { color: 'rgba(255,255,255,0.7)', fontSize: 14, textAlign: 'center', marginTop: 8, marginBottom: 24 },
-  otpInput: { width: '70%', backgroundColor: 'rgba(255,255,255,0.1)', borderWidth: 1, borderColor: 'rgba(245,166,35,0.4)', borderRadius: 14, color: '#fff', fontSize: 28, fontWeight: '700', letterSpacing: 12, textAlign: 'center', paddingVertical: 14 },
-  verifyBtn: { marginTop: 24, backgroundColor: '#f5a623', borderRadius: 14, paddingVertical: 15, paddingHorizontal: 40, width: '80%', alignItems: 'center' },
-  verifyBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  resendText: { color: '#f5a623', fontSize: 14, fontWeight: '600' },
+  container: { flex: 1, backgroundColor: '#14244a' },
+  topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20 },
+  back: { width: 44, height: 44, borderRadius: 22, backgroundColor: ds.heroChip, alignItems: 'center', justifyContent: 'center' },
+  backText: { color: '#ffffff' },
+  stepBadge: { backgroundColor: ds.heroChip, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 5 },
+  stepBadgeText: { color: ds.onHero, fontSize: 12, lineHeight: 15, fontFamily: F.b },
+  verifyBox: { flex: 1, alignItems: 'center', paddingHorizontal: 24, paddingTop: 36, gap: 10 },
+  lockTile: { width: 56, height: 56, borderRadius: 18, backgroundColor: ds.heroChip, alignItems: 'center', justifyContent: 'center' },
+  verifyTitle: { color: '#ffffff', fontSize: 22, lineHeight: 27, fontFamily: F.x },
+  verifySub: { color: ds.onHero, fontSize: 14, lineHeight: 20, fontFamily: F.r, textAlign: 'center', marginBottom: 14 },
+  otpInput: { alignSelf: 'stretch', height: 64, backgroundColor: ds.heroChip, borderWidth: 1.5, borderColor: ds.heroBtn, borderRadius: 16, color: '#ffffff', fontSize: 28, fontFamily: F.x, letterSpacing: 12, textAlign: 'center' },
+  verifyBtn: { alignSelf: 'stretch', marginTop: 14, backgroundColor: ds.gold, borderRadius: 16, height: 54, alignItems: 'center', justifyContent: 'center' },
+  verifyBtnText: { color: ds.hero, fontSize: 16, lineHeight: 20, fontFamily: F.x },
+  resendText: { color: ds.gold, fontSize: 14, lineHeight: 17, fontFamily: F.b },
 })

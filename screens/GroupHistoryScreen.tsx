@@ -4,6 +4,9 @@ import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { guaranteedAjoAPI } from '../utils/api'
 import OwodeLoader from '../components/OwodeLoader'
+import { TopBar, Card, List, Tile, Pill, Section, Note, ui } from '../components/ui'
+import { F, ds, tnum } from '../constants/theme'
+import { naira } from '../utils/ajoDue'
 
 export default function GroupHistoryScreen({ route, navigation }: any) {
   const { groupId } = route.params
@@ -24,87 +27,103 @@ export default function GroupHistoryScreen({ route, navigation }: any) {
     load()
   }, [])
 
+  // OWODE Alajo Redesign "Group history" board
+  const cycles: any[] = group?.cycles || []
+  const paidOut = cycles.reduce((t, c) => t + (c.totalAmount || 0), 0)
+  const defaults: any[] = group?.defaultRecords || []
+  const real = (group?.members || []).filter((m: any) => !m.isAvatar).sort((a: any, b: any) => a.position - b.position)
   return (
-    <ScrollView style={styles.container}>
-      <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={22} color="#f5a623" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Group History</Text>
-        <View />
-      </LinearGradient>
-
+    <View style={ui.screen}>
+      <TopBar title="Group history" onBack={() => navigation.goBack()} />
       {loading ? (
-        <OwodeLoader size="large" fullscreen color="#25427a"  />
-      ) : group ? (
-        <>
-          <View style={styles.groupInfo}>
-            <Text style={styles.groupName}>{group.name}</Text>
-            <Text style={styles.groupCycle}>Cycle {group.currentCycle} of {group.totalMembers - 1}</Text>
+        <OwodeLoader size="large" fullscreen color={ds.navy} />
+      ) : !group ? (
+        <View style={ui.body}><Note icon="alert">Could not load this group. Pull back and try again.</Note></View>
+      ) : (
+        <ScrollView contentContainerStyle={[ui.body, { gap: 12 }]}>
+          <Text style={gh.name}>{group.name}</Text>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            {[['PAID OUT', naira(paidOut)], ['CYCLE', `${group.currentCycle} of ${Math.max(1, group.totalMembers - 1)}`], ['MISSED', String(defaults.length)]].map(([k, v]) => (
+              <View key={k} style={gh.stat}>
+                <Text style={gh.statKey}>{k}</Text>
+                <Text style={gh.statVal} numberOfLines={1} adjustsFontSizeToFit>{v}</Text>
+              </View>
+            ))}
           </View>
 
-          <Text style={styles.sectionTitle}>Members & Positions</Text>
-          {group.members?.map((m: any) => (
-            <View key={m.id} style={styles.memberCard}>
-              <View style={[styles.positionBadge, { backgroundColor: m.isAvatar ? '#f5a623' : '#25427a' }]}>
-                <Text style={styles.positionText}>{m.isAvatar ? '' : `#${m.position}`}</Text>
-              </View>
-              <View style={styles.memberInfo}>
-                <Text style={styles.memberName}>{m.isAvatar ? 'Owode Avatar' : m.user?.fullName}</Text>
-                <Text style={styles.memberPhone}>{m.isAvatar ? 'Safety Net' : m.user?.phone}</Text>
-              </View>
-              <View style={styles.memberStatus}>
-                {m.payoutReceived && <Text style={styles.payoutReceived}>Paid Out</Text>}
-                {m.hasPaid && !m.payoutReceived && <Text style={styles.hasPaid}>Contributed</Text>}
-                {!m.hasPaid && !m.isAvatar && <Text style={styles.pending}>⏳ Pending</Text>}
-                {m.isAvatar && <Text style={styles.avatarReady}>Ready</Text>}
-              </View>
-            </View>
-          ))}
-
-          <Text style={styles.sectionTitle}>Cycle History</Text>
-          {group.cycles?.length === 0 ? (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyText}>No completed cycles yet</Text>
-            </View>
+          <Section>Cycles</Section>
+          {cycles.length === 0 ? (
+            <Card><Text style={ui.muted}>No completed cycles yet</Text></Card>
           ) : (
-            group.cycles?.map((cycle: any) => (
-              <View key={cycle.id} style={styles.cycleCard}>
-                <View style={styles.cycleLeft}>
-                  <Text style={styles.cycleNumber}>Cycle {cycle.cycleNumber}</Text>
-                  <Text style={styles.cycleDate}>{new Date(cycle.completedAt || cycle.startedAt).toLocaleDateString()}</Text>
-                </View>
-                <View style={styles.cycleRight}>
-                  <Text style={styles.cycleAmount}>₦{cycle.totalAmount?.toLocaleString()}</Text>
-                  {cycle.avatarCovered && (
-                    <Text style={styles.avatarCovered}>Avatar covered</Text>
-                  )}
-                </View>
-              </View>
-            ))
-          )}
-
-          {/* Defaults in this group */}
-          {group.defaultRecords?.length > 0 && (
-            <>
-              <Text style={styles.sectionTitle}>Default Records</Text>
-              {group.defaultRecords.map((record: any) => (
-                <View key={record.id} style={styles.defaultCard}>
-                  <Text style={styles.defaultUser}>{record.user?.fullName}</Text>
-                  <Text style={styles.defaultAmount}>Owed: ₦{record.amountOwed?.toLocaleString()}</Text>
-                  <Text style={[styles.defaultStatus, {
-                    color: record.recoveryStatus === 'RECOVERED' ? '#22c55e' :
-                      record.recoveryStatus === 'HARD_RECOVERY' ? '#ef4444' : '#f5a623'
-                  }]}>{record.recoveryStatus}</Text>
+            <List>
+              {cycles.map((c: any) => (
+                <View key={c.id} style={gh.row}>
+                  <View style={[gh.dot, { backgroundColor: ds.divider }]}><Text style={[gh.dotText, { color: ds.muted }]}>{c.cycleNumber}</Text></View>
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <Text style={gh.rowTitle}>Cycle {c.cycleNumber}{c.avatarCovered ? ' · OWODE covered' : ''}</Text>
+                    <Text style={ui.muted}>{new Date(c.completedAt || c.startedAt).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })}</Text>
+                  </View>
+                  <Text style={gh.amt}>{naira(c.totalAmount || 0)}</Text>
                 </View>
               ))}
-            </>
+            </List>
           )}
-        </>
-      ) : null}
-    </ScrollView>
+
+          <Section>Members</Section>
+          <List>
+            {real.map((m: any) => {
+              const st = m.payoutReceived ? { t: 'Paid out', tone: 'blue' as const }
+                : m.hasPaid ? { t: 'Contributed', tone: 'blue' as const }
+                : { t: 'Pending', tone: 'gold' as const }
+              return (
+                <View key={m.id} style={gh.row}>
+                  <View style={gh.dot}><Text style={gh.dotText}>{m.position}</Text></View>
+                  <Text style={[gh.rowTitle, { flex: 1 }]} numberOfLines={1}>{m.user?.fullName}</Text>
+                  <Pill tone={st.tone}>{st.t}</Pill>
+                </View>
+              )
+            })}
+          </List>
+
+          <Section>Missed payments</Section>
+          {defaults.length === 0 ? (
+            <Card style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Tile icon="checkCircle" />
+              <Text style={[ui.muted, { flex: 1 }]}>No missed payments in this group</Text>
+            </Card>
+          ) : (
+            <List>
+              {defaults.map((r: any) => (
+                <View key={r.id} style={gh.row}>
+                  <Tile icon="alert" tone="red" />
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <Text style={gh.rowTitle} numberOfLines={1}>{r.user?.fullName}</Text>
+                    <Text style={ui.muted}>Owes {naira(r.amountOwed || 0)}</Text>
+                  </View>
+                  <Pill tone={r.recoveryStatus === 'RECOVERED' ? 'blue' : r.recoveryStatus === 'HARD_RECOVERY' ? 'red' : 'gold'}>
+                    {String(r.recoveryStatus || '').replace('_', ' ').toLowerCase()}
+                  </Pill>
+                </View>
+              ))}
+            </List>
+          )}
+        </ScrollView>
+      )}
+    </View>
   )
 }
+
+const gh = StyleSheet.create({
+  name: { fontSize: 18, lineHeight: 22, color: ds.ink, fontFamily: F.x },
+  stat: { flex: 1, backgroundColor: ds.card, borderWidth: 1, borderColor: ds.border, borderRadius: 16, padding: 12, gap: 4 },
+  statKey: { fontSize: 11, lineHeight: 14, color: ds.muted, fontFamily: F.b, letterSpacing: 0.5 },
+  statVal: { fontSize: 17, lineHeight: 21, color: ds.ink, fontFamily: F.x, ...tnum },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 13, paddingHorizontal: 16 },
+  dot: { width: 30, height: 30, borderRadius: 15, backgroundColor: ds.blueSoft, alignItems: 'center', justifyContent: 'center' },
+  dotText: { fontSize: 13, lineHeight: 16, color: ds.navy, fontFamily: F.x },
+  rowTitle: { fontSize: 14, lineHeight: 17, color: ds.ink, fontFamily: F.b },
+  amt: { fontSize: 14, lineHeight: 17, color: ds.ink, fontFamily: F.x, ...tnum },
+})
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f4f6fb' },

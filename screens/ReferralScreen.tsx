@@ -7,6 +7,10 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { Ionicons } from '@expo/vector-icons'
 import { authAPI } from '../utils/api'
 import OwodeLoader from '../components/OwodeLoader'
+import Icon from '../components/Icon'
+import { HeroHeader, Card, List, Row, Pill, Btn, Eyebrow, Section, ui } from '../components/ui'
+import { F, ds, tnum } from '../constants/theme'
+import { initials } from '../utils/ajoDue'
 
 const { width } = Dimensions.get('window')
 
@@ -72,166 +76,117 @@ export default function ReferralScreen({ navigation }: any) {
     } catch (error) { console.log('Share error:', error) }
   }
 
+  // OWODE Alajo Redesign "Refer & earn" board
   if (loading) {
     return (
-      <View style={styles.loader}>
-        <OwodeLoader size="large" fullscreen color="#25427a" />
+      <View style={ui.screen}>
+        <OwodeLoader size="large" fullscreen color={ds.navy} />
       </View>
     )
   }
-
+  const friends: any[] = data?.referredUsers || []
+  const tiers = [
+    { name: 'Bronze', range: '1 – 4 friends', min: 1, tone: 'gold' as const },
+    { name: 'Silver', range: '5 – 9 friends · priority Ajọ positions', min: 5, tone: 'grey' as const },
+    { name: 'Gold', range: '10+ friends', min: 10, tone: 'gold' as const },
+  ]
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 110 }} showsVerticalScrollIndicator={false}>
-      <LinearGradient colors={['#1a2e55', '#25427a']} style={styles.topBar}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="chevron-back" size={24} color="#f5a623" />
-        </TouchableOpacity>
-        <Text style={styles.topTitle}>Refer & Earn</Text>
-        <View style={{ width: 24 }} />
-      </LinearGradient>
-
-      <View style={styles.heroWrap}>
-        <LinearGradient colors={['#25427a', '#385c9e']} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.hero}>
-          <View style={styles.heroIconCircle}>
-            <Ionicons name="gift" size={30} color="#f5a623" />
-          </View>
-          <Text style={styles.heroValue}>{count}</Text>
-          <Text style={styles.heroLabel}>Friends Invited</Text>
-
-          <View style={styles.tierPill}>
-            <Ionicons name="trophy" size={13} color={tierColor} />
-            <Text style={[styles.tierPillText, { color: tierColor }]}>{tierName} Tier</Text>
-          </View>
-
-          <View style={styles.progressTrack}>
-            <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
-          </View>
-          <Text style={styles.progressText}>
-            {nextTier ? `${nextTier - count} more to reach ${count >= 5 ? 'Gold' : 'Silver'}` : 'Top tier reached!'}
-          </Text>
-        </LinearGradient>
-      </View>
-
-      <View style={styles.codeCard}>
-        <Text style={styles.codeCaption}>YOUR REFERRAL CODE</Text>
-        <View style={styles.codeBox}>
-          <Text style={styles.code}>{data?.referralCode || '------'}</Text>
-          <TouchableOpacity style={styles.copyIconBtn} onPress={handleCopy}>
-            <Ionicons name={copied ? 'checkmark-circle' : 'copy-outline'} size={22} color={copied ? '#22c55e' : '#25427a'} />
-          </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity style={styles.shareBtn} onPress={handleShare}>
-          <LinearGradient colors={['#f5a623', '#e8940f']} start={{x:0,y:0}} end={{x:1,y:0}} style={styles.shareBtnInner}>
-            <Ionicons name="share-social" size={19} color="#fff" />
-            <Text style={styles.shareBtnText}>Share Invite</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
-
-      <Text style={styles.sectionTitle}>How it works</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.stepsScroll}>
-        {[
-          { icon: 'share-social', title: 'Share', desc: 'Send your code to friends & family' },
-          { icon: 'person-add', title: 'They Join', desc: 'They register using your code' },
-          { icon: 'star', title: 'You Earn', desc: '+5 trust points per friend' },
-        ].map((s, i) => (
-          <View key={i} style={styles.stepCard}>
-            <View style={styles.stepIconCircle}>
-              <Ionicons name={s.icon as any} size={22} color="#25427a" />
+    <View style={ui.screen}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+        <HeroHeader title="Refer & earn" onBack={() => navigation.goBack()}>
+          <View style={ui.rowBetween}>
+            <View style={{ gap: 4 }}>
+              <Text style={rf.heroLabel}>Friends who joined</Text>
+              <Text style={rf.heroCount}>{count}</Text>
             </View>
-            <Text style={styles.stepNum}>STEP {i + 1}</Text>
-            <Text style={styles.stepTitle}>{s.title}</Text>
-            <Text style={styles.stepDesc}>{s.desc}</Text>
+            <View style={rf.tierBadge}>
+              <Icon name="trophy" size={14} color={ds.hero} width={2} />
+              <Text style={rf.tierBadgeText}>{tierName} tier</Text>
+            </View>
           </View>
-        ))}
+          <View style={{ gap: 6 }}>
+            <View style={rf.track}><View style={[rf.fill, { width: `${Math.round(progress * 100)}%` }]} /></View>
+            <Text style={rf.heroLabel}>
+              {nextTier ? `${nextTier - count} more friend${nextTier - count === 1 ? '' : 's'} to reach ${nextTier === 5 ? 'Silver' : 'Gold'}` : 'You are at the top tier'}
+            </Text>
+          </View>
+        </HeroHeader>
+
+        <View style={ui.body}>
+          <Card>
+            <Eyebrow>YOUR CODE</Eyebrow>
+            <View style={ui.rowBetween}>
+              <Text style={rf.code}>{data?.referralCode || '—'}</Text>
+              <TouchableOpacity style={rf.copy} onPress={handleCopy} accessibilityLabel="Copy code">
+                <Icon name={copied ? 'check' : 'copy'} size={20} color={copied ? ds.navy : ds.ink} width={copied ? 2.4 : 1.8} />
+              </TouchableOpacity>
+            </View>
+            <Btn title="Share invite" icon="share" onPress={handleShare} small />
+          </Card>
+
+          <Card>
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              {[['1', 'Share', 'Send your code'], ['2', 'They join', 'And join an Ajọ group'], ['3', 'You earn', '+5 trust points each']].map(([nn, t, d]) => (
+                <View key={nn} style={rf.step}>
+                  <View style={rf.stepDot}><Text style={rf.stepNum}>{nn}</Text></View>
+                  <Text style={rf.stepTitle}>{t}</Text>
+                  <Text style={rf.stepSub}>{d}</Text>
+                </View>
+              ))}
+            </View>
+          </Card>
+
+          <List>
+            {tiers.map(t => (
+              <Row key={t.name} icon="trophy" tone={t.tone} title={t.name} sub={t.range}
+                right={count >= t.min ? <Pill>Unlocked</Pill> : <Text style={ui.muted}>Locked</Text>} />
+            ))}
+          </List>
+
+          <Section>{friends.length ? `Friends invited (${friends.length})` : 'Friends invited'}</Section>
+          {friends.length ? (
+            <List>
+              {friends.map((f: any, i: number) => (
+                <View key={i} style={rf.friend}>
+                  <View style={rf.avatar}><Text style={rf.avatarText}>{initials(f.fullName)}</Text></View>
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <Text style={rf.friendName} numberOfLines={1}>{f.fullName}</Text>
+                    <Text style={ui.muted}>{new Date(f.createdAt).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })}</Text>
+                  </View>
+                  <Pill tone={f.isVerified ? 'blue' : 'gold'}>{f.isVerified ? 'Verified' : 'Pending'}</Pill>
+                </View>
+              ))}
+            </List>
+          ) : (
+            <Card style={{ alignItems: 'center' }}>
+              <Text style={[ui.muted, { textAlign: 'center' }]}>No friends yet. Share your code to start earning trust points.</Text>
+            </Card>
+          )}
+        </View>
       </ScrollView>
-
-      <Text style={styles.sectionTitle}>Active campaigns</Text>
-      <View style={{ paddingHorizontal: 16, gap: 12, marginBottom: 8 }}>
-        {CAMPAIGNS.map((c, i) => (
-          <View key={i} style={styles.campaignCard}>
-            <View style={styles.campaignTop}>
-              <View style={[styles.campaignIcon, { backgroundColor: c.tint }]}>
-                <Ionicons name={c.icon as any} size={18} color={c.color} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.campaignTitle}>{c.title}</Text>
-                <Text style={styles.campaignDesc}>{c.desc}</Text>
-              </View>
-            </View>
-            <View style={styles.campaignFooter}>
-              <View style={styles.expiryChip}>
-                <Ionicons name="time-outline" size={11} color="#7c8aa5" />
-                <Text style={styles.expiryText}>{c.expiry}</Text>
-              </View>
-              <Text style={[styles.campaignReward, { color: c.color }]}>{c.reward}</Text>
-            </View>
-          </View>
-        ))}
-      </View>
-
-      <Text style={styles.sectionTitle}>Reward tiers</Text>
-      <View style={styles.tiersCard}>
-        {[
-          { name: 'Bronze', range: '1 - 4 friends', min: 1, color: '#cd7f32' },
-          { name: 'Silver', range: '5 - 9 friends', min: 5, color: '#9ca3af' },
-          { name: 'Gold', range: '10+ friends', min: 10, color: '#f5a623' },
-        ].map((t, i) => {
-          const active = count >= t.min
-          return (
-            <View key={t.name} style={[styles.tierRow, i < 2 && styles.rowDivider]}>
-              <View style={[styles.tierDot, { backgroundColor: t.color }]}>
-                <Ionicons name="trophy" size={15} color="#fff" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.tierRowName}>{t.name}</Text>
-                <Text style={styles.tierRowRange}>{t.range}</Text>
-              </View>
-              {active
-                ? <View style={styles.activeChip}><Ionicons name="checkmark" size={13} color="#fff" /><Text style={styles.activeChipText}>Unlocked</Text></View>
-                : <Ionicons name="lock-closed" size={16} color="#ccc" />}
-            </View>
-          )
-        })}
-      </View>
-
-      <Text style={styles.sectionTitle}>
-        Friends invited {count > 0 ? `(${count})` : ''}
-      </Text>
-      {count > 0 ? (
-        <View style={styles.friendsCard}>
-          {data.referredUsers.map((f: any, i: number) => (
-            <View key={i} style={[styles.friendRow, i < data.referredUsers.length - 1 && styles.rowDivider]}>
-              <View style={styles.friendAvatar}>
-                <Text style={styles.friendAvatarText}>{f.fullName?.charAt(0)?.toUpperCase()}</Text>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.friendName}>{f.fullName}</Text>
-                <Text style={styles.friendDate}>
-                  {new Date(f.createdAt).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })}
-                </Text>
-              </View>
-              <Ionicons
-                name={f.isVerified ? 'checkmark-circle' : 'time-outline'}
-                size={20}
-                color={f.isVerified ? '#22c55e' : '#f5a623'}
-              />
-            </View>
-          ))}
-        </View>
-      ) : (
-        <View style={styles.empty}>
-          <View style={styles.emptyIconCircle}>
-            <Ionicons name="people-outline" size={30} color="#25427a" />
-          </View>
-          <Text style={styles.emptyTitle}>No invites yet</Text>
-          <Text style={styles.emptySub}>Share your code above and start earning rewards!</Text>
-        </View>
-      )}
-    </ScrollView>
+    </View>
   )
 }
+
+const rf = StyleSheet.create({
+  heroLabel: { fontSize: 12, lineHeight: 15, color: ds.onHero, fontFamily: F.r },
+  heroCount: { fontSize: 34, lineHeight: 41, color: '#ffffff', fontFamily: F.x, ...tnum },
+  tierBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: ds.gold, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 },
+  tierBadgeText: { fontSize: 12, lineHeight: 15, color: ds.hero, fontFamily: F.x },
+  track: { height: 8, borderRadius: 4, backgroundColor: ds.heroLine, overflow: 'hidden' },
+  fill: { height: 8, borderRadius: 4, backgroundColor: ds.gold },
+  code: { fontSize: 28, lineHeight: 34, color: ds.ink, fontFamily: F.x, letterSpacing: 3 },
+  copy: { width: 44, height: 44, borderRadius: 22, backgroundColor: ds.bg, alignItems: 'center', justifyContent: 'center' },
+  step: { flex: 1, alignItems: 'center', gap: 6 },
+  stepDot: { width: 30, height: 30, borderRadius: 15, backgroundColor: ds.blueSoft, alignItems: 'center', justifyContent: 'center' },
+  stepNum: { fontSize: 13, lineHeight: 16, color: ds.navy, fontFamily: F.x },
+  stepTitle: { fontSize: 13, lineHeight: 16, color: ds.ink, fontFamily: F.b, textAlign: 'center' },
+  stepSub: { fontSize: 11, lineHeight: 15, color: ds.muted, fontFamily: F.r, textAlign: 'center' },
+  friend: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, paddingHorizontal: 16 },
+  avatar: { width: 38, height: 38, borderRadius: 19, backgroundColor: ds.blueSoft, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { fontSize: 13, lineHeight: 16, color: ds.navy, fontFamily: F.x },
+  friendName: { fontSize: 14, lineHeight: 17, color: ds.ink, fontFamily: F.b },
+})
 
 const styles = StyleSheet.create({
   campaignCard: { backgroundColor: '#fff', borderRadius: 16, padding: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },

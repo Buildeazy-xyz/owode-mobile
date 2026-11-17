@@ -8,6 +8,10 @@ import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { userAjoAPI } from '../utils/api'
 import OwodeLoader from '../components/OwodeLoader'
+import Icon from '../components/Icon'
+import { TopBar, Card, List, Pill, Btn, Eyebrow, Section, Note, ui } from '../components/ui'
+import { F, ds } from '../constants/theme'
+import { initials } from '../utils/ajoDue'
 
 export default function ManageAjoScreen({ navigation, route }: any) {
   const { groupId, groupName, inviteCode, amount, frequency } = route.params || {}
@@ -68,129 +72,112 @@ export default function ManageAjoScreen({ navigation, route }: any) {
   const total = data?.totalMembers || 0
   const started = data?.approvalStatus === 'APPROVED'
 
+  // OWODE Alajo Redesign "Manage group" board
+  const left = total - approved.length
   return (
-    <View style={styles.screen}>
-      <LinearGradient colors={['#1a2e55', '#25427a']} style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={22} color="#f5a623" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>{groupName}</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('PayoutOrder', { groupId })}>
-          <Ionicons name="swap-vertical" size={20} color="#f5a623" />
-        </TouchableOpacity>
-      </LinearGradient>
-
+    <View style={ui.screen}>
+      <TopBar
+        title={groupName || 'Manage group'}
+        onBack={() => navigation.goBack()}
+      />
       {loading ? (
-        <OwodeLoader color="#25427a"  />
+        <OwodeLoader size="large" fullscreen color={ds.navy} />
       ) : (
-        <ScrollView
-          contentContainerStyle={styles.body}
-          refreshControl={<RefreshControl refreshing={false} onRefresh={load} />}
-        >
+        <ScrollView contentContainerStyle={[ui.body, { gap: 12 }]}
+          refreshControl={<RefreshControl refreshing={false} onRefresh={load} tintColor={ds.navy} />}>
           {!started ? (
-            <View style={styles.codeCard}>
-              <Text style={styles.codeLabel}>INVITE CODE</Text>
-              <Text style={styles.code}>{inviteCode}</Text>
-              <TouchableOpacity style={styles.shareBtn} onPress={share}>
-                <Ionicons name="share-social-outline" size={16} color="#25427a" />
-                <Text style={styles.shareText}>Share invite</Text>
-              </TouchableOpacity>
-            </View>
+            <Card style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <View style={{ gap: 3 }}>
+                <Eyebrow>INVITE CODE</Eyebrow>
+                <Text style={mg.code}>{inviteCode}</Text>
+              </View>
+              <Btn title="Share" icon="share" small onPress={share} />
+            </Card>
           ) : null}
-
-          <View style={styles.countRow}>
-            <Text style={styles.countText}>{approved.length} of {total} members</Text>
-            {pending.length > 0 ? (
-              <View style={styles.badge}><Text style={styles.badgeText}>{pending.length} waiting</Text></View>
-            ) : null}
-          </View>
 
           {pending.length > 0 && !started ? (
             <>
-              <Text style={styles.section}>REQUESTS TO JOIN</Text>
-              {pending.map((m: any) => (
-                <View key={m.id} style={styles.card}>
-                  <View style={styles.rowTop}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.name} numberOfLines={1}>{m.user?.fullName}</Text>
-                      <Text style={styles.sub} numberOfLines={1}>
-                        {m.user?.phone} {'\u00b7'} Trust {m.user?.trustScore ?? '-'}
+              <Section right={<Pill tone="gold">{pending.length} new</Pill>}>Requests to join</Section>
+              <List>
+                {pending.map((m: any) => (
+                  <View key={m.id} style={mg.req}>
+                    <View style={mg.avatar}><Text style={mg.avatarText}>{initials(m.user?.fullName)}</Text></View>
+                    <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+                      <Text style={mg.name} numberOfLines={1}>{m.user?.fullName}</Text>
+                      <Text style={ui.muted} numberOfLines={1}>
+                        Trust score {m.user?.trustScore ?? '–'} · {m.user?.isVerified ? 'verified' : 'not verified'}
                       </Text>
                     </View>
-                    {m.user?.isVerified ? (
-                      <Ionicons name="checkmark-circle" size={18} color="#22c55e" />
-                    ) : (
-                      <Ionicons name="alert-circle" size={18} color="#ef4444" />
-                    )}
-                  </View>
-                  <View style={styles.actions}>
-                    <TouchableOpacity
-                      style={[styles.btn, styles.accept]}
-                      onPress={() => respond(m, true)}
-                      disabled={busy === m.id}
-                    >
-                      {busy === m.id
-                        ? <OwodeLoader color="#fff" size="small" />
-                        : <Text style={styles.acceptText}>Accept</Text>}
+                    <TouchableOpacity style={mg.decline} onPress={() => respond(m, false)} disabled={busy === m.id} accessibilityLabel="Decline">
+                      <Icon name="close" size={16} color={ds.danger} width={2} />
                     </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.btn, styles.decline]}
-                      onPress={() => respond(m, false)}
-                      disabled={busy === m.id}
-                    >
-                      <Text style={styles.declineText}>Decline</Text>
+                    <TouchableOpacity style={mg.accept} onPress={() => respond(m, true)} disabled={busy === m.id}>
+                      {busy === m.id ? <OwodeLoader color="#fff" size="small" /> : <Text style={mg.acceptText}>Accept</Text>}
                     </TouchableOpacity>
                   </View>
-                </View>
-              ))}
+                ))}
+              </List>
             </>
           ) : null}
 
-          <Text style={styles.section}>PAYOUT ORDER</Text>
-          {approved.map((m: any) => (
-            <View key={m.id} style={styles.memberRow}>
-              <View style={styles.pos}><Text style={styles.posText}>{m.position}</Text></View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.name} numberOfLines={1}>{m.user?.fullName}</Text>
-                <Text style={styles.sub} numberOfLines={1}>{m.user?.phone}</Text>
+          <Section right={!started ? (
+            <TouchableOpacity onPress={() => navigation.navigate('PayoutOrder', { groupId })}>
+              <Text style={mg.link}>Edit order</Text>
+            </TouchableOpacity>
+          ) : undefined}>Members · {approved.length} of {total}</Section>
+          <List>
+            {approved.map((m: any) => (
+              <View key={m.id} style={mg.member}>
+                <View style={[mg.pos, m.position === 1 && { backgroundColor: ds.navy }]}>
+                  <Text style={[mg.posText, m.position === 1 && { color: '#ffffff' }]}>{m.position}</Text>
+                </View>
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text style={mg.name} numberOfLines={1}>{m.user?.fullName}</Text>
+                </View>
+                {!started && m.position !== 1 ? (
+                  <TouchableOpacity onPress={() => remove(m)} disabled={busy === m.id} accessibilityLabel="Remove member" hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                    <Icon name="close" size={18} color={ds.danger} width={2} />
+                  </TouchableOpacity>
+                ) : <Text style={ui.muted}>{m.position === 1 ? 'Creator' : 'Approved'}</Text>}
               </View>
-              {!started && m.position !== 1 ? (
-                <TouchableOpacity onPress={() => remove(m)} disabled={busy === m.id}>
-                  <Ionicons name="close-circle-outline" size={20} color="#ef4444" />
-                </TouchableOpacity>
-              ) : null}
-            </View>
-          ))}
+            ))}
+            {!started && left > 0 ? Array.from({ length: left }).map((_, i) => (
+              <View key={`open-${i}`} style={mg.member}>
+                <View style={mg.pos}><Text style={[mg.posText, { color: ds.muted }]}>{approved.length + i + 1}</Text></View>
+                <Text style={[mg.name, { flex: 1, color: ds.muted }]}>Open seat</Text>
+                <Text style={ui.muted}>Waiting</Text>
+              </View>
+            )) : null}
+          </List>
 
-          {started ? (
-            <View style={styles.note}>
-              <Ionicons name="checkmark-circle" size={17} color="#22c55e" />
-              <Text style={styles.noteText}>
-                This group has started. Members can no longer be added or removed.
-              </Text>
-            </View>
-          ) : approved.length >= total ? (
-            <View style={styles.note}>
-              <Ionicons name="time-outline" size={17} color="#d97706" />
-              <Text style={styles.noteText}>
-                The group is full and waiting for OWODE to approve it. Collection starts the day after approval.
-              </Text>
-            </View>
-          ) : (
-            <View style={styles.note}>
-              <Ionicons name="information-circle-outline" size={17} color="#7c8aa5" />
-              <Text style={styles.noteText}>
-                Share the invite with {total - approved.length} more {total - approved.length === 1 ? 'person' : 'people'}.
-                Only accept people you know and trust.
-              </Text>
-            </View>
-          )}
-          <View style={{ height: 30 }} />
+          <Note icon={started ? 'checkCircle' : left <= 0 ? 'clock' : 'info'}>
+            {started
+              ? 'This group has started. Members can no longer be added or removed.'
+              : left <= 0
+                ? 'The group is full and waiting for OWODE to approve it. Collection starts the day after approval.'
+                : `Share the invite with ${left} more ${left === 1 ? 'person' : 'people'}.`}
+          </Note>
         </ScrollView>
       )}
     </View>
   )
 }
+
+const mg = StyleSheet.create({
+  round: { width: 44, height: 44, borderRadius: 22, backgroundColor: ds.card, borderWidth: 1, borderColor: ds.border, alignItems: 'center', justifyContent: 'center' },
+  code: { fontSize: 22, lineHeight: 27, color: ds.ink, fontFamily: F.x, letterSpacing: 4 },
+  req: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 14, paddingHorizontal: 16 },
+  avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: ds.blueSoft, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { fontSize: 14, lineHeight: 17, color: ds.navy, fontFamily: F.x },
+  name: { fontSize: 14, lineHeight: 17, color: ds.ink, fontFamily: F.b },
+  decline: { width: 38, height: 38, borderRadius: 12, borderWidth: 1, borderColor: ds.border, alignItems: 'center', justifyContent: 'center' },
+  accept: { height: 38, minWidth: 74, paddingHorizontal: 14, borderRadius: 12, backgroundColor: ds.navy, alignItems: 'center', justifyContent: 'center' },
+  acceptText: { fontSize: 13, lineHeight: 16, color: '#ffffff', fontFamily: F.x },
+  link: { fontSize: 13, lineHeight: 16, color: ds.navy, fontFamily: F.b },
+  member: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, paddingHorizontal: 16 },
+  pos: { width: 30, height: 30, borderRadius: 15, backgroundColor: ds.blueSoft, alignItems: 'center', justifyContent: 'center' },
+  posText: { fontSize: 13, lineHeight: 16, color: ds.navy, fontFamily: F.x },
+})
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#f4f6fb' },

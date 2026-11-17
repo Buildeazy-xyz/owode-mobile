@@ -7,6 +7,10 @@ import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { authAPI } from '../utils/api'
 import OwodeLoader from '../components/OwodeLoader'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import Icon from '../components/Icon'
+import { TopBar, Field, Btn, ui } from '../components/ui'
+import { F, ds } from '../constants/theme'
 
 export default function ForgotPasswordScreen({ navigation }: any) {
   const [step, setStep] = useState<1 | 2 | 3>(1)
@@ -16,6 +20,7 @@ export default function ForgotPasswordScreen({ navigation }: any) {
   const [confirm, setConfirm] = useState('')
   const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
+  const insets = useSafeAreaInsets()
 
   const requestCode = async () => {
     const digits = phone.replace(/\D/g, '')
@@ -45,92 +50,57 @@ export default function ForgotPasswordScreen({ navigation }: any) {
     } finally { setLoading(false) }
   }
 
+  // OWODE Alajo Redesign "Forgot password" board
+  const spaced = (d: string) => [d.slice(0, 4), d.slice(4, 7), d.slice(7, 11)].filter(Boolean).join(' ')
+  const digits = phone.replace(/\D/g, '')
+  const match = confirm.length > 0 && confirm === password && password.length >= 6
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <LinearGradient colors={['#1a2e55', '#25427a']} style={styles.header}>
-        <TouchableOpacity onPress={() => step === 1 ? navigation.goBack() : setStep(1)}>
-          <Ionicons name="chevron-back" size={22} color="#f5a623" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>Reset password</Text>
-        <View style={{ width: 22 }} />
-      </LinearGradient>
-
-      <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView style={ui.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <TopBar title="Forgot password" onBack={() => step === 1 ? navigation.goBack() : setStep(1)} />
+      <ScrollView contentContainerStyle={[ui.body, { gap: 18, paddingTop: 22 }]} keyboardShouldPersistTaps="handled">
         {step === 1 ? (
           <>
-            <Text style={styles.title}>What is your phone number?</Text>
-            <Text style={styles.hint}>
-              We will send a 6 digit code by SMS to the number on your OWODE account.
-            </Text>
-            <TextInput
-              style={styles.input}
-              placeholder="08012345678"
-              placeholderTextColor="#9aa5b8"
-              value={phone}
-              onChangeText={setPhone}
-              keyboardType="phone-pad"
-              maxLength={11}
-            />
-            <TouchableOpacity style={styles.btn} onPress={requestCode} disabled={loading}>
-              {loading ? <OwodeLoader color="#fff" /> : <Text style={styles.btnText}>Send code</Text>}
-            </TouchableOpacity>
+            <View style={{ gap: 6 }}>
+              <Text style={ui.h2}>Reset your password</Text>
+              <Text style={ui.lead}>We will send a 6-digit code by SMS to the number on your OWODE account.</Text>
+            </View>
+            <Field label="Phone number" placeholder="0801 234 5678" value={spaced(digits)}
+              onChangeText={t => setPhone(t.replace(/\D/g, '').slice(0, 11))} keyboardType="phone-pad" maxLength={13} />
           </>
         ) : (
           <>
-            <Text style={styles.title}>Enter the code and your new password</Text>
-            <Text style={styles.hint}>The code expires in 10 minutes.</Text>
-
-            <Text style={styles.label}>6 digit code</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="123456"
-              placeholderTextColor="#9aa5b8"
-              value={otp}
-              onChangeText={setOtp}
-              keyboardType="number-pad"
-              maxLength={6}
-            />
-
-            <Text style={styles.label}>New password</Text>
-            <View style={styles.pwWrap}>
-              <TextInput
-                style={styles.pwInput}
-                placeholder="At least 6 characters"
-                placeholderTextColor="#9aa5b8"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPw}
-              />
-              <TouchableOpacity onPress={() => setShowPw(!showPw)} style={{ paddingHorizontal: 14 }}>
-                <Ionicons name={showPw ? 'eye-outline' : 'eye-off-outline'} size={18} color="#7c8aa5" />
-              </TouchableOpacity>
+            <View style={{ gap: 6 }}>
+              <Text style={ui.h2}>Choose a new password</Text>
+              <Text style={ui.lead}>Enter the code we sent to {spaced(digits)}. It expires in 10 minutes.</Text>
             </View>
-
-            <Text style={styles.label}>Confirm new password</Text>
-            <View style={styles.pwWrap}>
-              <TextInput
-                style={styles.pwInput}
-                placeholder="Type it again"
-                placeholderTextColor="#9aa5b8"
-                value={confirm}
-                onChangeText={setConfirm}
-                secureTextEntry={!showPw}
-              />
-            </View>
-            {confirm.length > 0 && confirm !== password ? (
-              <Text style={styles.mismatch}>Passwords do not match</Text>
+            <Field label="6-digit code" placeholder="123456" value={otp} onChangeText={t => setOtp(t.replace(/\D/g, ''))}
+              keyboardType="number-pad" maxLength={6} style={{ letterSpacing: 6, fontSize: 20 }} />
+            <Field label="New password" placeholder="At least 6 characters" value={password} onChangeText={setPassword}
+              secureTextEntry={!showPw} autoCapitalize="none"
+              right={<TouchableOpacity onPress={() => setShowPw(!showPw)} accessibilityLabel={showPw ? 'Hide password' : 'Show password'}>
+                <Icon name={showPw ? 'eyeOff' : 'eye'} size={20} color={ds.muted} />
+              </TouchableOpacity>} />
+            <Field label="Confirm new password" placeholder="Type it again" value={confirm} onChangeText={setConfirm}
+              secureTextEntry={!showPw} autoCapitalize="none" />
+            {confirm.length > 0 ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Icon name={match ? 'checkCircle' : 'alert'} size={16} color={match ? ds.navy : ds.danger} width={2} />
+                <Text style={[ui.muted, { color: match ? ds.inkSoft : ds.danger }]}>
+                  {match ? 'Passwords match' : confirm !== password ? 'Passwords do not match' : 'Use at least 6 characters'}
+                </Text>
+              </View>
             ) : null}
-
-            <TouchableOpacity style={styles.btn} onPress={submit} disabled={loading}>
-              {loading ? <OwodeLoader color="#fff" /> : <Text style={styles.btnText}>Change password</Text>}
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={requestCode} disabled={loading} style={{ marginTop: 16, alignItems: 'center' }}>
-              <Text style={styles.resend}>Did not get the code? Send again</Text>
-            </TouchableOpacity>
           </>
         )}
       </ScrollView>
+      <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: Math.max(insets.bottom + 12, 28), gap: 14, alignItems: 'center' }}>
+        <Btn title={step === 1 ? 'Send code' : 'Change password'} onPress={step === 1 ? requestCode : submit} loading={loading} style={{ alignSelf: 'stretch' }} />
+        {step !== 1 ? (
+          <TouchableOpacity onPress={requestCode} disabled={loading}>
+            <Text style={{ fontSize: 13, lineHeight: 16, color: ds.navy, fontFamily: F.b }}>Didn't get the code? Send again</Text>
+          </TouchableOpacity>
+        ) : null}
+      </View>
     </KeyboardAvoidingView>
   )
 }

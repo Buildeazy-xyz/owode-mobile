@@ -4,6 +4,9 @@ import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { trustAPI } from '../utils/api'
 import OwodeLoader from '../components/OwodeLoader'
+import Svg, { Circle } from 'react-native-svg'
+import { HeroHeader, List, Row, Pill, Btn, Section, Note, ui } from '../components/ui'
+import { F, ds, tnum } from '../constants/theme'
 
 export default function TrustScoreScreen({ navigation }: any) {
   const [trustData, setTrustData] = useState<any>(null)
@@ -39,122 +42,60 @@ export default function TrustScoreScreen({ navigation }: any) {
     return ''
   }
 
+  // OWODE Alajo Redesign "Trust score" board
+  const score = Math.round(trustData?.score || 0)
+  const R = 62, C = 2 * Math.PI * R, frac = Math.max(0, Math.min(1, score / 100))
   return (
-    <ScrollView style={styles.container}>
-      <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={22} color="#f5a623" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Trust Score</Text>
-        <View />
-      </LinearGradient>
-
-      {loading ? (
-        <OwodeLoader size="large" fullscreen color="#25427a"  />
-      ) : trustData ? (
-        <>
-          {/* Score Circle */}
-          <View style={styles.scoreCard}>
-            <View style={[styles.scoreCircle, { borderColor: getScoreColor(trustData.score) }]}>
-              <Text style={styles.scoreEmoji}>{getScoreEmoji(trustData.score)}</Text>
-              <Text style={[styles.scoreNumber, { color: getScoreColor(trustData.score) }]}>
-                {Math.round(trustData.score)}
+    <View style={ui.screen}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+        <HeroHeader title="Trust score" onBack={() => navigation.goBack()}>
+          {loading ? (
+            <OwodeLoader size="large" color={ds.gold} />
+          ) : (
+            <View style={{ alignItems: 'center', gap: 10 }}>
+              <View style={{ width: 150, height: 150 }} accessibilityLabel={`Trust score ${score} of 100`}>
+                <Svg width={150} height={150}>
+                  <Circle cx={75} cy={75} r={R} stroke={ds.heroLine} strokeWidth={12} fill="none" />
+                  {frac > 0 && (
+                    <Circle cx={75} cy={75} r={R} stroke={ds.gold} strokeWidth={12} fill="none" strokeLinecap="round"
+                      strokeDasharray={`${C * frac} ${C}`} rotation={-90} origin="75, 75" />
+                  )}
+                </Svg>
+                <View style={ts.center}>
+                  <Text style={ts.num}>{score}</Text>
+                  <Text style={ts.of}>of 100</Text>
+                </View>
+              </View>
+              <Text style={ts.label}>
+                {trustData ? `${trustData.label}${score >= 35 ? ' · you can join Guaranteed Ajọ' : ''}` : 'Could not load your score'}
               </Text>
-              <Text style={styles.scoreMax}>/100</Text>
             </View>
-            <Text style={[styles.scoreLabel, { color: getScoreColor(trustData.score) }]}>
-              {trustData.label}
-            </Text>
-            <Text style={styles.scoreDesc}>
-              Your trust score determines your eligibility for Guaranteed Ajo groups and your position in payout cycles.
-            </Text>
-          </View>
+          )}
+        </HeroHeader>
 
-          {/* Score Breakdown */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>How to improve your score</Text>
-            <View style={styles.breakdownCard}>
-              <View style={styles.breakdownRow}>
-                <Ionicons name="card-outline" size={24} color="#25427a" style={{ marginRight: 12 }} />
-                <View style={styles.breakdownText}>
-                  <Text style={styles.breakdownLabel}>Submit BVN</Text>
-                  <Text style={styles.breakdownValue}>+10 points</Text>
-                </View>
-              </View>
-              <View style={styles.breakdownDivider} />
-              <View style={styles.breakdownRow}>
-                <Ionicons name="document-text-outline" size={24} color="#25427a" style={{ marginRight: 12 }} />
-                <View style={styles.breakdownText}>
-                  <Text style={styles.breakdownLabel}>Submit NIN</Text>
-                  <Text style={styles.breakdownValue}>+10 points</Text>
-                </View>
-              </View>
-              <View style={styles.breakdownDivider} />
-              <View style={styles.breakdownRow}>
-                <Ionicons name="checkmark-circle" size={24} color="#22c55e" style={{ marginRight: 12 }} />
-                <View style={styles.breakdownText}>
-                  <Text style={styles.breakdownLabel}>Get verified by admin</Text>
-                  <Text style={styles.breakdownValue}>+10 points</Text>
-                </View>
-              </View>
-              <View style={styles.breakdownDivider} />
-              <View style={styles.breakdownRow}>
-                <Text style={styles.breakdownIcon}></Text>
-                <View style={styles.breakdownText}>
-                  <Text style={styles.breakdownLabel}>Complete Ajo groups</Text>
-                  <Text style={styles.breakdownValue}>+5 per group</Text>
-                </View>
-              </View>
-              <View style={styles.breakdownDivider} />
-              <View style={styles.breakdownRow}>
-                <Ionicons name="warning" size={24} color="#f5a623" style={{ marginRight: 12 }} />
-                <View style={styles.breakdownText}>
-                  <Text style={styles.breakdownLabel}>Default on payment</Text>
-                  <Text style={[styles.breakdownValue, { color: '#ef4444' }]}>-15 points</Text>
-                </View>
-              </View>
-            </View>
-          </View>
-
-          {/* Eligibility */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Guaranteed Ajo Eligibility</Text>
-            <View style={styles.eligibilityCard}>
-              <View style={styles.eligibilityRow}>
-                <Ionicons name={trustData.score >= 35 ? "checkmark-circle" : "close-circle"} size={20} color={trustData.score >= 35 ? "#22c55e" : "#ef4444"} style={{ marginRight: 12 }} />
-                <Text style={styles.eligibilityText}>Minimum trust score of 35</Text>
-              </View>
-              <View style={styles.eligibilityRow}>
-                <Text style={styles.eligibilityIcon}>
-                  {trustData.score >= 80 ? '' : trustData.score >= 50 ? '' : '⏳'}
-                </Text>
-                <Text style={styles.eligibilityText}>
-                  {trustData.score >= 80
-                    ? 'Priority early payout position'
-                    : trustData.score >= 50
-                    ? 'Mid-cycle payout position'
-                    : 'Later payout position (build score to improve)'}
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          {/* CTA */}
-          <TouchableOpacity
-            style={styles.improveBtn}
-            onPress={() => navigation.navigate('Profile')}
-          >
-            <Text style={styles.improveBtnText}>Submit KYC to improve score</Text>
-          </TouchableOpacity>
-        </>
-      ) : (
-        <View style={styles.errorState}>
-          <Text style={styles.errorText}>Could not load trust score</Text>
+        <View style={ui.body}>
+          <Section>How to raise your score</Section>
+          <List>
+            <Row icon="shieldCheck" title="Submit BVN" right={<Pill>+10</Pill>} />
+            <Row icon="doc" title="Submit NIN" right={<Pill>+10</Pill>} />
+            <Row icon="checkCircle" title="Get verified by OWODE" right={<Pill>+10</Pill>} />
+            <Row icon="ajo" title="Complete Ajọ groups" right={<Pill>+5 each</Pill>} />
+            <Row icon="alert" danger title="Missed Ajọ payment" sub="Lowers your score" right={<Pill tone="red">−15</Pill>} />
+          </List>
+          <Note>Guaranteed Ajọ needs a score of at least 35. Your score updates as soon as a payment or verification is confirmed.</Note>
+          <Btn title="Verify my identity" icon="shieldCheck" onPress={() => navigation.navigate('KYCVerification')} />
         </View>
-      )}
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }
+
+const ts = StyleSheet.create({
+  center: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' },
+  num: { fontSize: 40, lineHeight: 48, color: '#ffffff', fontFamily: F.x, ...tnum },
+  of: { fontSize: 12, lineHeight: 15, color: ds.onHero, fontFamily: F.r },
+  label: { fontSize: 14, lineHeight: 18, color: '#ffffff', fontFamily: F.b, textAlign: 'center' },
+})
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f4f6fb' },

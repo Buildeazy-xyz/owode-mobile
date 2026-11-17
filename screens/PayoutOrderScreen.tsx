@@ -4,6 +4,10 @@ import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { userAjoAPI } from '../utils/api'
 import OwodeLoader from '../components/OwodeLoader'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import Icon from '../components/Icon'
+import { TopBar, List, Btn, Note, ui } from '../components/ui'
+import { F, ds } from '../constants/theme'
 
 export default function PayoutOrderScreen({ navigation, route }: any) {
   const { groupId } = route.params || {}
@@ -11,6 +15,7 @@ export default function PayoutOrderScreen({ navigation, route }: any) {
   const [order, setOrder] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const insets = useSafeAreaInsets()
 
   useEffect(() => {
     userAjoAPI.mine()
@@ -44,58 +49,61 @@ export default function PayoutOrderScreen({ navigation, route }: any) {
 
   const locked = group?.approvalStatus === 'APPROVED'
 
+  // OWODE Alajo Redesign "Payout order" board (arrows instead of drag: easier to tap)
   return (
-    <View style={styles.screen}>
-      <LinearGradient colors={['#1a2e55', '#25427a']} style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={22} color="#f5a623" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>Payout order</Text>
-        <View style={{ width: 22 }} />
-      </LinearGradient>
-
-      {loading ? <OwodeLoader size="large" fullscreen color="#25427a"  /> : (
-        <ScrollView contentContainerStyle={styles.body}>
-          <View style={styles.noteCard}>
-            <Ionicons name={locked ? 'lock-closed' : 'swap-vertical'} size={17} color="#25427a" />
-            <Text style={styles.noteText}>
+    <View style={ui.screen}>
+      <TopBar title="Payout order" onBack={() => navigation.goBack()} />
+      {loading ? <OwodeLoader size="large" fullscreen color={ds.navy} /> : (
+        <>
+          <ScrollView contentContainerStyle={[ui.body, { gap: 14 }]}>
+            <Text style={ui.lead}>
               {locked
                 ? 'The group has started, so the order can no longer change.'
-                : 'Position 1 collects first. Use the arrows, then save. The order locks once OWODE approves the group.'}
+                : 'Position 1 collects first. Use the arrows to move members, then save. Everyone in the group sees this order.'}
             </Text>
-          </View>
-
-          {order.map((m, i) => (
-            <View key={m.id} style={styles.row}>
-              <View style={styles.pos}><Text style={styles.posText}>{i + 1}</Text></View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.name} numberOfLines={1}>{m.user?.fullName || 'Member'}</Text>
-                <Text style={styles.phone} numberOfLines={1}>{m.user?.phone || ''}</Text>
-              </View>
-              {!locked && (
-                <View style={styles.arrows}>
-                  <TouchableOpacity style={[styles.arrowBtn, i === 0 && styles.arrowOff]} onPress={() => move(i, -1)} disabled={i === 0}>
-                    <Ionicons name="chevron-up" size={18} color={i === 0 ? '#c3cbda' : '#25427a'} />
-                  </TouchableOpacity>
-                  <TouchableOpacity style={[styles.arrowBtn, i === order.length - 1 && styles.arrowOff]} onPress={() => move(i, 1)} disabled={i === order.length - 1}>
-                    <Ionicons name="chevron-down" size={18} color={i === order.length - 1 ? '#c3cbda' : '#25427a'} />
-                  </TouchableOpacity>
+            <List>
+              {order.map((m, i) => (
+                <View key={m.id} style={po.row}>
+                  <View style={[po.pos, i === 0 && { backgroundColor: ds.gold }]}>
+                    <Text style={[po.posText, i === 0 && { color: ds.hero }]}>{i + 1}</Text>
+                  </View>
+                  <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+                    <Text style={po.name} numberOfLines={1}>{m.user?.fullName || 'Member'}</Text>
+                    <Text style={ui.muted}>Collects in cycle {i + 1}</Text>
+                  </View>
+                  {!locked && (
+                    <View style={{ flexDirection: 'row', gap: 6 }}>
+                      <TouchableOpacity style={[po.arrow, i === 0 && { opacity: 0.35 }]} onPress={() => move(i, -1)} disabled={i === 0} accessibilityLabel="Move up">
+                        <Icon name="up" size={18} color={ds.navy} width={2.2} />
+                      </TouchableOpacity>
+                      <TouchableOpacity style={[po.arrow, i === order.length - 1 && { opacity: 0.35 }]} onPress={() => move(i, 1)} disabled={i === order.length - 1} accessibilityLabel="Move down">
+                        <Icon name="down" size={18} color={ds.navy} width={2.2} />
+                      </TouchableOpacity>
+                    </View>
+                  )}
                 </View>
-              )}
+              ))}
+            </List>
+            <Note icon="lock">The order locks once OWODE approves the group.</Note>
+          </ScrollView>
+          {!locked && order.length > 0 ? (
+            <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: Math.max(insets.bottom + 12, 28) }}>
+              <Btn title="Save payout order" onPress={save} loading={saving} />
             </View>
-          ))}
-
-          {!locked && order.length > 0 && (
-            <TouchableOpacity style={styles.btn} onPress={save} disabled={saving}>
-              {saving ? <OwodeLoader color="#fff" /> : <Text style={styles.btnText}>Save payout order</Text>}
-            </TouchableOpacity>
-          )}
-          <View style={{ height: 30 }} />
-        </ScrollView>
+          ) : null}
+        </>
       )}
     </View>
   )
 }
+
+const po = StyleSheet.create({
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, paddingHorizontal: 16 },
+  pos: { width: 30, height: 30, borderRadius: 15, backgroundColor: ds.blueSoft, alignItems: 'center', justifyContent: 'center' },
+  posText: { fontSize: 13, lineHeight: 16, color: ds.navy, fontFamily: F.x },
+  name: { fontSize: 14, lineHeight: 17, color: ds.ink, fontFamily: F.b },
+  arrow: { width: 38, height: 38, borderRadius: 12, backgroundColor: ds.blueSoft, alignItems: 'center', justifyContent: 'center' },
+})
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#f4f6fb' },

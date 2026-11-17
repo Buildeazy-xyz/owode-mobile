@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  ScrollView, Alert, Share, KeyboardAvoidingView, Platform
+  ScrollView, Alert, Share, KeyboardAvoidingView, Platform, Clipboard
 } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import Icon from '../components/Icon'
+import { TopBar, Card, List, Row, Tile, Field, Btn, Eyebrow, Section, Note, ui } from '../components/ui'
+import { F, ds, tnum } from '../constants/theme'
+import { naira } from '../utils/ajoDue'
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { userAjoAPI, kycAPI } from '../utils/api'
@@ -27,6 +32,8 @@ export default function CreateAjoScreen({ navigation }: any) {
   const [members, setMembers] = useState(6)
   const [loading, setLoading] = useState(false)
   const [created, setCreated] = useState<any>(null)
+  const [copied, setCopied] = useState(false)
+  const insets = useSafeAreaInsets()
 
   const kycDone = kyc.ok
 
@@ -58,34 +65,23 @@ export default function CreateAjoScreen({ navigation }: any) {
     })
   }
 
+  // OWODE Alajo Redesign "Create Ajọ group" + "Group created" boards
+  const back = () => navigation.goBack()
   if (!kyc.checked) {
-    return (
-      <View style={[styles.screen, { justifyContent: 'center', alignItems: 'center' }]}>
-        <OwodeLoader color="#25427a" />
-      </View>
-    )
+    return <View style={ui.screen}><OwodeLoader size="large" fullscreen color={ds.navy} /></View>
   }
 
   if (!kycDone) {
     return (
-      <View style={styles.screen}>
-        <LinearGradient colors={['#1a2e55', '#25427a']} style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="chevron-back" size={22} color="#f5a623" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle} numberOfLines={1}>Create Ajo</Text>
-          <View style={{ width: 22 }} />
-        </LinearGradient>
-        <View style={styles.gate}>
-          <Ionicons name="shield-checkmark-outline" size={48} color="#25427a" />
-          <Text style={styles.gateTitle}>Verify your identity first</Text>
-          <Text style={styles.gateText}>
-            You need both your BVN and NIN verified before you can create an Ajo group.
-            This protects everyone who joins.
+      <View style={ui.screen}>
+        <TopBar title="Create Ajọ group" onBack={back} />
+        <View style={[ui.body, { alignItems: 'center', paddingTop: 48, gap: 14 }]}>
+          <Tile icon="shieldCheck" size={64} />
+          <Text style={[ui.h2, { textAlign: 'center' }]}>Verify your identity first</Text>
+          <Text style={[ui.lead, { textAlign: 'center' }]}>
+            You need both your BVN and NIN verified before you can create an Ajọ group. This protects everyone who joins.
           </Text>
-          <TouchableOpacity style={styles.btn} onPress={() => navigation.navigate('KYCVerification')}>
-            <Text style={styles.btnText}>Verify now</Text>
-          </TouchableOpacity>
+          <Btn title="Verify now" icon="shieldCheck" onPress={() => navigation.navigate('KYCVerification')} style={{ alignSelf: 'stretch', marginTop: 8 }} />
         </View>
       </View>
     )
@@ -93,161 +89,114 @@ export default function CreateAjoScreen({ navigation }: any) {
 
   if (created) {
     return (
-      <View style={styles.screen}>
-        <LinearGradient colors={['#1a2e55', '#25427a']} style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="chevron-back" size={22} color="#f5a623" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle} numberOfLines={1}>Group created</Text>
-          <View style={{ width: 22 }} />
-        </LinearGradient>
-        <ScrollView contentContainerStyle={styles.body}>
-          <View style={styles.codeCard}>
-            <Text style={styles.codeLabel}>INVITE CODE</Text>
-            <Text style={styles.code}>{created.inviteCode}</Text>
-            <Text style={styles.codeHint}>
-              Share this with the {created.totalMembers - 1} people you want in the group.
-              Only people with this code can join.
+      <View style={ui.screen}>
+        <ScrollView contentContainerStyle={[ui.body, { paddingTop: insets.top + 32, gap: 16 }]}>
+          <View style={{ alignItems: 'center', gap: 12 }}>
+            <View style={ca.done}><Icon name="check" size={34} color={ds.navy} width={2.6} /></View>
+            <Text style={ui.h2}>Group created</Text>
+            <Text style={[ui.lead, { textAlign: 'center', color: ds.muted }]}>
+              Share the code with the {created.totalMembers - 1} people you trust. Only people with this code can join.
             </Text>
           </View>
-          <TouchableOpacity style={styles.btn} onPress={shareCode}>
-            <Ionicons name="share-social-outline" size={18} color="#fff" />
-            <Text style={styles.btnText}>Share invite code</Text>
-          </TouchableOpacity>
-          <View style={styles.stepsCard}>
-            <Text style={styles.stepsTitle}>What happens next</Text>
-            {[
-              'Everyone you invite joins with the code',
-              'Once the group is full it goes to OWODE for approval',
-              'When approved, collection starts the next day'
-            ].map((t, i) => (
-              <View key={i} style={styles.stepRow}>
-                <View style={styles.stepNum}><Text style={styles.stepNumText}>{i + 1}</Text></View>
-                <Text style={styles.stepText}>{t}</Text>
-              </View>
-            ))}
+          <View style={ca.codeCard}>
+            <Eyebrow color={ds.onHero}>INVITE CODE</Eyebrow>
+            <Text style={ca.code}>{created.inviteCode}</Text>
+            <View style={{ flexDirection: 'row', gap: 10, alignSelf: 'stretch' }}>
+              <Btn title={copied ? 'Copied' : 'Copy'} icon={copied ? 'check' : 'copy'} small style={{ flex: 1 }}
+                onPress={() => { Clipboard.setString(created.inviteCode); setCopied(true); setTimeout(() => setCopied(false), 2000) }} />
+              <Btn title="Share" icon="share" kind="heroline" small style={{ flex: 1 }} onPress={shareCode} />
+            </View>
           </View>
-          <TouchableOpacity style={styles.ghostBtn} onPress={() => navigation.goBack()}>
-            <Text style={styles.ghostText}>Done</Text>
-          </TouchableOpacity>
+          <Section>What happens next</Section>
+          <List>
+            <Row icon="share" title="Everyone you invite joins with the code" />
+            <Row icon="checkCircle" title="Once the group is full, OWODE approves it" />
+            <Row icon="calendar" title="Collection starts the day after approval" />
+          </List>
         </ScrollView>
+        <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: Math.max(insets.bottom + 12, 28) }}>
+          <Btn title="Done" kind="navy" onPress={back} />
+        </View>
       </View>
     )
   }
 
+  const amt = Number(amount) || 0
+  const tooLow = !!amount && amt < MIN_AMOUNT
   return (
-    <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <LinearGradient colors={['#1a2e55', '#25427a']} style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={22} color="#f5a623" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>Create Ajo</Text>
-        <View style={{ width: 22 }} />
-      </LinearGradient>
-
-      <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-        <View style={styles.warnCard}>
-          <Ionicons name="information-circle" size={18} color="#d97706" />
-          <Text style={styles.warnText}>
-            This is a standard Ajo. If a member fails to contribute, OWODE does not cover it.
-            Only create groups with people you trust.
-          </Text>
+    <KeyboardAvoidingView style={ui.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <TopBar title="Create Ajọ group" onBack={back} />
+      <ScrollView contentContainerStyle={[ui.body, { gap: 16 }]} keyboardShouldPersistTaps="handled">
+        <Field label="Group name" placeholder="e.g. Market Women Monthly" value={name} onChangeText={setName} maxLength={40} />
+        <View style={{ gap: 6 }}>
+          <Field label="Amount per member" prefix="₦" placeholder="10,000 minimum" value={amount}
+            onChangeText={t => setAmount(t.replace(/\D/g, ''))} keyboardType="numeric" />
+          {tooLow ? <Text style={ca.err}>Minimum is {naira(MIN_AMOUNT)}</Text> : null}
         </View>
-
-        <Text style={styles.label}>Group name</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="e.g. Market Women Monthly"
-          placeholderTextColor="#9aa5b8"
-          value={name}
-          onChangeText={setName}
-          maxLength={40}
-        />
-
-        <Text style={styles.label}>Contribution per member</Text>
-        <View style={styles.amountWrap}>
-          <Text style={styles.naira}>{'\u20a6'}</Text>
-          <TextInput
-            style={styles.amountInput}
-            placeholder="10,000 minimum"
-            placeholderTextColor="#9aa5b8"
-            value={amount}
-            onChangeText={setAmount}
-            keyboardType="numeric"
-          />
+        <View style={{ gap: 8 }}>
+          <Eyebrow>HOW OFTEN</Eyebrow>
+          <View style={ca.seg}>
+            {(['WEEKLY', 'MONTHLY'] as const).map(f => (
+              <TouchableOpacity key={f} style={[ca.segItem, frequency === f && ca.segOn]} onPress={() => setFrequency(f)}>
+                <Text style={[ca.segText, frequency === f && ca.segTextOn]}>{f === 'WEEKLY' ? 'Weekly' : 'Monthly'}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
-        {amount && Number(amount) < MIN_AMOUNT ? (
-          <Text style={styles.err}>Minimum is {'\u20a6'}{MIN_AMOUNT.toLocaleString()}</Text>
-        ) : null}
-
-        <Text style={styles.label}>How often</Text>
-        <View style={styles.row}>
-          {(['WEEKLY', 'MONTHLY'] as const).map(f => (
-            <TouchableOpacity
-              key={f}
-              style={[styles.chip, frequency === f && styles.chipActive]}
-              onPress={() => setFrequency(f)}
-            >
-              <Text style={[styles.chipText, frequency === f && styles.chipTextActive]}>
-                {f === 'WEEKLY' ? 'Weekly' : 'Monthly'}
-              </Text>
+        <View style={{ gap: 8 }}>
+          <Eyebrow>NUMBER OF MEMBERS</Eyebrow>
+          <View style={ca.stepper}>
+            <TouchableOpacity style={ca.stepBtn} onPress={() => setMembers(m => Math.max(6, m - 1))} accessibilityLabel="Fewer members">
+              <Text style={ca.stepSign}>−</Text>
             </TouchableOpacity>
-          ))}
-        </View>
-
-        <Text style={styles.label}>Number of members</Text>
-        <View style={styles.stepper}>
-          <TouchableOpacity
-            style={styles.stepBtn}
-            onPress={() => setMembers(m => Math.max(6, m - 1))}
-          >
-            <Ionicons name="remove" size={20} color="#25427a" />
-          </TouchableOpacity>
-          <View style={styles.stepValue}>
-            <Text style={styles.stepNumber}>{members}</Text>
-            <Text style={styles.stepCaption}>members</Text>
+            <Text style={ca.stepValue}>{members} members</Text>
+            <TouchableOpacity style={ca.stepBtn} onPress={() => setMembers(m => Math.min(12, m + 1))} accessibilityLabel="More members">
+              <Text style={ca.stepSign}>+</Text>
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            style={styles.stepBtn}
-            onPress={() => setMembers(m => Math.min(12, m + 1))}
-          >
-            <Ionicons name="add" size={20} color="#25427a" />
-          </TouchableOpacity>
+          <Text style={ui.muted}>Between 6 and 12, including you</Text>
         </View>
-        <Text style={styles.hint}>Between 6 and 12 members, including you.</Text>
-
-        {amount && Number(amount) >= MIN_AMOUNT ? (
-          <View style={styles.summary}>
-            <Text style={styles.summaryTitle}>Each member will</Text>
-            <View style={styles.sumRow}>
-              <Text style={styles.sumLabel}>Pay</Text>
-              <Text style={styles.sumValue}>
-                {'\u20a6'}{Number(amount).toLocaleString()} {frequency === 'WEEKLY' ? 'weekly' : 'monthly'}
-              </Text>
-            </View>
-            <View style={styles.sumRow}>
-              <Text style={styles.sumLabel}>Collect on their turn</Text>
-              <Text style={styles.sumValue}>
-                {'\u20a6'}{(Number(amount) * members).toLocaleString()}
-              </Text>
-            </View>
-            <View style={[styles.sumRow, { borderBottomWidth: 0 }]}>
-              <Text style={styles.sumLabel}>Full cycle</Text>
-              <Text style={styles.sumValue}>
-                {members} {frequency === 'WEEKLY' ? 'weeks' : 'months'}
-              </Text>
-            </View>
-          </View>
+        {amt >= MIN_AMOUNT ? (
+          <Card tone="gold" style={{ gap: 10 }}>
+            <Eyebrow color={ds.goldInk}>EACH MEMBER WILL</Eyebrow>
+            {[
+              ['Pay', `${naira(amt)} ${frequency === 'WEEKLY' ? 'weekly' : 'monthly'}`],
+              ['Collect on their turn', naira(amt * members)],
+              ['Full cycle', `${members} ${frequency === 'WEEKLY' ? 'weeks' : 'months'}`],
+            ].map(([k, v]) => (
+              <View key={k} style={ui.rowBetween}>
+                <Text style={ca.sumKey}>{k}</Text>
+                <Text style={ca.sumVal}>{v}</Text>
+              </View>
+            ))}
+          </Card>
         ) : null}
-
-        <TouchableOpacity style={styles.btn} onPress={create} disabled={loading}>
-          {loading ? <OwodeLoader color="#fff" /> : <Text style={styles.btnText}>Create group</Text>}
-        </TouchableOpacity>
-        <View style={{ height: 30 }} />
+        <Note icon="alert">This is a standard Ajọ. If a member fails to pay, OWODE does not cover it. Only create groups with people you trust.</Note>
       </ScrollView>
+      <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: Math.max(insets.bottom + 12, 28) }}>
+        <Btn title="Create group" onPress={create} loading={loading} />
+      </View>
     </KeyboardAvoidingView>
   )
 }
+
+const ca = StyleSheet.create({
+  done: { width: 72, height: 72, borderRadius: 36, backgroundColor: ds.blueSoft, alignItems: 'center', justifyContent: 'center' },
+  codeCard: { backgroundColor: ds.hero, borderRadius: 22, padding: 22, alignItems: 'center', gap: 14 },
+  code: { fontSize: 40, lineHeight: 48, color: '#ffffff', fontFamily: F.x, letterSpacing: 8 },
+  err: { fontSize: 12, lineHeight: 15, color: ds.danger, fontFamily: F.b },
+  seg: { flexDirection: 'row', backgroundColor: ds.divider, borderRadius: 14, padding: 4, gap: 4 },
+  segItem: { flex: 1, height: 40, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  segOn: { backgroundColor: '#ffffff' },
+  segText: { fontSize: 14, lineHeight: 17, color: ds.muted, fontFamily: F.s },
+  segTextOn: { color: ds.hero, fontFamily: F.x },
+  stepper: { height: 52, borderRadius: 14, borderWidth: 1.5, borderColor: ds.border, backgroundColor: '#ffffff', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 6 },
+  stepBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: ds.bg, alignItems: 'center', justifyContent: 'center' },
+  stepSign: { fontSize: 22, lineHeight: 26, color: ds.ink, fontFamily: F.b },
+  stepValue: { fontSize: 17, lineHeight: 21, color: ds.ink, fontFamily: F.x },
+  sumKey: { fontSize: 14, lineHeight: 17, color: ds.goldInk2, fontFamily: F.r },
+  sumVal: { fontSize: 14, lineHeight: 17, color: ds.ink, fontFamily: F.x, ...tnum },
+})
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#f4f6fb' },

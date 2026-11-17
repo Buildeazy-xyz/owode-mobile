@@ -9,6 +9,7 @@ export type IconName =
   | 'share' | 'backspace' | 'alert' | 'lock' | 'mail' | 'close' | 'refresh'
   | 'download' | 'search' | 'filter' | 'calendar' | 'chevron' | 'gear' | 'star' | 'user'
   | 'doc' | 'logout' | 'key' | 'finger' | 'trash' | 'mic'
+  | 'info' | 'check' | 'chat' | 'phone' | 'trophy' | 'history' | 'grip' | 'sun' | 'camera' | 'clock' | 'up' | 'down'
 
 export default function Icon({
   name, size = 22, color = '#1a2b4a', width: sw = 1.8,
@@ -179,6 +180,46 @@ export default function Icon({
         <Path {...p} d="M5 11a7 7 0 0 0 14 0" />
         <Line {...p} x1="12" y1="18" x2="12" y2="22" />
       </>
+      case 'info': return <>
+        <Circle {...p} cx="12" cy="12" r="10" />
+        <Line {...p} x1="12" y1="16" x2="12" y2="12" />
+        <Line {...p} x1="12" y1="8" x2="12.01" y2="8" />
+      </>
+      case 'check': return <Polyline {...p} points="5 12 10 17 19 7" />
+      case 'chat': return <Path {...p} d="M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-6.4A8 8 0 1 1 21 12z" />
+      case 'phone': return <Path {...p} d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z" />
+      case 'trophy': return <>
+        <Path {...p} d="M8 21h8" />
+        <Path {...p} d="M12 17v4" />
+        <Path {...p} d="M7 4h10v5a5 5 0 0 1-10 0z" />
+        <Path {...p} d="M17 5h3v2a3 3 0 0 1-3 3" />
+        <Path {...p} d="M7 5H4v2a3 3 0 0 0 3 3" />
+      </>
+      case 'history': return <>
+        <Path {...p} d="M3 3v5h5" />
+        <Path {...p} d="M3.1 13a9 9 0 1 0 2.1-7.4L3 8" />
+        <Polyline {...p} points="12 7 12 12 15 14" />
+      </>
+      case 'grip': return <>
+        <Circle {...p} cx="9" cy="6" r="1" /><Circle {...p} cx="15" cy="6" r="1" />
+        <Circle {...p} cx="9" cy="12" r="1" /><Circle {...p} cx="15" cy="12" r="1" />
+        <Circle {...p} cx="9" cy="18" r="1" /><Circle {...p} cx="15" cy="18" r="1" />
+      </>
+      case 'sun': return <>
+        <Circle {...p} cx="12" cy="12" r="4" />
+        <Line {...p} x1="12" y1="1" x2="12" y2="3" /><Line {...p} x1="12" y1="21" x2="12" y2="23" />
+        <Line {...p} x1="1" y1="12" x2="3" y2="12" /><Line {...p} x1="21" y1="12" x2="23" y2="12" />
+      </>
+      case 'camera': return <>
+        <Path {...p} d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+        <Circle {...p} cx="12" cy="13" r="4" />
+      </>
+      case 'clock': return <>
+        <Circle {...p} cx="12" cy="12" r="10" />
+        <Polyline {...p} points="12 6 12 12 16 14" />
+      </>
+      case 'up': return <Polyline {...p} points="18 15 12 9 6 15" />
+      case 'down': return <Polyline {...p} points="6 9 12 15 18 9" />
       case 'refresh': return <>
         <Polyline {...p} points="23 4 23 10 17 10" />
         <Path {...p} d="M20.5 15a9 9 0 1 1-2.1-9.4L23 10" />

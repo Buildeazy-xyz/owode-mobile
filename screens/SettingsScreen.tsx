@@ -6,6 +6,8 @@ import {
 import { Ionicons } from '@expo/vector-icons'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { colors, spacing, radius, font, shadow } from '../constants/theme'
+import { TopBar, List, Row, ui } from '../components/ui'
+import { F, ds } from '../constants/theme'
 import { useAuth } from '../context/AuthContext'
 import { getBiometricType, isBiometricEnrolled } from '../utils/biometrics'
 
@@ -49,173 +51,66 @@ export default function SettingsScreen({ navigation }: any) {
     await AsyncStorage.setItem('voice_alerts', v ? 'true' : 'false')
   }
 
-  const Row = ({ icon, iconBg, label, sub, onPress, right, last }: any) => (
-    <TouchableOpacity
-      style={[styles.row, !last && styles.rowDivider]}
-      onPress={onPress}
-      disabled={!onPress}
-      activeOpacity={onPress ? 0.6 : 1}
-    >
-      <View style={[styles.iconCircle, { backgroundColor: iconBg || colors.tint }]}>
-        <Ionicons name={icon} size={18} color={colors.navy} />
-      </View>
-      <View style={{ flex: 1 }}>
-        <Text style={styles.rowLabel}>{label}</Text>
-        {!!sub && <Text style={styles.rowSub}>{sub}</Text>}
-      </View>
-      {right !== undefined ? right : <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />}
-    </TouchableOpacity>
+  // OWODE Alajo Redesign "Settings" board
+  const sw = (value: boolean, onChange: (v: boolean) => void) => (
+    <Switch value={value} onValueChange={onChange}
+      trackColor={{ false: '#cfd6e3', true: ds.navy }} thumbColor="#ffffff" />
   )
+  const Group = ({ title }: { title: string }) => <Text style={st.group}>{title}</Text>
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="chevron-back" size={24} color={colors.gold} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Settings</Text>
-        <View style={{ width: 24 }} />
-      </View>
+    <View style={ui.screen}>
+      <TopBar title="Settings" onBack={() => navigation.goBack()} />
+      <ScrollView contentContainerStyle={[ui.body, { gap: 10, paddingBottom: 60 }]} showsVerticalScrollIndicator={false}>
+        <Group title="SECURITY" />
+        <List>
+          <Row icon="key" title={user?.hasTransactionPin ? 'Change transaction PIN' : 'Set transaction PIN'}
+            sub="Required for transfers and savings" onPress={() => navigation.navigate('SetTransactionPin')} />
+          <Row icon="lock" title="Change app lock PIN" sub="6-digit PIN to open the app"
+            onPress={() => navigation.navigate('SetAppPin')} />
+          <Row icon="finger" title="Fingerprint or face"
+            sub={biometricAvailable ? 'Unlock and confirm faster' : 'Not set up on this phone'}
+            right={sw(biometricOn, toggleBiometric)} />
+          <Row icon="eyeOff" title="Hide balance on open" sub="Keep your balance hidden when the app opens"
+            right={sw(hideBalance, toggleHideBalance)} />
+        </List>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 110 }} showsVerticalScrollIndicator={false}>
+        <Group title="ALERTS" />
+        <List>
+          <Row icon="mic" title="Voice payment alerts" sub="Announce money received out loud"
+            right={sw(voiceAlerts, toggleVoice)} />
+          <Row icon="bell" title="Push notifications" sub="Managed in your phone settings"
+            onPress={() => Linking.openSettings()} />
+        </List>
 
-        <Text style={styles.groupTitle}>Security & Privacy</Text>
-        <View style={styles.card}>
-          <Row
-            icon="keypad-outline"
-            label={user?.hasTransactionPin ? 'Change Transaction PIN' : 'Set Transaction PIN'}
-            sub="Required to authorise transfers and savings"
-            onPress={() => navigation.navigate('SetTransactionPin')}
-          />
-          <Row
-            icon="lock-closed-outline"
-            label="Change App Lock PIN"
-            sub="6-digit PIN to unlock the app"
-            onPress={() => navigation.navigate('SetAppPin')}
-          />
-          <Row
-            icon="finger-print-outline"
-            label="Biometric Login"
-            sub={biometricAvailable ? 'Use fingerprint or face to authenticate' : 'Not enrolled on this device'}
-            right={
-              <Switch
-                value={biometricOn}
-                onValueChange={toggleBiometric}
-                trackColor={{ false: colors.track, true: colors.gold }}
-                thumbColor="#fff"
-              />
-            }
-          />
-          <Row
-            icon="eye-off-outline"
-            label="Hide Balance by Default"
-            sub="Keep your balance hidden when the app opens"
-            right={
-              <Switch
-                value={hideBalance}
-                onValueChange={toggleHideBalance}
-                trackColor={{ false: colors.track, true: colors.gold }}
-                thumbColor="#fff"
-              />
-            }
-            last
-          />
-        </View>
+        <Group title="ACCOUNT" />
+        <List>
+          <Row icon="shieldCheck" title="BVN / NIN verification" sub={user?.isVerified ? 'Verified' : 'Not verified yet'}
+            onPress={() => navigation.navigate('KYCVerification')} />
+          <Row icon="star" tone="gold" title="Trust score" sub="See your score and how to raise it"
+            onPress={() => navigation.navigate('TrustScore')} />
+          <Row icon="help" title="Help & support" sub="Chat, call, email and FAQs"
+            onPress={() => navigation.navigate('HelpSupport')} />
+        </List>
 
-        <Text style={styles.groupTitle}>Notifications</Text>
-        <View style={styles.card}>
-          <Row
-            icon="volume-high-outline"
-            label="Voice Payment Alerts"
-            sub="Announce payments received out loud"
-            right={
-              <Switch
-                value={voiceAlerts}
-                onValueChange={toggleVoice}
-                trackColor={{ false: colors.track, true: colors.gold }}
-                thumbColor="#fff"
-              />
-            }
-          />
-          <Row
-            icon="notifications-outline"
-            label="Push Notifications"
-            sub="Managed in your phone settings"
-            onPress={() => Linking.openSettings()}
-            last
-          />
-        </View>
+        <Group title="LEGAL" />
+        <List>
+          <Row icon="doc" title="Terms & conditions" onPress={() => Linking.openURL('https://owodealajo.com/terms.html')} />
+          <Row icon="shield" title="Privacy policy" onPress={() => Linking.openURL('https://owodeagent.com/privacy.html')} />
+          <Row icon="trash" danger title="Delete my account" sub="Request permanent deletion"
+            onPress={() => Linking.openURL('https://owodeagent.com/delete-account.html')} />
+        </List>
 
-        <Text style={styles.groupTitle}>Verification</Text>
-        <View style={styles.card}>
-          <Row
-            icon="shield-checkmark-outline"
-            label="BVN / NIN Verification"
-            sub={user?.isVerified ? 'Verified' : 'Not verified'}
-            onPress={() => navigation.navigate('KYCVerification')}
-          />
-          <Row
-            icon="star-outline"
-            label="Trust Score"
-            sub="View your score and how to improve it"
-            onPress={() => navigation.navigate('TrustScore')}
-            last
-          />
-        </View>
-
-        <Text style={styles.groupTitle}>Support</Text>
-        <View style={styles.card}>
-          <Row
-            icon="help-buoy-outline"
-            label="Help & Support"
-            sub="Chat, call, email and FAQs"
-            onPress={() => navigation.navigate('HelpSupport')}
-            last
-          />
-        </View>
-
-        <Text style={styles.groupTitle}>Legal</Text>
-        <View style={styles.card}>
-          <Row
-            icon="document-text-outline"
-            label="Terms & Conditions"
-            onPress={() => Linking.openURL('https://owodealajo.com/terms.html')}
-          />
-          <Row
-            icon="shield-outline"
-            label="Privacy Policy"
-            onPress={() => Linking.openURL('https://owodeagent.com/privacy.html')}
-          />
-          <Row
-            icon="trash-outline"
-            label="Delete My Account"
-            sub="Request permanent account deletion"
-            onPress={() => Linking.openURL('https://owodeagent.com/delete-account.html')}
-            last
-          />
-        </View>
-
-        <Text style={styles.groupTitle}>About</Text>
-        <View style={styles.card}>
-          <Row
-            icon="globe-outline"
-            label="Visit Our Website"
-            sub="owodealajo.com"
-            onPress={() => Linking.openURL('https://owodealajo.com')}
-          />
-          <Row
-            icon="information-circle-outline"
-            label="App Version"
-            right={<Text style={styles.versionText}>{APP_VERSION}</Text>}
-            last
-          />
-        </View>
-
-        <Text style={styles.footer}>OWODE Digital Services Limited</Text>
+        <Text style={st.version}>OWODE Alajo · OWODE Digital Services Limited · RC 8569061</Text>
       </ScrollView>
     </View>
   )
 }
+
+const st = StyleSheet.create({
+  group: { fontSize: 12, lineHeight: 15, color: ds.muted, fontFamily: F.b, letterSpacing: 0.6, paddingHorizontal: 4, paddingTop: 6 },
+  version: { fontSize: 11, lineHeight: 16, color: ds.muted, fontFamily: F.r, textAlign: 'center', paddingTop: 10 },
+})
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },

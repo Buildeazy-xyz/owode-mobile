@@ -9,6 +9,9 @@ import {
   getNotifications, clearNotifications, markAllRead, OwodeNotification,
 } from '../utils/notificationStore'
 import OwodeLoader from '../components/OwodeLoader'
+import { IconName } from '../components/Icon'
+import { TopBar, Tile, ui } from '../components/ui'
+import { F, ds } from '../constants/theme'
 
 const C = {
   navy: '#0d47a1',
@@ -74,99 +77,97 @@ export default function NotificationsScreen() {
     ])
   }
 
-  return (
-    <View style={styles.screen}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="arrow-back" size={24} color={C.text} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>Notifications</Text>
-        <TouchableOpacity onPress={handleClear} activeOpacity={0.7}>
-          <Text style={[styles.clear, items.length === 0 && { color: C.muted }]} numberOfLines={1}>
-            Clear all
-          </Text>
-        </TouchableOpacity>
-      </View>
+  // OWODE Alajo Redesign "Notifications" board
+  const [chip, setChip] = useState<'ALL' | 'MONEY' | 'AJO' | 'ACCOUNT'>('ALL')
+  const isAjo = (n: OwodeNotification) => /aj[oọ]/i.test(`${n.title} ${n.body}`)
+  const isMoney = (n: OwodeNotification) => n.kind === 'CREDIT' || n.kind === 'DEBIT'
+  const shown = items.filter(n =>
+    chip === 'ALL' ? true : chip === 'AJO' ? isAjo(n) : chip === 'MONEY' ? isMoney(n) && !isAjo(n) : !isMoney(n) && !isAjo(n))
+  const today = new Date().toDateString()
+  const groups = [
+    { label: 'TODAY', list: shown.filter(n => new Date(n.createdAt).toDateString() === today) },
+    { label: 'EARLIER', list: shown.filter(n => new Date(n.createdAt).toDateString() !== today) },
+  ].filter(g => g.list.length)
+  const look = (n: OwodeNotification): { icon: IconName; tone: 'blue' | 'gold' | 'grey' } =>
+    isAjo(n) ? { icon: 'ajo', tone: 'gold' }
+    : n.kind === 'CREDIT' ? { icon: 'receive', tone: 'blue' }
+    : n.kind === 'DEBIT' ? { icon: 'send', tone: 'grey' }
+    : n.kind === 'REWARD' ? { icon: 'gift', tone: 'gold' }
+    : { icon: 'bell', tone: 'blue' }
 
+  return (
+    <View style={ui.screen}>
+      <TopBar
+        title="Notifications"
+        onBack={() => navigation.goBack()}
+        right={
+          <TouchableOpacity onPress={handleClear} disabled={items.length === 0} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <Text style={[n.clear, items.length === 0 && { color: ds.muted }]}>Clear all</Text>
+          </TouchableOpacity>
+        }
+      />
       {loading ? (
-        <OwodeLoader color={C.navy}  />
-      ) : items.length === 0 ? (
-        <View style={styles.empty}>
-          <View style={styles.emptyIconWrap}>
-            <Ionicons name="notifications-off-outline" size={34} color={C.navy} />
-          </View>
-          <Text style={styles.emptyTitle}>No notifications yet</Text>
-          <Text style={styles.emptyText}>
-            Credit alerts, Ajo payouts and rewards will show up here.
-          </Text>
-        </View>
+        <OwodeLoader size="large" fullscreen color={ds.navy} />
       ) : (
         <ScrollView
-          contentContainerStyle={styles.list}
+          contentContainerStyle={[ui.body, { gap: 12 }]}
           showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={ds.navy} />}
         >
-          {items.map(item => {
-            const m = META[item.kind] || META.INFO
-            return (
-              <View key={item.id} style={styles.row}>
-                <View style={[styles.avatar, { backgroundColor: m.bg }]}>
-                  <Ionicons name={m.icon} size={20} color={m.tint} />
-                </View>
-                <View style={styles.rowBody}>
-                  <View style={styles.rowTop}>
-                    <Text style={styles.rowTitle} numberOfLines={1}>{item.title}</Text>
-                    <Text style={styles.rowTime} numberOfLines={1}>{timeAgo(item.createdAt)}</Text>
-                  </View>
-                  <Text style={styles.rowText}>{item.body}</Text>
-                </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+            {([['ALL', 'All'], ['MONEY', 'Money'], ['AJO', 'Ajọ'], ['ACCOUNT', 'Account']] as const).map(([k, label]) => (
+              <TouchableOpacity key={k} style={[n.chip, chip === k && n.chipOn]} onPress={() => setChip(k)}>
+                <Text style={[n.chipText, chip === k && n.chipTextOn]}>{label}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+          {groups.length === 0 ? (
+            <View style={n.empty}>
+              <Tile icon="bell" size={56} />
+              <Text style={n.emptyTitle}>No notifications yet</Text>
+              <Text style={[ui.muted, { textAlign: 'center' }]}>Money received, Ajọ reminders and rewards will show up here.</Text>
+            </View>
+          ) : groups.map(g => (
+            <View key={g.label} style={{ gap: 10 }}>
+              <Text style={n.day}>{g.label}</Text>
+              <View style={n.list}>
+                {g.list.map((item, i) => {
+                  const m = look(item)
+                  return (
+                    <View key={item.id} style={[n.row, i < g.list.length - 1 && n.line, !item.read && { backgroundColor: ds.goldWash }]}>
+                      <Tile icon={m.icon} tone={m.tone} />
+                      <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
+                        <Text style={[n.title, !item.read && { fontFamily: F.x }]} numberOfLines={1}>{item.title}</Text>
+                        <Text style={n.body}>{item.body}</Text>
+                        <Text style={n.time}>{timeAgo(item.createdAt)}</Text>
+                      </View>
+                      {!item.read ? <View style={n.dot} /> : null}
+                    </View>
+                  )
+                })}
               </View>
-            )
-          })}
-          <View style={{ height: 32 }} />
+            </View>
+          ))}
         </ScrollView>
       )}
     </View>
   )
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: C.bg },
-  header: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 16, paddingVertical: 12, minHeight: 56,
-  },
-  headerTitle: {
-    flex: 1, flexShrink: 1, textAlign: 'center',
-    fontSize: 17, fontWeight: '700', color: C.text,
-  },
-  clear: { flexShrink: 1, fontSize: 13, fontWeight: '600', color: C.navy },
-
-  list: { padding: 16, paddingTop: 8 },
-  row: {
-    flexDirection: 'row', alignItems: 'flex-start',
-    backgroundColor: C.card, borderRadius: 18,
-    padding: 16, marginBottom: 12, minHeight: 72,
-  },
-  avatar: {
-    width: 40, height: 40, borderRadius: 20,
-    alignItems: 'center', justifyContent: 'center', marginRight: 12,
-  },
-  rowBody: { flex: 1 },
-  rowTop: { flexDirection: 'row', alignItems: 'center', marginBottom: 4, minHeight: 20 },
-  rowTitle: { flex: 1, flexShrink: 1, fontSize: 14, fontWeight: '700', color: C.text },
-  rowTime: { flexShrink: 1, marginLeft: 8, fontSize: 11, color: C.muted },
-  rowText: { fontSize: 13, lineHeight: 19, color: C.muted },
-
-  empty: { alignItems: 'center', paddingHorizontal: 40, paddingTop: 100 },
-  emptyIconWrap: {
-    width: 72, height: 72, borderRadius: 36, backgroundColor: '#e8effb',
-    alignItems: 'center', justifyContent: 'center', marginBottom: 16,
-  },
-  emptyTitle: { fontSize: 16, fontWeight: '700', color: C.text, marginBottom: 6 },
-  emptyText: { fontSize: 13, lineHeight: 20, color: C.muted, textAlign: 'center' },
+const n = StyleSheet.create({
+  clear: { fontSize: 13, lineHeight: 16, color: ds.navy, fontFamily: F.b },
+  chip: { height: 36, paddingHorizontal: 14, borderRadius: 18, borderWidth: 1, borderColor: ds.border, backgroundColor: ds.card, alignItems: 'center', justifyContent: 'center' },
+  chipOn: { backgroundColor: ds.hero, borderColor: ds.hero },
+  chipText: { fontSize: 13, lineHeight: 16, color: ds.ink, fontFamily: F.s },
+  chipTextOn: { color: '#ffffff', fontFamily: F.x },
+  day: { fontSize: 12, lineHeight: 15, color: ds.muted, fontFamily: F.b, letterSpacing: 0.6, paddingHorizontal: 4 },
+  list: { backgroundColor: ds.card, borderWidth: 1, borderColor: ds.border, borderRadius: 18, overflow: 'hidden' },
+  row: { flexDirection: 'row', gap: 12, paddingVertical: 14, paddingHorizontal: 16 },
+  line: { borderBottomWidth: 1, borderBottomColor: ds.divider },
+  title: { fontSize: 14, lineHeight: 17, color: ds.ink, fontFamily: F.b },
+  body: { fontSize: 13, lineHeight: 19, color: ds.inkSoft, fontFamily: F.r },
+  time: { fontSize: 11, lineHeight: 14, color: ds.muted, fontFamily: F.r },
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: ds.gold, marginTop: 6 },
+  empty: { backgroundColor: ds.card, borderWidth: 1, borderColor: ds.border, borderRadius: 18, paddingVertical: 32, paddingHorizontal: 24, alignItems: 'center', gap: 10 },
+  emptyTitle: { fontSize: 16, lineHeight: 20, color: ds.ink, fontFamily: F.x },
 })

@@ -6,9 +6,13 @@ import { authAPI } from '../utils/api'
 import { useAuth } from '../context/AuthContext'
 import { authenticateWithBiometrics, isBiometricEnabled, getBiometricType } from '../utils/biometrics'
 import OwodeLoader from '../components/OwodeLoader'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { F, ds } from '../constants/theme'
+import { initials } from '../utils/ajoDue'
 
 export default function AppLockScreen({ onUnlock }: { onUnlock: () => void }) {
   const { logout, user } = useAuth()
+  const insets = useSafeAreaInsets()
   const [loading, setLoading] = useState(false)
   const [biometricAvailable, setBiometricAvailable] = useState(false)
   const [biometricInfo, setBiometricInfo] = useState<any>(null)
@@ -49,74 +53,56 @@ export default function AppLockScreen({ onUnlock }: { onUnlock: () => void }) {
 
   if (loading) {
     return (
-      <LinearGradient colors={['#14244a', '#14244a']} style={styles.loadingContainer}>
-        <Image
-          source={require('../assets/owode-logo.png')}
-          style={styles.loadingLogo}
-          resizeMode="contain"
-        />
-        <OwodeLoader size="large" fullscreen color="#f5a623"  />
-        <Text style={styles.loadingText}>Verifying...</Text>
-      </LinearGradient>
+      <View style={{ flex: 1, backgroundColor: ds.hero }}>
+        <OwodeLoader size="large" fullscreen color={ds.gold} label="Verifying…" />
+      </View>
     )
   }
 
+  // OWODE Alajo Redesign "App lock" board
+  const first = user?.fullName?.split(' ')[0] || ''
   return (
-    <LinearGradient colors={['#14244a', '#14244a']} style={{ flex: 1 }}>
-      {/* Logo at top */}
-      <View style={styles.logoContainer}>
-        <Image
-          source={require('../assets/owode-logo.png')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-        <View style={styles.userBadge}>
-          <Text style={styles.userBadgeText}>
-            {user?.fullName?.split(' ')[0]}
-          </Text>
-        </View>
-      </View>
-
-      {/* PIN Keypad */}
+    <View style={{ flex: 1, backgroundColor: ds.hero, paddingTop: insets.top + 24 }}>
       <PinKeypad
-        title="App Locked"
-        subtitle="Enter your 6-digit PIN to unlock"
+        title={first ? `Welcome back, ${first}` : 'Welcome back'}
+        subtitle="Enter your 6-digit app PIN"
         pinLength={6}
+        requireConfirm={false}
         onComplete={handlePinComplete}
+        onBiometric={biometricAvailable ? () => tryBiometric() : undefined}
+        badge={
+          <View style={al.avatar}><Text style={al.avatarText}>{initials(user?.fullName)}</Text></View>
+        }
       />
-
-      {/* Bottom Actions */}
-      <View style={styles.bottomActions}>
-        {biometricAvailable && (
-          <TouchableOpacity
-            onPress={() => tryBiometric()}
-            style={styles.biometricBtn}
-          >
-            <Text style={styles.biometricText}>
-              {biometricInfo?.hasFaceID ? 'Use Face ID' : 'Use Fingerprint'}
-            </Text>
-          </TouchableOpacity>
-        )}
+      <View style={[al.bottom, { paddingBottom: Math.max(insets.bottom + 8, 24) }]}>
         <TouchableOpacity
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           onPress={() => Alert.alert(
-            'Forgot App Lock PIN?',
-            'To reset it, log in again with your account password. After logging in, go to Profile → Security → Change App Lock PIN to set a new one.',
+            'Forgot app PIN?',
+            'Log in again with your account password. Then go to Settings → Change app lock PIN to set a new one.',
             [
               { text: 'Cancel', style: 'cancel' },
               { text: 'Log in with password', onPress: logout }
             ]
           )}
-          style={styles.forgotBtn}
         >
-          <Text style={styles.forgotText}>Forgot App Lock PIN?</Text>
+          <Text style={al.forgot}>Forgot app PIN?</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={logout} style={styles.logoutBtn}>
-          <Text style={styles.logoutText}>Login with password instead</Text>
+        <TouchableOpacity onPress={logout} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <Text style={al.password}>Use password</Text>
         </TouchableOpacity>
       </View>
-    </LinearGradient>
+    </View>
   )
 }
+
+const al = StyleSheet.create({
+  avatar: { width: 64, height: 64, borderRadius: 32, backgroundColor: ds.gold, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { fontSize: 22, lineHeight: 27, color: ds.hero, fontFamily: F.x },
+  bottom: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 24, paddingTop: 4, backgroundColor: ds.hero },
+  forgot: { fontSize: 13, lineHeight: 16, color: ds.gold, fontFamily: F.b },
+  password: { fontSize: 13, lineHeight: 16, color: ds.onHero, fontFamily: F.b },
+})
 
 const styles = StyleSheet.create({
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },

@@ -1,129 +1,33 @@
 import React, { useEffect, useRef } from 'react'
-import { View, Text, StyleSheet, Animated, Dimensions, Image } from 'react-native'
-import { LinearGradient } from 'expo-linear-gradient'
+import { View, Text, StyleSheet, Animated } from 'react-native'
+import OwodeLoader from './OwodeLoader'
+import { F, ds } from '../constants/theme'
 
-const { width } = Dimensions.get('window')
-
+// OWODE Alajo Redesign "Loading (app opening)" board: navy screen, shield in a
+// white circle with the gold ring, "OWODE / Your money is safe".
 export default function SplashScreenComponent({ onFinish }: { onFinish: () => void }) {
-  const fadeAnim = useRef(new Animated.Value(0)).current
-  const scaleAnim = useRef(new Animated.Value(0.3)).current
-  const slideAnim = useRef(new Animated.Value(50)).current
-  const logoFade = useRef(new Animated.Value(0)).current
-  const logoScale = useRef(new Animated.Value(0.8)).current
+  const fade = useRef(new Animated.Value(0)).current
 
   useEffect(() => {
-    // Logo appears first
-    Animated.parallel([
-      Animated.timing(logoFade, { toValue: 1, duration: 600, useNativeDriver: true }),
-      Animated.spring(logoScale, { toValue: 1, tension: 60, friction: 8, useNativeDriver: true }),
-    ]).start()
-
-    // Then text slides up
-    setTimeout(() => {
-      Animated.parallel([
-        Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
-        Animated.timing(slideAnim, { toValue: 0, duration: 600, useNativeDriver: true }),
-        Animated.spring(scaleAnim, { toValue: 1, tension: 50, friction: 7, useNativeDriver: true }),
-      ]).start()
-    }, 400)
-
+    Animated.timing(fade, { toValue: 1, duration: 500, useNativeDriver: true }).start()
     const timer = setTimeout(() => {
-      Animated.timing(fadeAnim, { toValue: 0, duration: 400, useNativeDriver: true }).start(() => onFinish())
-    }, 3500)
-
+      Animated.timing(fade, { toValue: 0, duration: 350, useNativeDriver: true }).start(() => onFinish())
+    }, 2600)
     return () => clearTimeout(timer)
   }, [])
 
   return (
-    <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.container}>
-
-      {/* Main Content */}
-      <View style={styles.content}>
-
-        {/* Logo Card */}
-        <Animated.View style={[
-          styles.logoCard,
-          {
-            opacity: logoFade,
-            transform: [{ scale: logoScale }]
-          }
-        ]}>
-          <Image
-            source={require('../assets/owode-logo.png')}
-            style={styles.logoImage}
-            resizeMode="contain"
-          />
-        </Animated.View>
-
-        {/* Text Content */}
-        <Animated.View style={[
-          styles.textContent,
-          {
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }]
-          }
-        ]}>
-          <View style={styles.divider} />
-          <Text style={styles.mission}>
-            Moving Nigerians into the{'\n'}middle class through savings
-          </Text>
-
-          {/* Feature badges */}
-          <View style={styles.badges}>
-            {['Guaranteed', 'Digital Wallet', 'Community'].map((badge, i) => (
-              <View key={i} style={styles.badge}>
-                <Text style={styles.badgeText}>{badge}</Text>
-              </View>
-            ))}
-          </View>
-        </Animated.View>
-      </View>
-
-      {/* Bottom */}
-      <Animated.View style={[styles.bottom, { opacity: fadeAnim }]}>
-        <View style={styles.bottomBadges}>
-          <Text style={styles.bottomText}>Secure</Text>
-          <Text style={styles.bottomDot}>•</Text>
-          <Text style={styles.bottomText}>Transparent</Text>
-          <Text style={styles.bottomDot}>•</Text>
-          <Text style={styles.bottomText}>Scalable</Text>
-        </View>
-        <Text style={styles.version}>v1.0.0 • OWODE Digital Services Limited</Text>
-        <Text style={styles.tagline}>ALÀJÒ-ÀGBÁYÉ: THE GLOBAL THRIFT COLLECTOR</Text>
+    <View style={styles.container}>
+      <Animated.View style={[styles.center, { opacity: fade }]}>
+        <OwodeLoader size="large" fullscreen color={ds.gold} />
       </Animated.View>
-
-    </LinearGradient>
+      <Text style={styles.footer}>OWODE Digital Services Limited · RC 8569061</Text>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'space-between', alignItems: 'center', paddingVertical: 60 },
-  content: { flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%', paddingHorizontal: 24 },
-  logoCard: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    alignSelf: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.22,
-    shadowRadius: 14,
-    elevation: 8,
-    marginBottom: 32
-  },
-  logoImage: { width: 260, height: 74, resizeMode: 'contain' },
-  textContent: { alignItems: 'center', width: '100%' },
-  divider: { width: 60, height: 3, backgroundColor: '#f5a623', marginBottom: 20, borderRadius: 2 },
-  mission: { fontSize: 16, color: 'rgba(255,255,255,0.85)', textAlign: 'center', lineHeight: 26, fontWeight: '500', marginBottom: 24 },
-  badges: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'center' },
-  badge: { backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 7, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' },
-  badgeText: { color: '#fff', fontSize: 12, fontWeight: '600' },
-  bottom: { alignItems: 'center', gap: 6 },
-  bottomBadges: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  bottomText: { fontSize: 12, color: 'rgba(255,255,255,0.6)' },
-  bottomDot: { color: 'rgba(255,255,255,0.3)', fontSize: 12 },
-  version: { fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 4 },
-  tagline: { fontSize: 10, color: '#f5a623', letterSpacing: 1, marginTop: 2, textAlign: 'center' }
+  container: { flex: 1, backgroundColor: ds.hero },
+  center: { flex: 1 },
+  footer: { fontSize: 11, lineHeight: 15, color: ds.onHero, fontFamily: F.r, textAlign: 'center', paddingBottom: 34 },
 })

@@ -1,7 +1,9 @@
 import React, { useState } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Linking } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import { colors, spacing, radius, font, shadow } from '../constants/theme'
+import { colors, spacing, radius, font, shadow, F, ds } from '../constants/theme'
+import Icon, { IconName } from '../components/Icon'
+import { TopBar, List, Tile, Section, ui } from '../components/ui'
 
 const WHATSAPP = '2348020973590'
 const PHONE = '+2348020973590'
@@ -45,114 +47,72 @@ const FAQS = [
 export default function HelpSupportScreen({ navigation }: any) {
   const [open, setOpen] = useState<number | null>(null)
 
-  const ContactCard = ({ icon, iconBg, iconColor, title, sub, badge, actionLabel, onPress }: any) => (
-    <View style={styles.card}>
-      {!!badge && (
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>{badge}</Text>
-        </View>
-      )}
-      <TouchableOpacity style={styles.contactRow} onPress={onPress} activeOpacity={0.7}>
-        <View style={[styles.iconCircle, { backgroundColor: iconBg }]}>
-          <Ionicons name={icon} size={19} color={iconColor} />
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.contactTitle}>{title}</Text>
-          <Text style={styles.contactSub}>{sub}</Text>
-        </View>
-        <View style={styles.actionPill}>
-          <Text style={styles.actionPillText}>{actionLabel}</Text>
-        </View>
-      </TouchableOpacity>
-    </View>
-  )
-
+  // OWODE Alajo Redesign "Help & support" board
+  const contacts: { icon: IconName; title: string; sub: string; onPress: () => void }[] = [
+    { icon: 'chat', title: 'WhatsApp', sub: 'Fastest', onPress: () => Linking.openURL(`https://wa.me/${WHATSAPP}?text=Hello OWODE Support, I need help with`) },
+    { icon: 'phone', title: 'Call us', sub: '9am–9pm', onPress: () => Linking.openURL(`tel:${PHONE}`) },
+    { icon: 'mail', title: 'Email', sub: 'Within 24h', onPress: () => Linking.openURL(`mailto:${EMAIL}?subject=OWODE Support Request`) },
+  ]
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{ width: 24 }}>
-          <Ionicons name="chevron-back" size={24} color={colors.gold} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Help & Support</Text>
-        <View style={{ width: 24 }} />
-      </View>
-
-      <ScrollView contentContainerStyle={{ paddingBottom: 110 }} showsVerticalScrollIndicator={false}>
-
-        <Text style={styles.groupTitle}>Chat with us</Text>
-        <ContactCard
-          icon="logo-whatsapp"
-          iconBg="#e8f5e9"
-          iconColor="#25D366"
-          title="WhatsApp"
-          sub="Fastest way to reach our team"
-          badge="Avg. response: under 30 mins"
-          actionLabel="Chat"
-          onPress={() => Linking.openURL(`https://wa.me/${WHATSAPP}?text=Hello OWODE Support, I need help with`)}
-        />
-
-        <Text style={styles.groupTitle}>Call us</Text>
-        <ContactCard
-          icon="call-outline"
-          iconBg={colors.tint}
-          iconColor={colors.navy}
-          title={PHONE}
-          sub="Every day, 9am to 9pm"
-          actionLabel="Call"
-          onPress={() => Linking.openURL(`tel:${PHONE}`)}
-        />
-
-        <Text style={styles.groupTitle}>Email us</Text>
-        <ContactCard
-          icon="mail-outline"
-          iconBg="#fff8e1"
-          iconColor={colors.gold}
-          title={EMAIL}
-          sub="For account and document issues"
-          badge="Avg. response: within 24 hrs"
-          actionLabel="Email"
-          onPress={() => Linking.openURL(`mailto:${EMAIL}?subject=OWODE Support Request`)}
-        />
-
-        <Text style={styles.groupTitle}>Frequently asked questions</Text>
-        <View style={styles.card}>
-          {FAQS.map((item, i) => (
-            <View key={i} style={i < FAQS.length - 1 ? styles.faqDivider : undefined}>
-              <TouchableOpacity
-                style={styles.faqRow}
-                onPress={() => setOpen(open === i ? null : i)}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.faqQ}>{item.q}</Text>
-                <Ionicons
-                  name={open === i ? 'chevron-up' : 'chevron-down'}
-                  size={17}
-                  color={colors.textFaint}
-                />
-              </TouchableOpacity>
-              {open === i && <Text style={styles.faqA}>{item.a}</Text>}
-            </View>
+    <View style={ui.screen}>
+      <TopBar title="Help & support" onBack={() => navigation.goBack()} />
+      <ScrollView contentContainerStyle={ui.body} showsVerticalScrollIndicator={false}>
+        <View style={{ flexDirection: 'row', gap: 10 }}>
+          {contacts.map(c => (
+            <TouchableOpacity key={c.title} style={h.contact} onPress={c.onPress} activeOpacity={0.8}>
+              <Tile icon={c.icon} size={42} />
+              <Text style={h.contactTitle}>{c.title}</Text>
+              <Text style={h.contactSub}>{c.sub}</Text>
+            </TouchableOpacity>
           ))}
         </View>
 
-        <Text style={styles.groupTitle}>Still stuck?</Text>
-        <TouchableOpacity
-          style={styles.reportCard}
-          onPress={() => Linking.openURL(`https://wa.me/${WHATSAPP}?text=Hello OWODE, I want to report a problem with the app:`)}
-        >
-          <Ionicons name="bug-outline" size={20} color={colors.navy} />
-          <View style={{ flex: 1 }}>
-            <Text style={styles.reportTitle}>Report a problem</Text>
-            <Text style={styles.reportSub}>Tell us what went wrong and we will fix it</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color={colors.navy} />
-        </TouchableOpacity>
+        <Section>Frequently asked questions</Section>
+        <List>
+          {FAQS.map((item, i) => {
+            const isOpen = open === i
+            return (
+              <TouchableOpacity key={i} style={h.faq} onPress={() => setOpen(isOpen ? null : i)} activeOpacity={0.7}>
+                <View style={h.faqTop}>
+                  <Text style={[h.q, isOpen && { fontFamily: F.x }]}>{item.q}</Text>
+                  <Icon name={isOpen ? 'close' : 'plus'} size={16} color={ds.muted} width={2} />
+                </View>
+                {isOpen ? <Text style={h.a}>{item.a}</Text> : null}
+              </TouchableOpacity>
+            )
+          })}
+        </List>
 
-        <Text style={styles.footer}>OWODE Digital Services Limited{'\n'}RC 8569061</Text>
+        <TouchableOpacity
+          style={h.report}
+          activeOpacity={0.8}
+          onPress={() => Linking.openURL(`https://wa.me/${WHATSAPP}?text=Hello OWODE Support, I want to report a problem:`)}
+        >
+          <Tile icon="alert" tone="gold" />
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text style={h.reportTitle}>Report a problem</Text>
+            <Text style={h.reportSub}>Tell us what went wrong and we will fix it</Text>
+          </View>
+          <Icon name="chevron" size={18} color={ds.goldInk} width={2} />
+        </TouchableOpacity>
+        <Text style={[ui.muted, { textAlign: 'center' }]}>{PHONE} · {EMAIL}</Text>
       </ScrollView>
     </View>
   )
 }
+
+const h = StyleSheet.create({
+  contact: { flex: 1, backgroundColor: ds.card, borderWidth: 1, borderColor: ds.border, borderRadius: 18, paddingVertical: 14, paddingHorizontal: 8, alignItems: 'center', gap: 8 },
+  contactTitle: { fontSize: 13, lineHeight: 16, color: ds.ink, fontFamily: F.b },
+  contactSub: { fontSize: 11, lineHeight: 14, color: ds.muted, fontFamily: F.r },
+  faq: { paddingVertical: 14, paddingHorizontal: 16, gap: 8 },
+  faqTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
+  q: { flex: 1, fontSize: 14, lineHeight: 19, color: ds.ink, fontFamily: F.s },
+  a: { fontSize: 13, lineHeight: 20, color: ds.inkSoft, fontFamily: F.r },
+  report: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: ds.goldWash, borderWidth: 1, borderColor: ds.goldLine, borderRadius: 18, paddingVertical: 14, paddingHorizontal: 16 },
+  reportTitle: { fontSize: 14, lineHeight: 17, color: ds.ink, fontFamily: F.x },
+  reportSub: { fontSize: 12, lineHeight: 16, color: ds.goldInk2, fontFamily: F.r },
+})
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },

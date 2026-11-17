@@ -1,7 +1,10 @@
 import React, { useRef } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Share, Alert } from 'react-native'
-import { Ionicons } from '@expo/vector-icons'
-import { LinearGradient } from 'expo-linear-gradient'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import Icon from '../components/Icon'
+import { TopBar, Pill, Btn, ui } from '../components/ui'
+import { F, ds, tnum } from '../constants/theme'
+import { naira } from '../utils/ajoDue'
 import ViewShot from 'react-native-view-shot'
 import * as Sharing from 'expo-sharing'
 
@@ -9,6 +12,7 @@ export default function ReceiptScreen({ route, navigation }: any) {
   const { transaction } = route.params
   const receiptRef = useRef<any>(null)
   const isCredit = transaction.type === 'CREDIT'
+  const insets = useSafeAreaInsets()
 
   const handleShareAsImage = async () => {
     try {
@@ -26,100 +30,66 @@ export default function ReceiptScreen({ route, navigation }: any) {
     }
   }
 
+  // OWODE Alajo Redesign "Receipt" board
+  const ok = String(transaction.status || 'SUCCESS').toUpperCase() === 'SUCCESS'
+  const when = new Date(transaction.createdAt)
+  const h = when.getHours()
+  const stamp = `${when.toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })}, ${h % 12 || 12}:${String(when.getMinutes()).padStart(2, '0')} ${h < 12 ? 'am' : 'pm'}`
+  const rows: [string, string][] = [
+    ['Description', transaction.description || '—'],
+    ['Type', isCredit ? 'Money in' : 'Money out'],
+    ['Reference', transaction.reference || '—'],
+    ['Date', stamp],
+    ...(typeof transaction.balance === 'number' ? [['Balance after', naira(transaction.balance)] as [string, string]] : []),
+  ]
   return (
-    <ScrollView style={styles.container}>
-      <ViewShot ref={receiptRef} options={{ format: 'png', quality: 1 }}>
-        <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.header}>
-          <View style={styles.statusCircle}>
-            <Ionicons name="shield-checkmark" size={46} color={isCredit ? '#22c55e' : '#25427a'} />
+    <View style={ui.screen}>
+      <TopBar title="Receipt" onBack={() => navigation.goBack()} />
+      <ScrollView contentContainerStyle={ui.body}>
+        <ViewShot ref={receiptRef} options={{ format: 'png', quality: 1 }} style={{ backgroundColor: ds.bg }}>
+          <View style={r.card}>
+            <View style={r.top}>
+              <View style={[r.badge, !ok && { backgroundColor: ds.goldSoft }]}>
+                <Icon name={ok ? 'check' : 'clock'} size={28} color={ok ? ds.navy : ds.goldInk} width={2.6} />
+              </View>
+              <Text style={r.label}>{isCredit ? 'You received' : 'You sent'}</Text>
+              <Text style={r.amount}>{naira(transaction.amount || 0)}.00</Text>
+              <Pill tone={ok ? 'blue' : 'gold'}>{ok ? 'Successful' : String(transaction.status || '').toLowerCase()}</Pill>
+            </View>
+            <View style={{ paddingHorizontal: 20, paddingVertical: 8 }}>
+              {rows.map(([k, v], i) => (
+                <View key={k} style={[r.row, i < rows.length - 1 && r.rowLine]}>
+                  <Text style={r.key}>{k}</Text>
+                  <Text style={r.val} numberOfLines={2}>{v}</Text>
+                </View>
+              ))}
+            </View>
+            <View style={r.foot}>
+              <Icon name="shieldCheck" size={16} color={ds.muted} width={2} />
+              <Text style={r.footText}>Secured by OWODE Digital Services Limited</Text>
+            </View>
           </View>
-          <Text style={styles.statusText}>{isCredit ? 'Money Received!' : 'Transfer Successful!'}</Text>
-          <Text style={styles.amount}>₦{transaction.amount?.toLocaleString()}</Text>
-        </LinearGradient>
-
-        <View style={styles.receiptCard}>
-          <View style={styles.receiptHeader}>
-            <Text style={styles.owodeLogo}>OWODE</Text>
-            <Text style={styles.receiptTitle}>Transaction Receipt</Text>
-          </View>
-
-          <View style={styles.row}>
-            <Text style={styles.rowLabel}>Status</Text>
-            <Text style={[styles.rowValue, { color: '#22c55e', fontWeight: 'bold' }]}>{transaction.status}</Text>
-          </View>
-          <View style={styles.separator} />
-
-          <View style={styles.row}>
-            <Text style={styles.rowLabel}>Type</Text>
-            <Text style={styles.rowValue}>{transaction.type}</Text>
-          </View>
-          <View style={styles.separator} />
-
-          <View style={styles.row}>
-            <Text style={styles.rowLabel}>Amount</Text>
-            <Text style={[styles.rowValue, { color: isCredit ? '#22c55e' : '#ef4444', fontWeight: 'bold' }]}>
-              {isCredit ? '+' : '-'}₦{transaction.amount?.toLocaleString()}
-            </Text>
-          </View>
-          <View style={styles.separator} />
-
-
-          <View style={styles.row}>
-            <Text style={styles.rowLabel}>Description</Text>
-            <Text style={[styles.rowValue, { flex: 1, textAlign: 'right' }]} numberOfLines={2}>{transaction.description}</Text>
-          </View>
-          <View style={styles.separator} />
-
-          <View style={styles.row}>
-            <Text style={styles.rowLabel}>Reference</Text>
-            <Text style={[styles.rowValue, { fontSize: 11, flex: 1, textAlign: 'right' }]}>{transaction.reference}</Text>
-          </View>
-          <View style={styles.separator} />
-
-          <View style={styles.row}>
-            <Text style={styles.rowLabel}>Date & Time</Text>
-            <Text style={styles.rowValue}>{new Date(transaction.createdAt).toLocaleString()}</Text>
-          </View>
-
-          <View style={styles.poweredBy}>
-            <View style={styles.poweredByLine} />
-            <Text style={styles.poweredByText}>Secured by OWODE Digital Services Limited</Text>
-            <View style={styles.poweredByLine} />
-          </View>
-        </View>
-      </ViewShot>
-
-      <TouchableOpacity style={styles.shareButton} onPress={handleShareAsImage}>
-        <Text style={styles.shareButtonText}>Share Receipt as Image</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.doneButton} onPress={() => navigation.navigate('Dashboard')}>
-        <Text style={styles.doneButtonText}>Back to Dashboard</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        </ViewShot>
+      </ScrollView>
+      <View style={[r.actions, { paddingBottom: Math.max(insets.bottom + 12, 28) }]}>
+        <Btn title="Share receipt" icon="share" onPress={handleShareAsImage} style={{ flex: 1 }} />
+        <Btn title="Done" kind="outline" onPress={() => navigation.navigate('Dashboard')} style={{ flex: 1 }} />
+      </View>
+    </View>
   )
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f4f6fb' },
-  header: { padding: 40, alignItems: 'center', paddingTop: 80 },
-  statusCircle: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center', marginBottom: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.18, shadowRadius: 10, elevation: 6 },
-  statusIcon: { fontSize: 36 },
-  statusText: { color: '#fff', fontSize: 20, fontWeight: 'bold', marginBottom: 8 },
-  amount: { color: '#fff', fontSize: 40, fontWeight: 'bold' },
-  receiptCard: { backgroundColor: '#fff', margin: 16, borderRadius: 20, padding: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 12, elevation: 4 },
-  receiptHeader: { alignItems: 'center', marginBottom: 20 },
-  owodeLogo: { fontSize: 24, fontWeight: 'bold', color: '#25427a', letterSpacing: 4 },
-  receiptTitle: { fontSize: 14, color: '#7c8aa5', marginTop: 4 },
-  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12 },
-  rowLabel: { fontSize: 14, color: '#7c8aa5', flex: 1 },
-  rowValue: { fontSize: 14, color: '#1a2b4a' },
-  separator: { height: 1, backgroundColor: '#f4f6fb' },
-  poweredBy: { marginTop: 20, alignItems: 'center', gap: 8 },
-  poweredByLine: { height: 1, backgroundColor: '#f0f2f7', width: '100%' },
-  poweredByText: { fontSize: 11, color: '#7c8aa5', textAlign: 'center' },
-  shareButton: { margin: 16, marginBottom: 8, backgroundColor: '#fff', borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 2, borderColor: '#25427a' },
-  shareButtonText: { color: '#25427a', fontSize: 16, fontWeight: 'bold' },
-  doneButton: { margin: 16, marginTop: 0, backgroundColor: '#25427a', borderRadius: 16, padding: 16, alignItems: 'center', marginBottom: 40 },
-  doneButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' }
+const r = StyleSheet.create({
+  card: { backgroundColor: ds.card, borderWidth: 1, borderColor: ds.border, borderRadius: 22, overflow: 'hidden' },
+  top: { paddingTop: 24, paddingBottom: 20, paddingHorizontal: 20, alignItems: 'center', gap: 10, borderBottomWidth: 1, borderBottomColor: '#d3dbe8', borderStyle: 'dashed' },
+  badge: { width: 56, height: 56, borderRadius: 28, backgroundColor: ds.blueSoft, alignItems: 'center', justifyContent: 'center' },
+  label: { fontSize: 13, lineHeight: 16, color: ds.muted, fontFamily: F.r },
+  amount: { fontSize: 36, lineHeight: 44, color: ds.ink, fontFamily: F.x, letterSpacing: -0.5, ...tnum },
+  row: { flexDirection: 'row', justifyContent: 'space-between', gap: 16, paddingVertical: 12 },
+  rowLine: { borderBottomWidth: 1, borderBottomColor: ds.divider },
+  key: { fontSize: 13, lineHeight: 16, color: ds.muted, fontFamily: F.r },
+  val: { flex: 1, fontSize: 13, lineHeight: 17, color: ds.ink, fontFamily: F.b, textAlign: 'right' },
+  foot: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, backgroundColor: ds.bg },
+  footText: { fontSize: 12, lineHeight: 15, color: ds.muted, fontFamily: F.r },
+  actions: { flexDirection: 'row', gap: 10, paddingHorizontal: 20, paddingTop: 12 },
 })

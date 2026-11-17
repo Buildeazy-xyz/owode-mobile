@@ -8,6 +8,8 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { kycAPI, authAPI } from '../utils/api'
 import { Ionicons } from '@expo/vector-icons'
 import OwodeLoader from '../components/OwodeLoader'
+import { TopBar, Card, List, Row, Tile, Pill, Field, Btn, Section, Note, ui } from '../components/ui'
+import { F, ds } from '../constants/theme'
 
 const { width } = Dimensions.get('window')
 
@@ -67,206 +69,67 @@ export default function KYCVerificationScreen({ navigation }: any) {
     }
   }
 
+  // OWODE Alajo Redesign "Identity verification" board — BVN and NIN cards stacked
+  const idCard = (kind: 'bvn' | 'nin') => {
+    const isB = kind === 'bvn'
+    const done = isB ? kycStatusState.hasBVN : kycStatusState.hasNIN
+    const value = isB ? bvn : nin
+    const setValue = isB ? setBvn : setNin
+    const submit = isB ? handleSubmitBVN : handleSubmitNIN
+    const title = isB ? 'Bank Verification Number (BVN)' : 'National Identification Number (NIN)'
+    const masked = (v: string) => v.length === 11 ? `${v.slice(0, 3)} •••• ••${v.slice(-2)}` : ''
+    if (done) {
+      return (
+        <Card key={kind} style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Tile icon={kycStatusState.isVerified ? 'checkCircle' : 'clock'} tone={kycStatusState.isVerified ? 'blue' : 'gold'} />
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text style={kv.title}>{isB ? 'BVN' : 'NIN'}</Text>
+            <Text style={ui.muted}>{kycStatusState.isVerified ? 'Confirmed' : 'Submitted — we are checking it'}</Text>
+          </View>
+          <Pill tone={kycStatusState.isVerified ? 'blue' : 'gold'}>{kycStatusState.isVerified ? 'Verified' : 'Under review'}</Pill>
+        </Card>
+      )
+    }
+    return (
+      <Card key={kind}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <Tile icon={isB ? 'shieldCheck' : 'doc'} tone="gold" />
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text style={kv.title}>{title}</Text>
+            <Text style={ui.muted}>{isB ? 'Dial *565*0# on your registered line to get it' : 'Dial *346# on your registered line to get it'}</Text>
+          </View>
+        </View>
+        <Field label={isB ? 'BVN' : 'NIN'} placeholder="11 digits" value={value}
+          onChangeText={t => setValue(t.replace(/\D/g, '').slice(0, 11))} keyboardType="number-pad" maxLength={11} />
+        {value.length > 0 && value.length < 11 ? <Text style={ui.muted}>{11 - value.length} more digits</Text> : null}
+        <Btn title={`Verify ${isB ? 'BVN' : 'NIN'}`} small onPress={submit} loading={loading && activeTab === kind}
+          disabled={value.length !== 11 || loading} />
+      </Card>
+    )
+  }
+
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView
-        style={styles.container}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Header */}
-        <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <Ionicons name="chevron-back" size={22} color="#f5a623" />
-          </TouchableOpacity>
-          <View style={styles.logoCard}>
-            <Image source={require('../assets/owode-logo.png')} style={styles.logoImage} resizeMode="contain" />
-          </View>
-          <View style={styles.headerContent}>
-            <Text style={styles.headerTitle}>Identity Verification</Text>
-            <Text style={styles.headerSub}>Verify your identity to unlock all features</Text>
-          </View>
-        </LinearGradient>
-
-        {/* Why verify */}
-        <View style={styles.section}>
-          <View style={styles.whyCard}>
-            <Text style={styles.whyTitle}>Why verify your identity?</Text>
-            <View style={styles.whyRow}>
-              {[
-                { icon: 'shield-checkmark', text: 'Join Guaranteed Ajo' },
-                { icon: 'trending-up', text: 'Higher transfer limits' },
-                { icon: 'ribbon', text: 'Higher trust score' },
-                { icon: 'lock-open', text: 'Full platform access' },
-              ].map(item => (
-                <View key={item.text} style={styles.whyItem}>
-                  <Ionicons name={item.icon as any} size={20} color="#25427a" style={{ marginBottom: 4 }} />
-                  <Text style={styles.whyText}>{item.text}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        </View>
-
-        {(kycStatusState.hasBVN || kycStatusState.hasNIN) && (
-          <View style={{ marginHorizontal: 20, marginBottom: 4, backgroundColor: '#e8f5e9', borderRadius: 12, padding: 14, flexDirection: 'row', alignItems: 'center' }}>
-            <Ionicons name="checkmark-circle" size={22} color="#2e7d32" />
-            <View style={{ marginLeft: 10, flex: 1 }}>
-              <Text style={{ color: '#22c55e', fontWeight: '700', fontSize: 14 }}>
-                {kycStatusState.isVerified
-                  ? 'Identity verified'
-                  : (kycStatusState.hasBVN && kycStatusState.hasNIN ? 'BVN & NIN submitted' : kycStatusState.hasBVN ? 'BVN submitted' : 'NIN submitted') + ' \u2014 under review'}
-              </Text>
-              <Text style={{ color: '#4b6b4d', fontSize: 12, marginTop: 2 }}>Your details are saved. No need to resubmit.</Text>
-            </View>
-          </View>
-        )}
-
-        {/* Tabs */}
-        <View style={styles.section}>
-          <View style={styles.tabs}>
-            {(['bvn', 'nin'] as const).map(tab => (
-              <TouchableOpacity
-                key={tab}
-                style={[styles.tab, activeTab === tab && styles.tabActive]}
-                onPress={() => setActiveTab(tab)}
-              >
-                <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-                  {tab === 'bvn' ? 'BVN' : 'NIN'}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        {/* BVN Form */}
-        {activeTab === 'bvn' && kycStatusState.hasBVN && (
-          <View style={{ marginHorizontal: 20, backgroundColor: '#fff8e1', borderRadius: 14, padding: 20, alignItems: 'center' }}>
-            <Ionicons name="time-outline" size={34} color="#f5a623" />
-            <Text style={{ fontWeight: '800', fontSize: 16, color: '#1a2b4a', marginTop: 8 }}>{kycStatusState.isVerified ? 'BVN Verified' : 'BVN Under Review'}</Text>
-            <Text style={{ color: '#7c8aa5', fontSize: 13, textAlign: 'center', marginTop: 6 }}>Your BVN has been submitted and is being verified. You will be notified once it is approved.</Text>
-          </View>
-        )}
-        {activeTab === 'bvn' && !kycStatusState.hasBVN && (
-          <View style={styles.section}>
-            <View style={styles.formCard}>
-              <Text style={styles.formTitle}>Bank Verification Number (BVN)</Text>
-              <Text style={styles.formSub}>
-                Your BVN is a unique 11-digit number assigned by the Central Bank of Nigeria
-              </Text>
-              <View style={styles.infoBox}>
-                <Text style={styles.infoBoxText}>
-                  Dial *565*0# on your registered phone to get your BVN
-                </Text>
-              </View>
-              <Text style={styles.inputLabel}>Enter your 11-digit BVN</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="• • • • • • • • • • •"
-                placeholderTextColor="#ccc"
-                value={bvn}
-                onChangeText={setBvn}
-                keyboardType="numeric"
-                maxLength={11}
-              />
-              <View style={styles.progressRow}>
-                {Array.from({ length: 11 }).map((_, i) => (
-                  <View
-                    key={i}
-                    style={[styles.progressDot, i < bvn.length && styles.progressDotFilled]}
-                  />
-                ))}
-              </View>
-              {bvn.length > 0 && bvn.length < 11 && (
-                <Text style={styles.inputHint}>{11 - bvn.length} more digits needed</Text>
-              )}
-              <View style={styles.securityNote}>
-                <Text style={styles.securityNoteText}>
-                  Your BVN is encrypted with 256-bit security and verified via YouVerify
-                </Text>
-              </View>
-              <TouchableOpacity
-                style={[styles.submitBtn, bvn.length !== 11 && styles.submitBtnDisabled]}
-                onPress={handleSubmitBVN}
-                disabled={bvn.length !== 11 || loading}
-              >
-                {loading
-                  ? <OwodeLoader color="#fff" />
-                  : <Text style={styles.submitBtnText}>Verify BVN</Text>
-                }
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
-
-        {/* NIN Form */}
-        {activeTab === 'nin' && kycStatusState.hasNIN && (
-          <View style={{ marginHorizontal: 20, backgroundColor: '#fff8e1', borderRadius: 14, padding: 20, alignItems: 'center' }}>
-            <Ionicons name="time-outline" size={34} color="#f5a623" />
-            <Text style={{ fontWeight: '800', fontSize: 16, color: '#1a2b4a', marginTop: 8 }}>{kycStatusState.isVerified ? 'NIN Verified' : 'NIN Under Review'}</Text>
-            <Text style={{ color: '#7c8aa5', fontSize: 13, textAlign: 'center', marginTop: 6 }}>Your NIN has been submitted and is being verified. You will be notified once it is approved.</Text>
-          </View>
-        )}
-        {activeTab === 'nin' && !kycStatusState.hasNIN && (
-          <View style={styles.section}>
-            <View style={styles.formCard}>
-              <Text style={styles.formTitle}>National Identification Number (NIN)</Text>
-              <Text style={styles.formSub}>
-                Your NIN is an 11-digit number on your National ID Card
-              </Text>
-              <View style={styles.infoBox}>
-                <Text style={styles.infoBoxText}>
-                  Dial *346# on your registered phone to get your NIN
-                </Text>
-              </View>
-              <Text style={styles.inputLabel}>Enter your 11-digit NIN</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="• • • • • • • • • • •"
-                placeholderTextColor="#ccc"
-                value={nin}
-                onChangeText={setNin}
-                keyboardType="numeric"
-                maxLength={11}
-              />
-              <View style={styles.progressRow}>
-                {Array.from({ length: 11 }).map((_, i) => (
-                  <View
-                    key={i}
-                    style={[styles.progressDot, i < nin.length && styles.progressDotFilled]}
-                  />
-                ))}
-              </View>
-              {nin.length > 0 && nin.length < 11 && (
-                <Text style={styles.inputHint}>{11 - nin.length} more digits needed</Text>
-              )}
-              <View style={styles.securityNote}>
-                <Text style={styles.securityNoteText}>
-                  Your NIN is encrypted with 256-bit security and verified via YouVerify
-                </Text>
-              </View>
-              <TouchableOpacity
-                style={[styles.submitBtn, nin.length !== 11 && styles.submitBtnDisabled]}
-                onPress={handleSubmitNIN}
-                disabled={nin.length !== 11 || loading}
-              >
-                {loading
-                  ? <OwodeLoader color="#fff" />
-                  : <Text style={styles.submitBtnText}>Verify NIN</Text>
-                }
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
-
-        <View style={{ height: 60 }} />
+    <KeyboardAvoidingView style={ui.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <TopBar title="Identity verification" onBack={() => navigation.goBack()} />
+      <ScrollView contentContainerStyle={ui.body} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <Text style={ui.lead}>Verify once with your BVN and NIN. It keeps your money safe and unlocks every feature.</Text>
+        <View onTouchStart={() => setActiveTab('bvn')}>{idCard('bvn')}</View>
+        <View onTouchStart={() => setActiveTab('nin')}>{idCard('nin')}</View>
+        <Section>What it unlocks</Section>
+        <List>
+          <Row icon="ajo" title="Join Guaranteed Ajọ groups" />
+          <Row icon="send" title="Send and receive larger amounts" />
+          <Row icon="star" tone="gold" title="+10 trust points for each" />
+        </List>
+        <Note icon="lock">Your number is encrypted and only used to confirm who you are.</Note>
       </ScrollView>
     </KeyboardAvoidingView>
   )
 }
+
+const kv = StyleSheet.create({
+  title: { fontSize: 14, lineHeight: 18, color: ds.ink, fontFamily: F.x },
+})
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f4f6fb' },

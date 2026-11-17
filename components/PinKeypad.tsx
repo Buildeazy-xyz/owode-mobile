@@ -16,6 +16,8 @@ interface PinKeypadProps {
   subtitle?: string
   pinLength?: number
   requireConfirm?: boolean
+  badge?: React.ReactNode        // replaces the lock icon (App lock shows the user's initials)
+  onBiometric?: () => void       // shows a fingerprint key in the empty keypad slot
 }
 
 export default function PinKeypad({
@@ -23,7 +25,9 @@ export default function PinKeypad({
   title = 'Enter PIN',
   subtitle = 'Enter your PIN',
   pinLength = 4,
-  requireConfirm = true
+  requireConfirm = true,
+  badge,
+  onBiometric,
 }: PinKeypadProps) {
   const [pin, setPin] = useState('')
   const [confirmedPin, setConfirmedPin] = useState('')
@@ -108,9 +112,11 @@ export default function PinKeypad({
   return (
     <View style={[s.container, { paddingBottom: Math.max(insets.bottom + 12, 24) }]}>
       <View style={s.content}>
-        <View style={s.lockTile}>
-          <Icon name="lock" size={26} color={ds.gold} width={2} />
-        </View>
+        {badge ?? (
+          <View style={s.lockTile}>
+            <Icon name="lock" size={26} color={ds.gold} width={2} />
+          </View>
+        )}
         {requireConfirm && (
           <View style={s.steps}>
             <View style={[s.step, s.stepOn]} />
@@ -134,7 +140,11 @@ export default function PinKeypad({
 
       <View style={s.pad}>
         {keys.map((key, index) => (
-          key === '' ? <View key={index} style={s.keyBlank} /> : (
+          key === '' ? (onBiometric ? (
+            <TouchableOpacity key={index} style={s.key} onPress={onBiometric} accessibilityLabel="Use fingerprint or face">
+              <Icon name="finger" size={26} color={ds.gold} />
+            </TouchableOpacity>
+          ) : <View key={index} style={s.keyBlank} />) : (
             <TouchableOpacity
               key={index}
               style={s.key}

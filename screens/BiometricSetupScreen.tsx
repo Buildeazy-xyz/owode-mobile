@@ -1,15 +1,20 @@
 import React, { useEffect, useState } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  Alert, Animated
+  Alert, Animated, ScrollView,
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { getBiometricType, authenticateWithBiometrics } from '../utils/biometrics'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import OwodeLoader from '../components/OwodeLoader'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import Icon from '../components/Icon'
+import { TopBar, List, Row, Tile, Btn, ui } from '../components/ui'
+import { ds } from '../constants/theme'
 
 export default function BiometricSetupScreen({ navigation }: any) {
+  const insets = useSafeAreaInsets()
   const [biometricInfo, setBiometricInfo] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [setting, setSetting] = useState(false)
@@ -90,99 +95,67 @@ export default function BiometricSetupScreen({ navigation }: any) {
     }
   }
 
+  // OWODE Alajo Redesign "Fingerprint setup" board
+  const label = biometricInfo?.hasFaceID ? 'face' : 'fingerprint'
   return (
-    <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.container}>
-      <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()}>
-        <Ionicons name="chevron-back" size={22} color="#f5a623" />
-      </TouchableOpacity>
-
+    <View style={ui.screen}>
+      <TopBar title="Fingerprint & face" onBack={() => navigation.goBack()} />
       {loading ? (
-        <OwodeLoader size="large" fullscreen color="#f5a623" />
+        <OwodeLoader size="large" fullscreen color={ds.navy} />
       ) : !biometricInfo?.hasAny ? (
-        <View style={styles.content}>
-          <Ionicons name="sad-outline" size={64} color="#9aa5b8" style={{ marginBottom: 16 }} />
-          <Text style={styles.noSupportTitle}>Not Available</Text>
-          <Text style={styles.noSupportDesc}>
-            Your device doesn't have biometric hardware or you haven't set up fingerprint/face ID in your phone settings.
+        <View style={[ui.body, { alignItems: 'center', paddingTop: 48, gap: 12 }]}>
+          <Tile icon="finger" size={64} tone="grey" />
+          <Text style={[ui.h2, { textAlign: 'center' }]}>Not set up on this phone</Text>
+          <Text style={[ui.lead, { textAlign: 'center' }]}>
+            Add a fingerprint or face in your phone settings first, then come back here to turn it on for OWODE.
           </Text>
-          <TouchableOpacity style={styles.settingsBtn} onPress={() => navigation.goBack()}>
-            <Text style={styles.settingsBtnText}>Go Back</Text>
-          </TouchableOpacity>
+          <Btn title="Go back" kind="outline" onPress={() => navigation.goBack()} style={{ alignSelf: 'stretch', marginTop: 8 }} />
         </View>
       ) : (
-        <View style={styles.content}>
-          {/* Biometric Icon */}
-          <Animated.View style={[styles.biometricCircle, { transform: [{ scale: pulseAnim }] }]}>
-            <Text style={styles.biometricIcon}>
-              {biometricInfo.hasFaceID ? '' : ''}
-            </Text>
-          </Animated.View>
-
-          <Text style={styles.title}>
-            {biometricInfo.hasFaceID ? 'Face ID' : 'Fingerprint'}
-          </Text>
-          <Text style={styles.subtitle}>
-            {isEnabled
-              ? `${biometricInfo.label} is active on your OWODE account`
-              : `Enable ${biometricInfo.label} for faster and more secure access to OWODE`}
-          </Text>
-
-          {/* Status */}
-          <View style={[styles.statusCard, { borderColor: isEnabled ? '#22c55e' : '#f5a623' }]}>
-            <Ionicons name={isEnabled ? "checkmark-circle" : "ellipse-outline"} size={24} color={isEnabled ? "#22c55e" : "#9aa5b8"} />
-            <View style={styles.statusText}>
-              <Text style={styles.statusTitle}>{isEnabled ? 'Enabled' : 'Not Enabled'}</Text>
-              <Text style={styles.statusDesc}>
+        <>
+          <ScrollView contentContainerStyle={[ui.body, { gap: 22 }]}>
+            <View style={{ alignItems: 'center', gap: 14, paddingTop: 22 }}>
+              <Animated.View style={[bio.outer, { transform: [{ scale: pulseAnim }] }]}>
+                <View style={bio.inner}><Icon name="finger" size={46} color={ds.navy} /></View>
+              </Animated.View>
+              <Text style={[ui.h2, { textAlign: 'center' }]}>
+                {isEnabled ? `${biometricInfo.hasFaceID ? 'Face' : 'Fingerprint'} is on` : `Use your ${label}`}
+              </Text>
+              <Text style={[ui.lead, { textAlign: 'center', color: ds.muted, maxWidth: 300 }]}>
                 {isEnabled
-                  ? `Use ${biometricInfo.label} to unlock app and authorize transactions`
-                  : `Tap below to enable ${biometricInfo.label} for OWODE`}
+                  ? `You can unlock OWODE and approve payments with your ${label}.`
+                  : 'Open OWODE and approve payments with a touch instead of typing your PIN every time.'}
               </Text>
             </View>
+            <List>
+              <Row icon="lock" title="Unlock the app" right={<Icon name="check" size={18} color={ds.navy} width={2.4} />} />
+              <Row icon="send" title="Approve transfers" right={<Icon name="check" size={18} color={ds.navy} width={2.4} />} />
+              <Row icon="shield" title={`Your ${label} stays on this phone`} sub="OWODE never sees or stores it" />
+            </List>
+          </ScrollView>
+          <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: Math.max(insets.bottom + 12, 28), gap: 10 }}>
+            {!isEnabled ? (
+              <>
+                <Btn title={`Turn on ${label}`} icon="finger" onPress={handleEnable} loading={setting} />
+                <Btn title="Not now" kind="outline" onPress={() => navigation.goBack()} />
+              </>
+            ) : (
+              <>
+                <Btn title="Test it" kind="navy" onPress={handleTest} />
+                <Btn title="Turn off" kind="danger" onPress={handleDisable} />
+              </>
+            )}
           </View>
-
-          {/* Features */}
-          <View style={styles.featuresCard}>
-            <Text style={styles.featuresTitle}>What you can do with {biometricInfo.label}:</Text>
-            {[
-              `Unlock OWODE app instantly`,
-              `Authorize transfers faster`,
-              `Extra layer of security`,
-              `No PIN needed for quick access`
-            ].map((f, i) => (
-              <Text key={i} style={styles.featureItem}>{f}</Text>
-            ))}
-          </View>
-
-          {/* Buttons */}
-          {!isEnabled ? (
-            <TouchableOpacity
-              style={styles.enableBtn}
-              onPress={handleEnable}
-              disabled={setting}
-            >
-              {setting ? (
-                <OwodeLoader color="#fff" />
-              ) : (
-                <Text style={styles.enableBtnText}>
-                  {biometricInfo.hasFaceID ? 'Enable Face ID' : 'Enable Fingerprint'}
-                </Text>
-              )}
-            </TouchableOpacity>
-          ) : (
-            <View style={styles.enabledActions}>
-              <TouchableOpacity style={styles.testBtn} onPress={handleTest}>
-                <Text style={styles.testBtnText}>Test It</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.disableBtn} onPress={handleDisable}>
-                <Text style={styles.disableBtnText}>Disable</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
+        </>
       )}
-    </LinearGradient>
+    </View>
   )
 }
+
+const bio = StyleSheet.create({
+  outer: { width: 120, height: 120, borderRadius: 60, backgroundColor: ds.blueSoft, alignItems: 'center', justifyContent: 'center' },
+  inner: { width: 84, height: 84, borderRadius: 42, backgroundColor: '#ffffff', alignItems: 'center', justifyContent: 'center' },
+})
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 24 },

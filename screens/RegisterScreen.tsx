@@ -20,8 +20,12 @@ const SKIP_OTP_FOR_TESTING = false
 
 import { COUNTRIES } from '../utils/countries'
 import OwodeLoader from '../components/OwodeLoader'
+import Icon from '../components/Icon'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { F, ds } from '../constants/theme'
 
 export default function RegisterScreen({ navigation }: any) {
+  const insets = useSafeAreaInsets()
   const { login } = useAuth()
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
@@ -279,40 +283,41 @@ export default function RegisterScreen({ navigation }: any) {
   const OVAL_WIDTH = width * 0.65
   const OVAL_HEIGHT = OVAL_WIDTH * 1.3
 
+  // OWODE Alajo Redesign "Create account" board header
   const renderHeader = () => (
-    <LinearGradient colors={['#1a2e55', '#25427a']} style={styles.header}>
+    <View style={[styles.header, { paddingTop: insets.top + 18 }]}>
       <View style={styles.headerTop}>
-        <TouchableOpacity onPress={goBack} style={styles.backBtn}>
-          <Ionicons name="chevron-back" size={22} color="#f5a623" />
+        <TouchableOpacity onPress={goBack} style={styles.backBtn} accessibilityLabel="Back">
+          <Icon name="back" size={20} color={ds.ink} width={2} />
         </TouchableOpacity>
-        <View style={styles.logoCard}>
-          <Image source={require('../assets/owode-logo.png')} style={styles.logoImage} resizeMode="contain" />
-        </View>
-        <Text style={styles.stepCount}>{step}/{TOTAL_STEPS}</Text>
+        <Text style={styles.headTitle}>Create account</Text>
+        <Text style={styles.stepCount}>{step} of {TOTAL_STEPS}</Text>
       </View>
       <View style={styles.progressContainer}>
-        <View style={styles.progressBg}>
-          <Animated.View style={[styles.progressFill, { width: progressWidth }]} />
+        <View style={{ flexDirection: 'row', gap: 6 }}>
+          {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+            <View key={i} style={[styles.progressBg, { flex: 1 }, i < step && { backgroundColor: ds.navy }]} />
+          ))}
         </View>
-        <Text style={styles.stepTitle}>{stepTitles[step - 1]}</Text>
+        <Text style={styles.stepTitle}>STEP {step} OF {TOTAL_STEPS} · {stepTitles[step - 1]}</Text>
       </View>
-    </LinearGradient>
+    </View>
   )
 
   // Step 7 — Transaction PIN (App Lock removed from registration)
   if (step === 7) {
     return (
-      <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={{ flex: 1 }}>
+      <View style={{ flex: 1, backgroundColor: ds.hero }}>
         <PinKeypad
           title="Set Transaction PIN"
           subtitle="Create a 4-digit PIN for all transactions"
           pinLength={4}
           onComplete={handleSetTransactionPin}
         />
-        <TouchableOpacity onPress={goBack} style={styles.pinBack}>
-          <Ionicons name="chevron-back" size={22} color="#f5a623" />
+        <TouchableOpacity onPress={goBack} style={[styles.pinBack, { top: insets.top + 18 }]} accessibilityLabel="Back">
+          <Icon name="back" size={20} color="#ffffff" width={2} />
         </TouchableOpacity>
-      </LinearGradient>
+      </View>
     )
   }
 
@@ -333,7 +338,7 @@ export default function RegisterScreen({ navigation }: any) {
           <TextInput
             style={styles.input}
             placeholder="e.g. Olusegun"
-            placeholderTextColor="#aaa"
+            placeholderTextColor="#9aa5b8"
             value={firstName}
             onChangeText={setFirstName}
             autoCapitalize="words"
@@ -344,7 +349,7 @@ export default function RegisterScreen({ navigation }: any) {
           <TextInput
             style={styles.input}
             placeholder="e.g. Olurin"
-            placeholderTextColor="#aaa"
+            placeholderTextColor="#9aa5b8"
             value={lastName}
             onChangeText={setLastName}
             autoCapitalize="words"
@@ -386,7 +391,7 @@ export default function RegisterScreen({ navigation }: any) {
               <TextInput
                 style={styles.input}
                 placeholder="DD"
-                placeholderTextColor="#aaa"
+                placeholderTextColor="#9aa5b8"
                 value={day}
                 onChangeText={setDay}
                 keyboardType="numeric"
@@ -398,7 +403,7 @@ export default function RegisterScreen({ navigation }: any) {
               <TextInput
                 style={styles.input}
                 placeholder="MM"
-                placeholderTextColor="#aaa"
+                placeholderTextColor="#9aa5b8"
                 value={month}
                 onChangeText={setMonth}
                 keyboardType="numeric"
@@ -410,7 +415,7 @@ export default function RegisterScreen({ navigation }: any) {
               <TextInput
                 style={styles.input}
                 placeholder="YYYY"
-                placeholderTextColor="#aaa"
+                placeholderTextColor="#9aa5b8"
                 value={year}
                 onChangeText={setYear}
                 keyboardType="numeric"
@@ -473,7 +478,7 @@ export default function RegisterScreen({ navigation }: any) {
           <TextInput
   style={[styles.input, { flex: 1, marginBottom: 0 }]}
   placeholder={selectedCountry.code === 'NG' ? '8012345678' : '712345678'}
-  placeholderTextColor="#aaa"
+  placeholderTextColor="#9aa5b8"
   value={phone}
   onChangeText={v => {
     // Remove all leading zeros automatically
@@ -493,7 +498,7 @@ export default function RegisterScreen({ navigation }: any) {
           <TextInput
             style={styles.input}
             placeholder="you@example.com"
-            placeholderTextColor="#aaa"
+            placeholderTextColor="#9aa5b8"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -540,7 +545,7 @@ export default function RegisterScreen({ navigation }: any) {
                 <TextInput
                   style={styles.countrySearch}
                   placeholder="Search country..."
-                  placeholderTextColor="#aaa"
+                  placeholderTextColor="#9aa5b8"
                   value={countrySearch}
                   onChangeText={setCountrySearch}
                 />
@@ -679,7 +684,7 @@ export default function RegisterScreen({ navigation }: any) {
           <TextInput
             style={styles.input}
             placeholder={`Enter your 11-digit ${idType.toUpperCase()}`}
-            placeholderTextColor="#aaa"
+            placeholderTextColor="#9aa5b8"
             value={idNumber}
             onChangeText={setIdNumber}
             keyboardType="numeric"
@@ -725,7 +730,7 @@ export default function RegisterScreen({ navigation }: any) {
             <TextInput
               style={styles.passwordInput}
               placeholder="e.g. owode123"
-              placeholderTextColor="#aaa"
+              placeholderTextColor="#9aa5b8"
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
@@ -741,7 +746,7 @@ export default function RegisterScreen({ navigation }: any) {
             <TextInput
               style={styles.passwordInput}
               placeholder="Repeat your password"
-              placeholderTextColor="#aaa"
+              placeholderTextColor="#9aa5b8"
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               secureTextEntry={!showConfirmPassword}
@@ -801,83 +806,84 @@ export default function RegisterScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  header: { paddingTop: Platform.OS === 'ios' ? 54 : 40, paddingBottom: 16, paddingHorizontal: 20 },
-  headerTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
-  backBtn: { padding: 4 },
+  headTitle: { flex: 1, fontSize: 20, lineHeight: 24, color: ds.ink, fontFamily: F.x },
+  header: { backgroundColor: ds.bg, paddingBottom: 12, paddingHorizontal: 20, gap: 16 },
+  headerTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  backBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: ds.card, borderWidth: 1, borderColor: ds.border, alignItems: 'center', justifyContent: 'center' },
   backBtnText: { color: '#f5a623', fontSize: 15, fontWeight: '600' },
   logoCard: { backgroundColor: '#fff', borderRadius: 10, padding: 6, alignItems: 'center' },
   logoImage: { width: width * 0.32, height: 32 },
-  stepCount: { color: 'rgba(255,255,255,0.7)', fontSize: 13, fontWeight: '600' },
-  progressContainer: { gap: 6 },
-  progressBg: { height: 5, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 3, overflow: 'hidden' },
+  stepCount: { color: ds.muted, fontSize: 13, lineHeight: 16, fontFamily: F.b },
+  progressContainer: { gap: 10 },
+  progressBg: { height: 4, backgroundColor: '#dbe2ee', borderRadius: 2 },
   progressFill: { height: 5, backgroundColor: '#f5a623', borderRadius: 3 },
-  stepTitle: { color: 'rgba(255,255,255,0.7)', fontSize: 11, fontWeight: '700', letterSpacing: 1.5 },
-  form: { flex: 1, backgroundColor: '#fff' },
-  formContent: { padding: 24, paddingBottom: 40, flexGrow: 1 },
-  stepHeading: { fontSize: 26, fontWeight: 'bold', color: '#25427a', marginBottom: 8, marginTop: 4 },
-  stepSubheading: { fontSize: 14, color: '#7c8aa5', marginBottom: 28, lineHeight: 22 },
-  inputLabel: { fontSize: 13, fontWeight: '600', color: '#25427a', marginBottom: 6 },
-  inputHint: { fontSize: 11, color: '#7c8aa5', marginBottom: 8 },
-  input: { backgroundColor: '#f4f6fb', borderRadius: 12, padding: 16, fontSize: 16, marginBottom: 16, color: '#1a2b4a', borderWidth: 1, borderColor: '#f0f2f7' },
-  passwordWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f4f6fb', borderRadius: 12, marginBottom: 16, borderWidth: 1, borderColor: '#f0f2f7' },
-  passwordInput: { flex: 1, padding: 16, fontSize: 16, color: '#1a2b4a' },
+  stepTitle: { color: ds.muted, fontSize: 12, lineHeight: 15, fontFamily: F.b, letterSpacing: 0.6 },
+  form: { flex: 1, backgroundColor: ds.bg },
+  formContent: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 40, flexGrow: 1 },
+  stepHeading: { fontSize: 24, lineHeight: 29, fontFamily: F.x, color: ds.ink, marginBottom: 6 },
+  stepSubheading: { fontSize: 14, lineHeight: 21, fontFamily: F.r, color: ds.muted, marginBottom: 22 },
+  inputLabel: { fontSize: 12, lineHeight: 15, fontFamily: F.b, color: ds.muted, letterSpacing: 0.6, textTransform: 'uppercase', marginBottom: 8 },
+  inputHint: { fontSize: 12, lineHeight: 16, fontFamily: F.r, color: ds.muted, marginBottom: 8 },
+  input: { backgroundColor: '#ffffff', borderRadius: 14, height: 52, paddingHorizontal: 16, fontSize: 16, fontFamily: F.b, marginBottom: 16, color: ds.ink, borderWidth: 1.5, borderColor: ds.border },
+  passwordWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#ffffff', borderRadius: 14, height: 52, marginBottom: 16, borderWidth: 1.5, borderColor: ds.border },
+  passwordInput: { flex: 1, paddingHorizontal: 16, fontSize: 16, fontFamily: F.b, color: ds.ink },
   eyeBtn: { padding: 16 },
   eyeIcon: { fontSize: 18 },
-  button: { backgroundColor: '#25427a', borderRadius: 14, padding: 18, alignItems: 'center', marginTop: 8, marginBottom: 16, shadowColor: '#25427a', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 },
-  buttonDisabled: { backgroundColor: '#e6eaf2', shadowOpacity: 0 },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  button: { backgroundColor: ds.gold, borderRadius: 16, height: 54, alignItems: 'center', justifyContent: 'center', marginTop: 8, marginBottom: 16 },
+  buttonDisabled: { backgroundColor: ds.gold, opacity: 0.45 },
+  buttonText: { color: ds.hero, fontSize: 16, lineHeight: 20, fontFamily: F.x },
   dobRow: { flexDirection: 'row', gap: 10, marginBottom: 8 },
-  countrySelector: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f4f6fb', borderRadius: 12, padding: 14, marginBottom: 16, borderWidth: 1, borderColor: '#f0f2f7', gap: 8 },
+  countrySelector: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#ffffff', borderRadius: 14, height: 52, paddingHorizontal: 14, marginBottom: 16, borderWidth: 1.5, borderColor: ds.border, gap: 8 },
   countrySelectorFlag: { fontSize: 22 },
-  countrySelectorName: { flex: 1, fontSize: 15, color: '#1a2b4a', fontWeight: '600' },
-  countrySelectorDial: { fontSize: 14, color: '#25427a', fontWeight: '700' },
+  countrySelectorName: { flex: 1, fontSize: 15, color: ds.ink, fontFamily: F.b },
+  countrySelectorDial: { fontSize: 14, color: ds.navy, fontFamily: F.x },
   countrySelectorArrow: { fontSize: 12, color: '#7c8aa5' },
   phoneRow: { flexDirection: 'row', gap: 8, alignItems: 'center', marginBottom: 8 },
-  dialCode: { backgroundColor: '#eaf2ff', borderRadius: 12, padding: 16, justifyContent: 'center', borderWidth: 1, borderColor: '#bbdefb' },
-  dialCodeText: { fontSize: 14, color: '#25427a', fontWeight: '700' },
-  phoneHint: { fontSize: 11, color: '#7c8aa5', marginBottom: 16 },
-  infoCard: { backgroundColor: '#eaf2ff', borderRadius: 12, padding: 14, marginBottom: 20, borderWidth: 1, borderColor: '#bbdefb' },
-  infoText: { fontSize: 13, color: '#25427a', lineHeight: 20 },
-  errorCard: { backgroundColor: '#ffebee', borderRadius: 12, padding: 14, marginBottom: 16, borderWidth: 1, borderColor: '#ffcdd2' },
-  errorText: { fontSize: 13, color: '#ef4444', fontWeight: '600' },
-  successCard: { backgroundColor: '#e8f5e9', borderRadius: 12, padding: 14, marginBottom: 16, borderWidth: 1, borderColor: '#c8e6c9' },
-  successText: { fontSize: 13, color: '#22c55e', fontWeight: '600' },
+  dialCode: { backgroundColor: ds.blueSoft, borderRadius: 14, height: 52, paddingHorizontal: 14, justifyContent: 'center' },
+  dialCodeText: { fontSize: 15, color: ds.navy, fontFamily: F.x },
+  phoneHint: { fontSize: 12, lineHeight: 16, color: ds.muted, fontFamily: F.r, marginBottom: 16 },
+  infoCard: { backgroundColor: ds.blueSoft, borderRadius: 14, padding: 14, marginBottom: 20 },
+  infoText: { fontSize: 13, color: ds.inkSoft, lineHeight: 19, fontFamily: F.r },
+  errorCard: { backgroundColor: ds.dangerSoft, borderRadius: 14, padding: 14, marginBottom: 16 },
+  errorText: { fontSize: 13, lineHeight: 18, color: ds.danger, fontFamily: F.b },
+  successCard: { backgroundColor: ds.blueSoft, borderRadius: 14, padding: 14, marginBottom: 16 },
+  successText: { fontSize: 13, lineHeight: 18, color: ds.navy, fontFamily: F.b },
   strengthContainer: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },
   strengthLabel: { fontSize: 12, color: '#7c8aa5' },
   strengthBar: { flex: 1, height: 4, backgroundColor: '#f0f2f7', borderRadius: 2, overflow: 'hidden' },
   strengthFill: { height: 4, borderRadius: 2 },
   strengthText: { fontSize: 12, fontWeight: '600' },
-  otpContainer: { flexDirection: 'row', justifyContent: 'center', gap: 10, marginVertical: 28 },
-  otpBox: { width: 50, height: 60, borderRadius: 14, backgroundColor: '#f4f6fb', borderWidth: 2, borderColor: '#e6eaf2', justifyContent: 'center', alignItems: 'center' },
-  otpBoxActive: { borderColor: '#25427a', borderWidth: 2.5, backgroundColor: '#eaf2ff' },
-  otpBoxFilled: { borderColor: '#25427a', backgroundColor: '#eaf2ff' },
-  otpText: { fontSize: 24, fontWeight: 'bold', color: '#25427a' },
+  otpContainer: { flexDirection: 'row', justifyContent: 'center', gap: 8, marginVertical: 24 },
+  otpBox: { width: 48, height: 56, borderRadius: 14, backgroundColor: '#ffffff', borderWidth: 1.5, borderColor: ds.border, justifyContent: 'center', alignItems: 'center' },
+  otpBoxActive: { borderColor: ds.navy, borderWidth: 2 },
+  otpBoxFilled: { borderColor: ds.navy },
+  otpText: { fontSize: 22, lineHeight: 27, fontFamily: F.x, color: ds.ink },
   hiddenInput: { position: 'absolute', width: 1, height: 1, opacity: 0 },
   resendBtn: { alignItems: 'center', marginTop: 4, marginBottom: 16, padding: 8 },
-  resendText: { color: '#25427a', fontSize: 14, fontWeight: '600' },
+  resendText: { color: ds.navy, fontSize: 14, lineHeight: 17, fontFamily: F.b },
   resendTextDisabled: { color: '#9aa5b8' },
   idTypeRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
-  idTypeBtn: { flex: 1, backgroundColor: '#f4f6fb', borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 2, borderColor: 'transparent', gap: 4 },
-  idTypeBtnActive: { backgroundColor: '#eaf2ff', borderColor: '#25427a' },
+  idTypeBtn: { flex: 1, backgroundColor: '#ffffff', borderRadius: 16, padding: 16, alignItems: 'center', borderWidth: 1.5, borderColor: ds.border, gap: 4 },
+  idTypeBtnActive: { backgroundColor: ds.blueSoft, borderColor: ds.navy },
   idTypeIcon: { fontSize: 28 },
-  idTypeBtnText: { fontSize: 16, fontWeight: 'bold', color: '#7c8aa5' },
-  idTypeBtnTextActive: { color: '#25427a' },
-  idTypeDesc: { fontSize: 11, color: '#9aa5b8', textAlign: 'center' },
+  idTypeBtnText: { fontSize: 16, lineHeight: 20, fontFamily: F.x, color: ds.muted },
+  idTypeBtnTextActive: { color: ds.navy },
+  idTypeDesc: { fontSize: 11, lineHeight: 15, color: ds.muted, fontFamily: F.r, textAlign: 'center' },
   skipBtn: { alignItems: 'center', marginTop: 4, padding: 12 },
-  skipText: { color: '#7c8aa5', fontSize: 13 },
+  skipText: { color: ds.muted, fontSize: 13, lineHeight: 16, fontFamily: F.b },
   loginLink: { alignItems: 'center', marginTop: 8 },
-  loginLinkText: { color: '#7c8aa5', fontSize: 14 },
-  loginLinkBold: { color: '#f5a623', fontWeight: 'bold' },
-  pinBack: { position: 'absolute', top: 60, left: 24 },
+  loginLinkText: { color: ds.muted, fontSize: 14, lineHeight: 18, fontFamily: F.r },
+  loginLinkBold: { color: ds.navy, fontFamily: F.x },
+  pinBack: { position: 'absolute', left: 20, width: 44, height: 44, borderRadius: 22, backgroundColor: ds.heroChip, alignItems: 'center', justifyContent: 'center' },
   pinBackText: { color: '#f5a623', fontSize: 16, fontWeight: '600' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modalContent: { backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: height * 0.7, padding: 20 },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#25427a' },
+  modalTitle: { fontSize: 18, lineHeight: 22, fontFamily: F.x, color: ds.ink },
   modalClose: { fontSize: 20, color: '#7c8aa5', padding: 4 },
-  countrySearch: { backgroundColor: '#f4f6fb', borderRadius: 12, padding: 12, fontSize: 15, marginBottom: 12, color: '#1a2b4a' },
+  countrySearch: { backgroundColor: ds.bg, borderRadius: 14, height: 46, paddingHorizontal: 14, fontSize: 15, fontFamily: F.s, marginBottom: 12, color: ds.ink },
   countryItem: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 12, marginBottom: 4, gap: 10 },
-  countryItemSelected: { backgroundColor: '#eaf2ff' },
+  countryItemSelected: { backgroundColor: ds.blueSoft },
   countryItemFlag: { fontSize: 24 },
   countryItemName: { flex: 1, fontSize: 15, color: '#1a2b4a', fontWeight: '500' },
   countryItemDial: { fontSize: 14, color: '#25427a', fontWeight: '700' },

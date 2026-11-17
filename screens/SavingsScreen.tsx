@@ -16,7 +16,8 @@ import OwodeLoader from '../components/OwodeLoader'
 import Icon from '../components/Icon'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { F, ds, tnum } from '../constants/theme'
-import { naira } from '../utils/ajoDue'
+import { naira, commas } from '../utils/ajoDue'
+import { TopBar, Card, Field, Btn, Eyebrow, Note, ui } from '../components/ui'
 
 const { width } = Dimensions.get('window')
 
@@ -336,343 +337,191 @@ export default function SavingsScreen({ navigation }: any) {
     )
   }
 
+  // OWODE Alajo Redesign "New savings goal" board
   if (screen === 'create') {
+    const freqs = ['DAILY', 'WEEKLY', 'MONTHLY']
     return (
-      <View style={styles.container}>
-        <LinearGradient colors={['#14244a', '#14244a']} style={styles.createHeader}>
-          <TouchableOpacity onPress={() => setScreen('list')}>
-            <Ionicons name="chevron-back" size={22} color="#f5a623" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Create Goal</Text>
-          <View style={{ width: 50 }} />
-        </LinearGradient>
-
-        <ScrollView contentContainerStyle={{ paddingBottom: 110 }} automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-          <View style={styles.createContent}>
-            <Text style={styles.fieldLabel}>What are you saving for?</Text>
-            <ScrollView automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled" horizontal showsHorizontalScrollIndicator={false} style={styles.categoryRow}>
-              {GOAL_CATEGORIES.map((cat, i) => (
-                <TouchableOpacity
-                  key={i}
-                  style={[styles.categoryChip, selectedCategory.label === cat.label && styles.categoryChipActive]}
-                  onPress={() => setSelectedCategory(cat)}
-                >
-                  <Ionicons name={cat.ion as any} size={22} color={selectedCategory.label === cat.label ? '#25427a' : '#7c8aa5'} style={{ marginBottom: 4 }} />
-                  <Text style={[styles.categoryLabel, selectedCategory.label === cat.label && styles.categoryLabelActive]}>
-                    {cat.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+      <View style={ui.screen}>
+        <TopBar title="New savings goal" onBack={() => setScreen('list')} />
+        <ScrollView contentContainerStyle={[ui.body, { gap: 16, paddingBottom: 30 }]} automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          <View style={{ gap: 8 }}>
+            <Eyebrow>WHAT ARE YOU SAVING FOR?</Eyebrow>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }} keyboardShouldPersistTaps="handled">
+              {GOAL_CATEGORIES.map((cat, i) => {
+                const on = selectedCategory.label === cat.label
+                return (
+                  <TouchableOpacity key={i} style={[sv.cat, on && sv.catOn]} onPress={() => setSelectedCategory(cat)}>
+                    <Ionicons name={cat.ion as any} size={18} color={on ? '#ffffff' : ds.navy} />
+                    <Text style={[sv.catText, on && { color: '#ffffff', fontFamily: F.x }]}>{cat.label}</Text>
+                  </TouchableOpacity>
+                )
+              })}
             </ScrollView>
-
-            <Text style={styles.fieldLabel}>Goal Name *</Text>
-            <View style={styles.inputWrapper}>
-              <Ionicons name={selectedCategory.ion as any} size={19} color='#25427a' style={{ marginRight: 6 }} />
-              <TextInput
-                style={styles.inputWithPrefix}
-                placeholder="e.g. New iPhone 16"
-                placeholderTextColor="#aaa"
-                value={title}
-                onChangeText={setTitle}
-              />
-            </View>
-
-            <Text style={styles.fieldLabel}>Description (optional)</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              placeholder="Why are you saving for this?"
-              placeholderTextColor="#aaa"
-              value={description}
-              onChangeText={setDescription}
-              multiline
-              numberOfLines={3}
-            />
-
-            <Text style={styles.fieldLabel}>Target Amount *</Text>
-            <View style={styles.inputWrapper}>
-              <Text style={styles.inputPrefix}>₦</Text>
-              <TextInput
-                style={styles.inputWithPrefix}
-                placeholder="0.00"
-                placeholderTextColor="#aaa"
-                value={goalAmount}
-                onChangeText={setGoalAmount}
-                keyboardType="numeric"
-              />
-            </View>
-
-            <Text style={styles.fieldLabel}>Initial Deposit (optional)</Text>
-            <View style={styles.inputWrapper}>
-              <Text style={styles.inputPrefix}>₦</Text>
-              <TextInput
-                style={styles.inputWithPrefix}
-                placeholder="0.00"
-                placeholderTextColor="#aaa"
-                value={initialDeposit}
-                onChangeText={setInitialDeposit}
-                keyboardType="numeric"
-              />
-            </View>
-
-            <Text style={styles.fieldLabel}>Target Date *</Text>
-            <View style={styles.dateChipRow}>
-              {[{ label: '3 months', months: 3 }, { label: '6 months', months: 6 }, { label: '1 year', months: 12 }].map(opt => (
-                <TouchableOpacity
-                  key={opt.label}
-                  style={[styles.dateChip, dateChip === opt.label && styles.dateChipActive]}
-                  onPress={() => {
-                    const d = new Date()
-                    d.setMonth(d.getMonth() + opt.months)
-                    setTargetDate(d.toISOString().split('T')[0])
-                    setDateChip(opt.label)
-                  }}
-                >
-                  <Text style={[styles.dateChipText, dateChip === opt.label && styles.dateChipTextActive]} numberOfLines={1}>{opt.label}</Text>
-                </TouchableOpacity>
-              ))}
-              <TouchableOpacity
-                style={[styles.dateChip, styles.dateChipIcon, dateChip === 'Custom' && styles.dateChipActive]}
-                onPress={() => { setDateChip('Custom'); setTempDate(targetDate ? new Date(targetDate) : new Date()); setShowDatePicker(true) }}
-              >
-                <Ionicons name="calendar-outline" size={15} color={dateChip === 'Custom' ? '#fff' : '#25427a'} />
-              </TouchableOpacity>
-            </View>
-
-            {targetDate ? (
-              <TouchableOpacity style={styles.datePreview} onPress={() => { setTempDate(targetDate ? new Date(targetDate) : new Date()); setShowDatePicker(true) }} activeOpacity={0.8}>
-                <Ionicons name="calendar" size={16} color="#25427a" />
-                <Text style={styles.datePreviewText} numberOfLines={1}>
-                  {new Date(targetDate).toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' })}
-                </Text>
-                <Ionicons name="chevron-forward" size={16} color="#7c8aa5" />
-              </TouchableOpacity>
-            ) : null}
-
-            {goalAmount && targetDate && perDaySave > 0 ? (
-              <Text style={styles.perDayHint}>Save ~₦{perDaySave.toLocaleString()}/day to reach this goal</Text>
-            ) : null}
-
-            {showDatePicker && Platform.OS === 'android' && (
-              <DateTimePicker
-                value={tempDate}
-                mode="date"
-                display="spinner"
-                minimumDate={new Date()}
-                onChange={(event: any, d?: Date) => {
-                  setShowDatePicker(false)
-                  if (event?.type === 'set' && d) {
-                    setTargetDate(d.toISOString().split('T')[0])
-                    setDateChip('Custom')
-                  }
-                }}
-              />
-            )}
-
-            {Platform.OS === 'ios' && (
-              <Modal
-                visible={showDatePicker}
-                transparent
-                animationType="slide"
-                onRequestClose={() => setShowDatePicker(false)}
-              >
-                <View style={styles.dpBackdrop}>
-                  <View style={styles.dpSheet}>
-                    <View style={styles.dpHeader}>
-                      <TouchableOpacity onPress={() => setShowDatePicker(false)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                        <Text style={styles.dpCancel} numberOfLines={1}>Cancel</Text>
-                      </TouchableOpacity>
-                      <Text style={styles.dpTitle} numberOfLines={1}>Select target date</Text>
-                      <TouchableOpacity
-                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                        onPress={() => {
-                          setTargetDate(tempDate.toISOString().split('T')[0])
-                          setDateChip('Custom')
-                          setShowDatePicker(false)
-                        }}
-                      >
-                        <Text style={styles.dpDone} numberOfLines={1}>Done</Text>
-                      </TouchableOpacity>
-                    </View>
-                    <DateTimePicker
-                      value={tempDate}
-                      mode="date"
-                      display="spinner"
-                      minimumDate={new Date()}
-                      themeVariant="light"
-                      textColor="#1a2b4a"
-                      onChange={(e: any, d?: Date) => { if (d) setTempDate(d) }}
-                      style={styles.dpPicker}
-                    />
-                  </View>
-                </View>
-              </Modal>
-            )}
-            <View style={styles.autoDebitSection}>
-              <View style={styles.autoDebitHead}>
-                <View style={styles.autoDebitHeadText}>
-                  <Text style={styles.autoDebitTitle} numberOfLines={1}>Auto-save</Text>
-                  <Text style={styles.autoDebitHint}>We work out how much to move for you</Text>
-                </View>
-                <Switch
-                  value={autoDebitOn}
-                  onValueChange={v => { setAutoDebitOn(v); if (!v) setAutoDebitFreq('') }}
-                  trackColor={{ false: '#dfe5ef', true: '#25427a' }}
-                  thumbColor="#fff"
-                />
-              </View>
-
-              {autoDebitOn ? (
-                <>
-                  <Text style={styles.autoDebitSub}>How often should we save?</Text>
-                  <View style={styles.freqRow}>
-                    {['DAILY', 'WEEKLY', 'MONTHLY'].map(f => (
-                      <TouchableOpacity
-                        key={f}
-                        style={[styles.freqBtn, autoDebitFreq === f && styles.freqBtnActive]}
-                        onPress={() => setAutoDebitFreq(f)}
-                      >
-                        <Text style={[styles.freqBtnText, autoDebitFreq === f && styles.freqBtnTextActive]} numberOfLines={1}>
-                          {f.charAt(0) + f.slice(1).toLowerCase()}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-
-                  {!autoDebitFreq ? (
-                    <Text style={styles.autoDebitWarn}>Pick a frequency to continue</Text>
-                  ) : !goalAmount || !targetDate ? (
-                    <Text style={styles.autoDebitWarn}>Set a target amount and date to see your plan</Text>
-                  ) : (
-                    <View style={styles.autoDebitCalcCard}>
-                      <Ionicons name="repeat" size={18} color="#25427a" />
-                      <Text style={styles.autoDebitCalcText}>
-                        We'll move <Text style={styles.autoDebitCalcAmt}>₦{autoDebitCalc.toLocaleString()}</Text> {autoDebitFreq.toLowerCase()} from your wallet
-                      </Text>
-                    </View>
-                  )}
-                </>
-              ) : null}
-            </View>
-
-            {goalAmount && targetDate ? (
-              <View style={styles.summaryPreview}>
-                <Text style={styles.summaryPreviewTitle}>Goal Summary</Text>
-                {[
-                  { label: 'Goal', value: title || 'Untitled' },
-                  { label: 'Target Amount', value: `₦${Number(goalAmount).toLocaleString()}` },
-                  initialDeposit ? { label: 'Starting with', value: `₦${Number(initialDeposit).toLocaleString()}` } : null,
-                  { label: 'Target Date', value: targetDate },
-                  autoDebitCalc > 0 ? { label: 'Auto-save', value: `₦${autoDebitCalc.toLocaleString()} ${autoDebitFreq.toLowerCase()}` } : null,
-                  { label: 'Early withdrawal penalty', value: '5%' },
-                ].filter(Boolean).map((item: any, i) => (
-                  <View key={i} style={styles.summaryPreviewRow}>
-                    <Text style={styles.summaryPreviewLabel}>{item.label}</Text>
-                    <Text style={styles.summaryPreviewValue}>{item.value}</Text>
-                  </View>
-                ))}
-              </View>
-            ) : null}
-
-            <TouchableOpacity
-              style={[styles.createGoalBtn, saving && { opacity: 0.7 }]}
-              onPress={handleCreate}
-              disabled={saving}
-            >
-              <LinearGradient colors={['#25427a', '#385c9e']} style={styles.createGoalBtnGradient}>
-                {saving ? <OwodeLoader color="#fff" /> : <Text style={styles.createGoalBtnText}>Create Savings Goal</Text>}
-              </LinearGradient>
-            </TouchableOpacity>
-
-            <View style={{ height: 40 }} />
           </View>
+          <Field label="Goal name" placeholder="e.g. House rent target" value={title} onChangeText={setTitle} />
+          <Field label="Target amount" prefix="₦" placeholder="150,000" value={goalAmount}
+            onChangeText={t => setGoalAmount(t.replace(/[^\d]/g, ''))} keyboardType="numeric" />
+          <Field label="Start with (optional)" prefix="₦" placeholder="0" value={initialDeposit}
+            onChangeText={t => setInitialDeposit(t.replace(/[^\d]/g, ''))} keyboardType="numeric" />
+
+          <View style={{ gap: 8 }}>
+            <Eyebrow>TARGET DATE</Eyebrow>
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              {[{ label: '3 months', months: 3 }, { label: '6 months', months: 6 }, { label: '1 year', months: 12 }].map(opt => {
+                const on = dateChip === opt.label
+                return (
+                  <TouchableOpacity key={opt.label} style={[sv.chip, on && sv.chipOn]}
+                    onPress={() => {
+                      const d = new Date(); d.setMonth(d.getMonth() + opt.months)
+                      setTargetDate(d.toISOString().split('T')[0]); setDateChip(opt.label)
+                    }}>
+                    <Text style={[sv.chipText, on && sv.chipTextOn]} numberOfLines={1}>{opt.label}</Text>
+                  </TouchableOpacity>
+                )
+              })}
+              <TouchableOpacity style={[sv.chip, { flex: 0, width: 46 }, dateChip === 'Custom' && sv.chipOn]} accessibilityLabel="Pick a date"
+                onPress={() => { setDateChip('Custom'); setTempDate(targetDate ? new Date(targetDate) : new Date()); setShowDatePicker(true) }}>
+                <Icon name="calendar" size={18} color={dateChip === 'Custom' ? '#ffffff' : ds.navy} width={2} />
+              </TouchableOpacity>
+            </View>
+            {targetDate ? (
+              <Text style={ui.muted}>
+                Reach it by {new Date(targetDate).toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' })}
+                {perDaySave > 0 ? ` · about ${naira(perDaySave)} a day` : ''}
+              </Text>
+            ) : null}
+          </View>
+
+          {showDatePicker && Platform.OS === 'android' && (
+            <DateTimePicker value={tempDate} mode="date" display="spinner" minimumDate={new Date()}
+              onChange={(event: any, d?: Date) => {
+                setShowDatePicker(false)
+                if (event?.type === 'set' && d) { setTargetDate(d.toISOString().split('T')[0]); setDateChip('Custom') }
+              }} />
+          )}
+          {Platform.OS === 'ios' && (
+            <Modal visible={showDatePicker} transparent animationType="slide" onRequestClose={() => setShowDatePicker(false)}>
+              <View style={styles.dpBackdrop}>
+                <View style={styles.dpSheet}>
+                  <View style={styles.dpHeader}>
+                    <TouchableOpacity onPress={() => setShowDatePicker(false)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                      <Text style={styles.dpCancel} numberOfLines={1}>Cancel</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.dpTitle} numberOfLines={1}>Select target date</Text>
+                    <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                      onPress={() => { setTargetDate(tempDate.toISOString().split('T')[0]); setDateChip('Custom'); setShowDatePicker(false) }}>
+                      <Text style={styles.dpDone} numberOfLines={1}>Done</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <DateTimePicker value={tempDate} mode="date" display="spinner" minimumDate={new Date()}
+                    themeVariant="light" textColor="#1a2b4a" onChange={(e: any, d?: Date) => { if (d) setTempDate(d) }} style={styles.dpPicker} />
+                </View>
+              </View>
+            </Modal>
+          )}
+
+          <View style={{ gap: 8 }}>
+            <View style={ui.rowBetween}>
+              <Eyebrow>AUTO-SAVE</Eyebrow>
+              <Switch value={autoDebitOn} onValueChange={v => { setAutoDebitOn(v); if (!v) setAutoDebitFreq('') }}
+                trackColor={{ false: '#cfd6e3', true: ds.navy }} thumbColor="#ffffff" />
+            </View>
+            {autoDebitOn ? (
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                {freqs.map(f => {
+                  const on = autoDebitFreq === f
+                  return (
+                    <TouchableOpacity key={f} style={[sv.chip, on && sv.chipOn]} onPress={() => setAutoDebitFreq(f)}>
+                      <Text style={[sv.chipText, on && sv.chipTextOn]}>{f.charAt(0) + f.slice(1).toLowerCase()}</Text>
+                    </TouchableOpacity>
+                  )
+                })}
+              </View>
+            ) : null}
+          </View>
+
+          {autoDebitOn && autoDebitFreq && goalAmount && targetDate && autoDebitCalc > 0 ? (
+            <Card tone="gold" style={{ gap: 8 }}>
+              <Eyebrow color={ds.goldInk}>YOUR PLAN</Eyebrow>
+              <Text style={sv.plan}>{naira(autoDebitCalc)} every {autoDebitFreq === 'DAILY' ? 'day' : autoDebitFreq === 'WEEKLY' ? 'week' : 'month'}</Text>
+              <Text style={sv.planSub}>
+                We move it from your wallet automatically to reach {naira(Number(goalAmount))} by {new Date(targetDate).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })}.
+              </Text>
+            </Card>
+          ) : autoDebitOn && !autoDebitFreq ? (
+            <Text style={sv.warn}>Pick how often to save</Text>
+          ) : null}
+
+          {goalAmount && targetDate ? (
+            <Note icon="info">Withdrawing before the target date has a 5% fee. Reaching your target makes it free.</Note>
+          ) : null}
         </ScrollView>
+        <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: Math.max(insets.bottom + 12, 28) }}>
+          <Btn title="Create goal" onPress={handleCreate} loading={saving} />
+        </View>
       </View>
     )
   }
 
-  // DEPOSIT SCREEN
+  // OWODE Alajo Redesign "Add to goal" board
   if (screen === 'deposit') {
+    const add = Number(depositAmount) || 0
+    const pct = Math.max(0, Math.min(100, Math.round(selectedGoal?.progress || 0)))
+    const press = (k: string) => {
+      if (k === 'del') { setDepositAmount(p => p.slice(0, -1)); return }
+      setDepositAmount(p => {
+        if (!p && (k === '0' || k === '00')) return p
+        const next = p + k
+        return next.length > 9 ? p : next
+      })
+    }
     return (
-      <View style={styles.container}>
-        <LinearGradient colors={['#14244a', '#14244a']} style={styles.createHeader}>
-          <TouchableOpacity onPress={() => setScreen('list')}>
-            <Ionicons name="chevron-back" size={22} color="#f5a623" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Add Money</Text>
-          <View style={{ width: 50 }} />
-        </LinearGradient>
-
-        <ScrollView automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled" style={{ flex: 1, padding: 20 }}>
-          {selectedGoal && (
-            <>
-              <View style={styles.depositGoalInfo}>
-                <Text style={styles.depositGoalTitle}>{selectedGoal.title}</Text>
-                <Text style={styles.depositGoalProgress}>
-                  ₦{selectedGoal.currentAmount?.toLocaleString()} of ₦{selectedGoal.goalAmount?.toLocaleString()}
-                </Text>
-                <View style={styles.depositProgressBar}>
-                  <View style={[styles.depositProgressFill, { width: `${Math.min(selectedGoal.progress, 100)}%` }]} />
-                </View>
-                <Text style={styles.depositProgressPercent}>{selectedGoal.progress}% complete</Text>
+      <View style={ui.white}>
+        <TopBar title="Add to goal" onBack={() => setScreen('list')} onWhite />
+        {selectedGoal && (
+          <View style={{ paddingHorizontal: 20, paddingTop: 18, gap: 16 }}>
+            <Card style={{ gap: 12 }}>
+              <View style={ui.rowBetween}>
+                <Text style={sv.goalTitle} numberOfLines={1}>{selectedGoal.title}</Text>
+                <Text style={sv.goalPct}>{pct}%</Text>
               </View>
-
-              <Text style={styles.fieldLabel}>Amount to deposit</Text>
-              <View style={styles.inputWrapper}>
-                <Text style={styles.inputPrefix}>₦</Text>
-                <TextInput
-                  style={styles.inputWithPrefix}
-                  placeholder="0.00"
-                  placeholderTextColor="#aaa"
-                  value={depositAmount}
-                  onChangeText={setDepositAmount}
-                  keyboardType="numeric"
-                  autoFocus
-                />
+              <View style={sv.track}><View style={[sv.fill, { width: `${pct}%` }]} /></View>
+              <View style={ui.rowBetween}>
+                <Text style={sv.goalSaved}>{naira(selectedGoal.currentAmount || 0)}</Text>
+                <Text style={ui.muted}>of {naira(selectedGoal.goalAmount || 0)}</Text>
               </View>
-
-              {/* Quick amounts */}
-              <View style={styles.quickAmounts}>
-                {[1000, 5000, 10000, 20000].map(amt => (
-                  <TouchableOpacity
-                    key={amt}
-                    style={[styles.quickAmountBtn, depositAmount === String(amt) && styles.quickAmountBtnActive]}
-                    onPress={() => setDepositAmount(String(amt))}
-                  >
-                    <Text style={[styles.quickAmountText, depositAmount === String(amt) && styles.quickAmountTextActive]}>
-                      ₦{amt.toLocaleString()}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+            </Card>
+            <View style={{ alignItems: 'center', gap: 8, paddingTop: 6 }}>
+              <Eyebrow>AMOUNT TO ADD</Eyebrow>
+              <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
+                <Text style={sv.sym}>₦</Text>
+                <Text style={[sv.amount, !add && { color: '#9aa5b8' }]}>{add ? commas(add) : '0'}</Text>
               </View>
-
-              {depositAmount && Number(depositAmount) > 0 && (
-                <View style={styles.summaryPreview}>
-                  {[
-                    { label: 'Current savings', value: `₦${selectedGoal.currentAmount?.toLocaleString()}` },
-                    { label: 'Adding', value: `+₦${Number(depositAmount).toLocaleString()}`, color: '#25427a' },
-                    { label: 'New total', value: `₦${(selectedGoal.currentAmount + Number(depositAmount)).toLocaleString()}`, bold: true },
-                  ].map((item: any, i) => (
-                    <View key={i} style={[styles.summaryPreviewRow, i === 2 && { borderBottomWidth: 0 }]}>
-                      <Text style={[styles.summaryPreviewLabel, item.bold && { fontWeight: 'bold' }]}>{item.label}</Text>
-                      <Text style={[styles.summaryPreviewValue, item.color && { color: item.color }, item.bold && { color: '#25427a' }]}>{item.value}</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
-
-              <TouchableOpacity
-                style={[styles.createGoalBtn, saving && { opacity: 0.7 }]}
-                onPress={handleDeposit}
-                disabled={saving}
-              >
-                <LinearGradient colors={['#25427a', '#1a2e55']} style={styles.createGoalBtnGradient}>
-                  {saving ? <OwodeLoader color="#fff" /> : <Text style={styles.createGoalBtnText}>Deposit to Savings</Text>}
-                </LinearGradient>
-              </TouchableOpacity>
-            </>
-          )}
-          <View style={{ height: 40 }} />
-        </ScrollView>
+              <Text style={ui.muted}>
+                {add > 0 ? `New total ${naira((selectedGoal.currentAmount || 0) + add)}` : 'Moved from your wallet'}
+              </Text>
+            </View>
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              {[1000, 5000, 10000, 20000].map(q => (
+                <TouchableOpacity key={q} style={[sv.quick, add === q && { backgroundColor: ds.navy }]} onPress={() => setDepositAmount(String(q))}>
+                  <Text style={[sv.quickText, add === q && { color: '#ffffff' }]}>{naira(q)}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
+        <View style={{ flex: 1 }} />
+        <View style={sv.pad}>
+          {['1', '2', '3', '4', '5', '6', '7', '8', '9', '00', '0', 'del'].map(k => (
+            <TouchableOpacity key={k} style={sv.key} onPress={() => press(k)} onLongPress={k === 'del' ? () => setDepositAmount('') : undefined}
+              accessibilityLabel={k === 'del' ? 'Delete' : k}>
+              {k === 'del' ? <Icon name="backspace" size={24} color={ds.ink} /> : <Text style={sv.keyText}>{k}</Text>}
+            </TouchableOpacity>
+          ))}
+        </View>
+        <View style={{ paddingHorizontal: 20, paddingTop: 14, paddingBottom: Math.max(insets.bottom + 12, 28) }}>
+          <Btn title="Continue — enter PIN" kind="navy" onPress={handleDeposit} loading={saving} disabled={!add} />
+        </View>
       </View>
     )
   }
@@ -1015,4 +864,29 @@ const styles = StyleSheet.create({
   quickAmountBtnActive: { backgroundColor: '#eaf2ff', borderColor: '#25427a' },
   quickAmountText: { fontSize: 12, color: '#7c8aa5', fontWeight: '600' },
   quickAmountTextActive: { color: '#25427a' },
+})
+
+const sv = StyleSheet.create({
+  cat: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 40, paddingHorizontal: 14, borderRadius: 20, borderWidth: 1, borderColor: ds.border, backgroundColor: ds.card },
+  catOn: { backgroundColor: ds.hero, borderColor: ds.hero },
+  catText: { fontSize: 13, lineHeight: 16, color: ds.ink, fontFamily: F.s },
+  chip: { flex: 1, height: 40, borderRadius: 20, borderWidth: 1, borderColor: ds.border, backgroundColor: ds.card, alignItems: 'center', justifyContent: 'center' },
+  chipOn: { backgroundColor: ds.hero, borderColor: ds.hero },
+  chipText: { fontSize: 13, lineHeight: 16, color: ds.ink, fontFamily: F.s },
+  chipTextOn: { color: '#ffffff', fontFamily: F.x },
+  plan: { fontSize: 20, lineHeight: 24, color: ds.ink, fontFamily: F.x, ...tnum },
+  planSub: { fontSize: 13, lineHeight: 19, color: ds.goldInk2, fontFamily: F.r },
+  warn: { fontSize: 12, lineHeight: 15, color: ds.goldInk, fontFamily: F.b },
+  goalTitle: { flex: 1, fontSize: 15, lineHeight: 18, color: ds.ink, fontFamily: F.x },
+  goalPct: { fontSize: 12, lineHeight: 15, color: ds.hero, fontFamily: F.x },
+  track: { height: 8, borderRadius: 4, backgroundColor: ds.divider, overflow: 'hidden' },
+  fill: { height: 8, borderRadius: 4, backgroundColor: ds.navy },
+  goalSaved: { fontSize: 13, lineHeight: 16, color: ds.ink, fontFamily: F.x, ...tnum },
+  sym: { fontSize: 28, lineHeight: 34, color: ds.muted, fontFamily: F.b },
+  amount: { fontSize: 48, lineHeight: 58, color: ds.ink, fontFamily: F.x, letterSpacing: -1, ...tnum },
+  quick: { flex: 1, height: 40, borderRadius: 12, backgroundColor: ds.blueSoft, alignItems: 'center', justifyContent: 'center' },
+  quickText: { fontSize: 13, lineHeight: 16, color: ds.navy, fontFamily: F.x },
+  pad: { paddingHorizontal: 20, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 8 },
+  key: { width: '32%', height: 52, borderRadius: 14, backgroundColor: ds.bg, alignItems: 'center', justifyContent: 'center' },
+  keyText: { fontSize: 22, lineHeight: 27, color: ds.ink, fontFamily: F.b },
 })

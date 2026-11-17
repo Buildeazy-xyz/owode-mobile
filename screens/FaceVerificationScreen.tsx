@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  Alert, Dimensions
+  Alert, Dimensions, ScrollView
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { CameraView, useCameraPermissions } from 'expo-camera'
@@ -11,6 +11,9 @@ import { LinearGradient as LG } from 'expo-linear-gradient'
 import { kycAPI } from '../utils/api'
 import { useAuth } from '../context/AuthContext'
 import OwodeLoader from '../components/OwodeLoader'
+import Icon, { IconName } from '../components/Icon'
+import { TopBar, Btn } from '../components/ui'
+import { F, ds } from '../constants/theme'
 
 const { width, height } = Dimensions.get('window')
 
@@ -114,79 +117,63 @@ export default function FaceVerificationScreen({ navigation }: any) {
 
   if (!permission) return <View style={styles.container} />
 
+  // OWODE Alajo Redesign "Face verification" board
+  const Shell = ({ children, onBack, title = 'Face verification' }: { children: React.ReactNode; onBack?: () => void; title?: string }) => (
+    <View style={{ flex: 1, backgroundColor: ds.hero }}>
+      <TopBar title={title} onBack={onBack} dark />
+      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40, gap: 18, flexGrow: 1 }}>{children}</ScrollView>
+    </View>
+  )
+  const Oval = () => (
+    <View style={fv.oval}><Icon name="user" size={110} color="#4a5f8f" width={1.2} /></View>
+  )
+  const Tip = ({ icon, text, on }: { icon: IconName; text: string; on?: boolean }) => (
+    <View style={fv.tip}>
+      <Icon name={icon} size={18} color={on ? ds.gold : ds.onHero} width={2} />
+      <Text style={[fv.tipText, on && { color: '#ffffff', fontFamily: F.b }]}>{text}</Text>
+    </View>
+  )
+
   if (!permission.granted) {
     return (
-      <LinearGradient colors={['#1a2e55', '#25427a']} style={styles.container}>
-        <View style={styles.permissionContent}>
-          <Ionicons name="camera-outline" size={64} color="#fff" style={{ marginBottom: 20 }} />
-          <Text style={styles.permissionTitle}>Camera Access Required</Text>
-          <Text style={styles.permissionDesc}>
-            OWODE needs camera access to verify your identity
-          </Text>
-          <TouchableOpacity style={styles.permissionBtn} onPress={requestPermission}>
-            <Text style={styles.permissionBtnText}>Allow Camera Access</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Text style={styles.cancelText}>Cancel</Text>
-          </TouchableOpacity>
+      <Shell onBack={() => navigation.goBack()}>
+        <View style={{ alignItems: 'center', gap: 12, paddingTop: 24 }}>
+          <View style={fv.iconTile}><Icon name="camera" size={30} color={ds.gold} width={2} /></View>
+          <Text style={fv.title}>Allow the camera</Text>
+          <Text style={fv.sub}>OWODE needs your front camera to check that it is really you.</Text>
         </View>
-      </LinearGradient>
+        <View style={{ flex: 1 }} />
+        <Btn title="Allow camera" icon="camera" onPress={requestPermission} />
+        <Btn title="Not now" kind="heroline" onPress={() => navigation.goBack()} />
+      </Shell>
     )
   }
 
   if (step === 'intro') {
+    const needsId = !user?.bvn && !user?.nin
     return (
-      <LinearGradient colors={['#1a2e55', '#25427a', '#385c9e']} style={styles.container}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={22} color="#f5a623" />
-        </TouchableOpacity>
-
-        <View style={styles.introContent}>
-          <View style={styles.faceIconCircle}>
-            <Text style={styles.faceIcon}></Text>
-          </View>
-          <Text style={styles.introTitle}>Face Verification</Text>
-          <Text style={styles.introSubtitle}>
-            We use YouVerify to match your face with your BVN/NIN records to verify your identity
-          </Text>
-
-          {/* KYC status warning */}
-          {!user?.bvn && !user?.nin && (
-            <View style={styles.warningCard}>
-              <Text style={styles.warningText}>
-                You need to submit your BVN or NIN first before face verification!
-              </Text>
-              <TouchableOpacity
-                style={styles.warningBtn}
-                onPress={() => navigation.navigate('Profile')}
-              >
-                <Text style={styles.warningBtnText}>Submit BVN/NIN</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
-          <View style={styles.tipsCard}>
-            <Text style={styles.tipsTitle}>For best results:</Text>
-            {[
-              'Find a well-lit area',
-              'Remove glasses if possible',
-              'Hold phone at eye level',
-              'Keep a neutral expression',
-              'No hats or face coverings'
-            ].map((tip, i) => (
-              <Text key={i} style={styles.tipItem}>{tip}</Text>
-            ))}
-          </View>
-
-          <TouchableOpacity
-            style={[styles.startBtn, (!user?.bvn && !user?.nin) && styles.startBtnDisabled]}
-            onPress={() => setStep('camera')}
-            disabled={!user?.bvn && !user?.nin}
-          >
-            <Text style={styles.startBtnText}>Start Verification</Text>
-          </TouchableOpacity>
+      <Shell onBack={() => navigation.goBack()}>
+        <View style={{ alignItems: 'center', gap: 14, paddingTop: 8 }}>
+          <Oval />
+          <Text style={fv.title}>Check it's really you</Text>
+          <Text style={fv.sub}>We match your face with the photo on your BVN or NIN record.</Text>
         </View>
-      </LinearGradient>
+        {needsId ? (
+          <View style={fv.warn}>
+            <Icon name="alert" size={20} color={ds.gold} width={2} />
+            <Text style={fv.warnText}>Submit your BVN or NIN first, then come back to verify your face.</Text>
+          </View>
+        ) : null}
+        <View style={{ gap: 10 }}>
+          <Tip icon="sun" text="Good light on your face" />
+          <Tip icon="user" text="No glasses, cap or face covering" />
+          <Tip icon="camera" text="Phone at eye level, neutral face" />
+        </View>
+        <View style={{ flex: 1 }} />
+        {needsId
+          ? <Btn title="Submit BVN or NIN" icon="shieldCheck" onPress={() => navigation.navigate('KYCVerification')} />
+          : <Btn title="Start" icon="camera" onPress={() => setStep('camera')} />}
+      </Shell>
     )
   }
 
@@ -230,89 +217,73 @@ export default function FaceVerificationScreen({ navigation }: any) {
 
   if (step === 'processing') {
     return (
-      <LinearGradient colors={['#1a2e55', '#25427a']} style={styles.container}>
-        <View style={styles.processingContent}>
-          <OwodeLoader size="large" fullscreen color="#f5a623" />
-          <Text style={styles.processingTitle}>Verifying Identity</Text>
-          <Text style={styles.processingDesc}>
-            Comparing your face with government records via YouVerify...
-          </Text>
-          <View style={styles.processingSteps}>
-            <Text style={styles.processingStep}>Liveness detected</Text>
-            <Text style={styles.processingStep}>⏳ Matching with ID photo...</Text>
-            <Text style={styles.processingStep}>⏳ Confirming identity...</Text>
-          </View>
+      <Shell>
+        <View style={{ alignItems: 'center', gap: 16, paddingTop: 8 }}>
+          <Oval />
+          <Text style={fv.pill}>Hold on · checking it is really you</Text>
         </View>
-      </LinearGradient>
+        <View style={{ gap: 10, paddingTop: 6 }}>
+          <Tip icon="checkCircle" text="Face found" on />
+          <Tip icon="checkCircle" text="Liveness confirmed" on />
+          <Tip icon="clock" text="Matching with your ID photo…" />
+        </View>
+      </Shell>
     )
   }
 
   if (step === 'success') {
     return (
-      <LinearGradient colors={['#1a2e55', '#22c55e', '#16a34a']} style={styles.container}>
-        <View style={styles.resultContent}>
-          <View style={styles.successCircle}>
-            <Ionicons name="checkmark-circle" size={56} color="#22c55e" />
-          </View>
-          <Text style={styles.resultTitle}>Identity Verified!</Text>
-          <Text style={styles.resultDesc}>
-            Your face has been successfully matched with your government ID via YouVerify. Your account is now fully verified!
-          </Text>
-          <View style={styles.benefitsCard}>
-            <Text style={styles.benefitsTitle}>You can now:</Text>
-            <Text style={styles.benefitItem}>Join Guaranteed Ajo groups</Text>
-            <Text style={styles.benefitItem}>Make larger transfers</Text>
-            <Text style={styles.benefitItem}>Access all platform features</Text>
-          </View>
-          <TouchableOpacity
-            style={styles.doneBtn}
-            onPress={() => navigation.navigate('Dashboard')}
-          >
-            <Text style={styles.doneBtnText}>Continue to Dashboard</Text>
-          </TouchableOpacity>
+      <Shell title="Verified">
+        <View style={{ alignItems: 'center', gap: 14, paddingTop: 24 }}>
+          <View style={fv.result}><Icon name="check" size={44} color={ds.hero} width={2.6} /></View>
+          <Text style={fv.title}>You're verified</Text>
+          <Text style={fv.sub}>Your face matched your ID. Every feature is now unlocked.</Text>
         </View>
-      </LinearGradient>
+        <View style={{ gap: 10 }}>
+          <Tip icon="ajo" text="Join Guaranteed Ajọ groups" on />
+          <Tip icon="send" text="Send and receive larger amounts" on />
+        </View>
+        <View style={{ flex: 1 }} />
+        <Btn title="Go to Home" onPress={() => navigation.navigate('Dashboard')} />
+      </Shell>
     )
   }
 
   if (step === 'failed') {
     return (
-      <LinearGradient colors={['#1a2e55', '#7f1d1d']} style={styles.container}>
-        <View style={styles.resultContent}>
-          <View style={styles.failedCircle}>
-            <Ionicons name="close-circle" size={48} color="#ef4444" />
-          </View>
-          <Text style={styles.resultTitle}>Verification Failed</Text>
-          <Text style={styles.resultDesc}>
-            {errorMessage || 'We could not match your face with your government ID.'}
-          </Text>
-          <View style={styles.retryCard}>
-            <Text style={styles.retryTitle}>Common reasons:</Text>
-            <Text style={styles.retryItem}>• Poor lighting conditions</Text>
-            <Text style={styles.retryItem}>• Face not clearly visible</Text>
-            <Text style={styles.retryItem}>• Glasses or face coverings</Text>
-            <Text style={styles.retryItem}>• Camera angle too steep</Text>
-          </View>
-          {attempts < 3 && (
-            <TouchableOpacity
-              style={styles.retryBtn}
-              onPress={() => setStep('intro')}
-            >
-              <Text style={styles.retryBtnText}>
-                Try Again ({3 - attempts} attempts left)
-              </Text>
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Text style={styles.cancelText}>Cancel</Text>
-          </TouchableOpacity>
+      <Shell onBack={() => navigation.goBack()}>
+        <View style={{ alignItems: 'center', gap: 14, paddingTop: 24 }}>
+          <View style={[fv.result, { backgroundColor: ds.dangerSoft }]}><Icon name="close" size={40} color={ds.danger} width={2.6} /></View>
+          <Text style={fv.title}>We couldn't match your face</Text>
+          <Text style={fv.sub}>{errorMessage || 'Your face did not match the photo on your ID record.'}</Text>
         </View>
-      </LinearGradient>
+        <View style={{ gap: 10 }}>
+          <Tip icon="sun" text="Move to brighter light" />
+          <Tip icon="user" text="Take off glasses or cap" />
+          <Tip icon="camera" text="Hold the phone straight at eye level" />
+        </View>
+        <View style={{ flex: 1 }} />
+        {attempts < 3 ? <Btn title={`Try again · ${3 - attempts} left`} icon="refresh" onPress={() => setStep('intro')} /> : null}
+        <Btn title="Cancel" kind="heroline" onPress={() => navigation.goBack()} />
+      </Shell>
     )
   }
 
   return null
 }
+
+const fv = StyleSheet.create({
+  oval: { width: 220, height: 280, borderRadius: 110, borderWidth: 4, borderColor: ds.gold, backgroundColor: '#1b2d58', alignItems: 'center', justifyContent: 'center' },
+  iconTile: { width: 64, height: 64, borderRadius: 20, backgroundColor: ds.heroChip, alignItems: 'center', justifyContent: 'center' },
+  title: { fontSize: 22, lineHeight: 27, color: '#ffffff', fontFamily: F.x, textAlign: 'center' },
+  sub: { fontSize: 14, lineHeight: 21, color: ds.onHero, fontFamily: F.r, textAlign: 'center', maxWidth: 320 },
+  tip: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  tipText: { flex: 1, fontSize: 14, lineHeight: 18, color: ds.onHero, fontFamily: F.m },
+  warn: { flexDirection: 'row', gap: 10, alignItems: 'center', backgroundColor: ds.heroChip, borderRadius: 14, padding: 14 },
+  warnText: { flex: 1, fontSize: 13, lineHeight: 19, color: '#ffffff', fontFamily: F.m },
+  pill: { fontSize: 13, lineHeight: 16, color: '#ffffff', fontFamily: F.b, backgroundColor: ds.heroChip, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 14, overflow: 'hidden' },
+  result: { width: 88, height: 88, borderRadius: 44, backgroundColor: ds.gold, alignItems: 'center', justifyContent: 'center' },
+})
 
 const OVAL_WIDTH = width * 0.65
 const OVAL_HEIGHT = OVAL_WIDTH * 1.3
@@ -352,7 +323,7 @@ const styles = StyleSheet.create({
   ovalCutout: { width: OVAL_WIDTH, height: OVAL_HEIGHT, borderRadius: OVAL_WIDTH / 2, borderWidth: 3, borderColor: '#f5a623' },
   overlayBottom: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' },
   instructionBox: { position: 'absolute', bottom: 120, left: 0, right: 0, alignItems: 'center' },
-  instructionText: { color: '#fff', fontSize: 18, fontWeight: 'bold', textAlign: 'center', backgroundColor: 'rgba(0,0,0,0.6)', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20 },
+  instructionText: { color: '#fff', fontSize: 15, lineHeight: 19, fontFamily: F.b, textAlign: 'center', backgroundColor: 'rgba(20,36,74,0.85)', paddingHorizontal: 18, paddingVertical: 10, borderRadius: 16, overflow: 'hidden' },
   cancelCameraBtn: { position: 'absolute', top: 60, right: 24 },
   cancelCameraText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
   corner: { position: 'absolute', width: 20, height: 20, borderColor: '#f5a623', borderWidth: 3 },

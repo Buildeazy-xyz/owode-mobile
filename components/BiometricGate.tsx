@@ -29,7 +29,7 @@ export default function BiometricGate({ children, reason }: BiometricGateProps) 
   if (unlocked) return <>{children}</>
 
   return (
-    <LinearGradient colors={['#1a2e55', '#25427a']} style={styles.container}>
+    <LinearGradient colors={['#14244a', '#14244a']} style={styles.container}>
       <Ionicons name="lock-closed" size={64} color="#25427a" style={{ marginBottom: 20 }} />
       <Text style={styles.title}>Secure Content</Text>
       <Text style={styles.subtitle}>{reason || 'Verify your identity to view this'}</Text>
